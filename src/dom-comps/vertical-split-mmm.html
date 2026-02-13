@@ -1,0 +1,45 @@
+<style>
+:host { display:flex; flex-direction:row; height:100%; width:100%; }
+
+slot[name="left"],
+slot[name="right"] {
+    flex: 1;
+    overflow: hidden;
+}
+
+.divider {
+    position: relative;
+    width: 2px;
+    background: #444;
+}
+
+.thumb {
+    position: absolute;
+    left: -2px;
+    z-index: 1;
+    height: 100%;
+    width: 4px;
+    background: #57f;
+    opacity: 0;
+    transition: opacity 0.1s;
+    cursor: col-resize;
+    user-select: none;
+}
+
+.thumb:hover,
+.thumb.dragging {
+    opacity: 1;
+    transition: opacity 0.1s;
+    transition-delay: 0.2s;
+}
+
+.element {
+  transition: width 0.3s ease-in-out 1s; /* 1s delay on */
+}
+.element:hover {
+  transition: width 0.3s ease-in-out 0s; /* 0 delay off */
+}
+</style>
+<slot name="left"></slot>
+<div class="divider"><div class="thumb"></div></div>
+<slot name="right"></slot>

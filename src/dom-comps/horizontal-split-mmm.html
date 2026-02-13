@@ -1,0 +1,39 @@
+<style>
+    :host { display: flex; flex-direction: column; height: 100%; width: 100%; }
+    
+    slot[name="top"],
+    slot[name="bottom"] {
+        width:100%;
+        overflow:hidden;
+    }
+    
+    .divider {
+        position: relative;
+        height: 2px;
+        background: #444;
+    }
+    
+    .thumb {
+        position: absolute;
+        top: -2px;
+        z-index: 1;
+        height: 4px;
+        width: 100%;
+        background:#57f;
+        opacity: 0;
+        transition: opacity 0.1s;
+        cursor: row-resize;
+        user-select: none;
+    }
+    
+    .thumb:hover,
+    .thumb.dragging {
+        opacity: 1;
+        transition: opacity 0.1s;
+        transition-delay: 0.2s;
+    }
+    </style>
+    <slot name="top"></slot>
+    <div class="divider"><div class="thumb"></div></div>
+    <slot name="bottom"></slot>
+    

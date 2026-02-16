@@ -1,11 +1,18 @@
 <style>
-    :host {
+    _host {
         /* no impact */
         /* display: flex; */
         /* flex-direction: column; */
         height: 100%;
         width: 100%;
         /* background-color: #151410; */
+    }
+    :host {
+        display: flex;
+        flex-direction: column;
+        height: 100%;           /* or whatever container size you want */
+        width: 100%;
+        box-sizing: border-box;
     }
 
     /* ::slotted(div) {

@@ -99,6 +99,7 @@ function ctor(args = {}) { return new ListView(args); }
 const IListView = ({ host, instance: self }) => {
     return {
         // sadly we need this init step.
+        // We need a registered role to call DOM.attach()
         init() {
             if (!self.items.size) {
                 const root = DOM.create(self.itemClassId, { label: "root", uid: uid(), depth: 0 });
@@ -133,10 +134,21 @@ const IListView = ({ host, instance: self }) => {
 
             return this; // this IListView
         },
-        remove(uid) {
-            const item = self.items.get(uid);
-            const idx = self.list.indexOf(item);
+        removeSelected() {
+            // don't remove root
+            if (self.selectedItem.uid === self.list[0].uid)
+                return;
 
+            const start = self.list.indexOf(self.selectedItem);
+            const end = self.endOfSubtree(self.selectedItem);
+
+            const deletedItems = self.list.splice(start, end-start);
+            for(const it of deletedItems)
+                self.items.delete(it.uid);
+            DOM.detachMany(deletedItems);
+
+            // select root
+            self.selectItem(self.list[start-1]);
         },
         select(uid) {
             const item = self.items.get(uid);

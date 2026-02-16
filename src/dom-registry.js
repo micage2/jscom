@@ -19,35 +19,6 @@ export const DomRegistry = {
         return clsid;
     },
 
-    configureClass(clsid, cfg) {
-        const klass = klasses.get(clsid);
-        if(klass) klass.config = cfg;
-    },
-
-    _create(clsid, args = {}, role) {
-        const klass = klasses.get(clsid);
-        if (!klass)
-            throw new Error(`No component registered for ${clsid}`);
-
-        const instance = klass.ctor(args);
-
-        const root = instance.getHost();
-        if (!root)
-            throw new Error(`Invalid host for ${clsid}`);
-
-        const data = instance.getInstance?.() ?? {};
-
-        const roleFactory = klass.roleProvider(role);
-        if (!roleFactory)
-            throw new Error(`No role factory for "${role}" on ${clsid}`);
-
-        const iface = roleFactory({ root, data });
-
-        privateNodes.set(iface, instance);
-
-        return iface;
-    },
-
     create(clsid, args = {}, role) {
         const klass = klasses.get(clsid);
         if (!klass) {

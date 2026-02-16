@@ -3,7 +3,14 @@ import { DomRegistry as DOM } from '../dom-registry.js';
 import { bus } from '../shared/event-bus.js';
 import { makeFragment, loadFragment } from '../shared/dom-helper.js';
 
-const html_file = "./src/dom-comps/test-view-2.html";
+/**
+ * emits:
+ *      "toolbar:add-item"
+ *      "toolbar:remove-selected"
+ */
+
+
+const html_file = "./src/dom-comps/toolbar.html";
 const fragment = await loadFragment(html_file);
 
 const html = `
@@ -52,10 +59,10 @@ function ctor(args = {}) {
 
 
     const addBtn = shadow.querySelector(`.add-button`);
-    addBtn.onclick = () => bus.emit('test:add-item');
+    addBtn.onclick = () => bus.emit('toolbar:add-item');
 
     const removeBtn = shadow.querySelector(`.remove-button`);
-    removeBtn.onclick = () => bus.emit('test:remove-item');
+    removeBtn.onclick = () => bus.emit('toolbar:remove-selected');
 
     return {
         getHost: () => host,

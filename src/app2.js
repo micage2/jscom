@@ -6,7 +6,7 @@ import V_SPLIT from './dom-comps/vertical-split-mmm.js';
 import H_SPLIT from './dom-comps/horizontal-split-mmm.js';
 import H_STATIC_SPLIT from './dom-comps/horizontal-static-split.js';
 import TESTVIEW from './dom-comps/test-view.js';
-import TESTVIEW2 from './dom-comps/test-view-2.js';
+import TESTVIEW2 from './dom-comps/toolbar.js';
 import DUMMY from './dom-comps/placeholder.js';
 import LISTVIEW from './dom-comps/list-view.js';
 import LISTITEM from './dom-comps/list-item.js';
@@ -38,13 +38,11 @@ const testView = DOM.create(TESTVIEW2);
 const dummy = DOM.create(DUMMY, { text: "dummy" });
 const vstatic = DOM.create(H_STATIC_SPLIT, { top: 32 });
 
-bus.on('test:add-item', (a) => {
-    listView.add({ label: uid() });
+bus.on('toolbar:add-item', (a) => {
+    listView.add({ label: '' });
 });
-bus.on('test:remove-selected', (a) => {
-    console.log(`remove selected (${a ?? 0})`);
-    // dummy.as("Text").text = `remove selected`;  
-    dummy.text = `remove selected`; 
+bus.on('toolbar:remove-selected', (a) => {
+    listView.removeSelected();
 });
 bus.on("list-view:item-selected", ({item}) => {
     let str = `selected: ${item.text}`;

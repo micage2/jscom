@@ -3,15 +3,15 @@ import { DomRegistry as DOM } from '../dom-registry.js';
 import { loadFragment, uid } from '../shared/dom-helper.js';
 import { bus } from '../shared/event-bus.js';
 
-const html_file = "./src/dom-comps/list-item.html";
-const fragment = await loadFragment(html_file);
-
 /**
  * emits:
  *      "list-item:selected"
  *      "list-item:expanded"
  */
 
+
+const html_file = "./src/dom-comps/list-item.html";
+const fragment = await loadFragment(html_file);
 
 class ListItem {
     constructor(args) {
@@ -23,7 +23,7 @@ class ListItem {
         this.row = shadow.querySelector('.list-item');
         this.expander = shadow.querySelector('.expander');
         this.label = shadow.querySelector('.label');
-        this.label.textContent = args.label;
+        this.label.textContent = args.label || this.uid;
         this.depth = args.depth || 0;
 
         this.row.addEventListener("click", (e) => {

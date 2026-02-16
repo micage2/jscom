@@ -102,6 +102,10 @@ const IListView = ({ host, instance: self }) => {
             const insertAt = self.endOfSubtree(self.selectedItem);
             const sibl = self.list[insertAt-1];
             self.selectedItem.isParent = true;
+            if (!self.selectedItem.open){
+                self.toggleSubtreeOpen(self.selectedItem);
+                self.selectedItem.open =! self.selectedItem.open;
+            }
 
             const item = DOM.create(self.itemClassId, args);
             item.depth = self.selectedItem ? self.selectedItem.depth + 1 : 0

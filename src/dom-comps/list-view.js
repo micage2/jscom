@@ -78,6 +78,7 @@ function ctor(args = {}) { return new ListView(args); }
 
 const IListView = ({ host, instance: self }) => {
     return {
+        // sadly we need this init step.
         init() {
             if (!self.items.size) {
                 const root = DOM.create(self.itemClassId, { label: "root (0)", uid: uid(), depth: 0 });
@@ -105,6 +106,7 @@ const IListView = ({ host, instance: self }) => {
             const item = DOM.create(self.itemClassId, args);
             item.depth = self.selectedItem ? self.selectedItem.depth + 1 : 0
             DOM.after(item, sibl, { slot: "content" });
+            item.show = !self.selectedItem.open;
 
             self.items.set(item.uid, item);
             self.list.splice(insertAt, 0, item);

@@ -55,32 +55,38 @@ const IListItem = ({ host, instance: self }) => {
     return {
         get uid() { return self.uid; },
         
+        // determines indentation of item content
         get depth() { return self.depth; },
         set depth(d) {
             self.expander.style.marginLeft = `${d * 16}px`;
             self.depth = d;
         },
 
+        // show/hide item
         get show() { return self.row.classList.contains('hidden'); },
         set show(state) {
             state ? self.row.classList.add('hidden')
                   : self.row.classList.remove('hidden');
         },
         
+        // label text
         get text() { return self.label.textContent; },
         set text(str) { self.label.textContent = str; },
 
+        // expand/collape state
         get open() { return self.expander.textContent === "▷" ? false : true },
         set open(state) {
             self.expander.textContent = state ? "▽" : "▷";
         },
         
+        // select/deselect state
         get selected() { self.row.classList.contains("selected"); },
         set selected(state) {
             state ? self.row.classList.add("selected")
                   : self.row.classList.remove("selected");
         },
 
+        // isParent state - display down/right arrow
         get isParent() { return self.row.classList.contains("has-children"); },
         set isParent(state) {
             state ? self.row.classList.add("has-children") 

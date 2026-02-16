@@ -6,6 +6,12 @@ import { bus } from '../shared/event-bus.js';
 const html_file = "./src/dom-comps/list-item.html";
 const fragment = await loadFragment(html_file);
 
+/**
+ * emits:
+ *      "list-item:selected"
+ *      "list-item:expanded"
+ */
+
 
 class ListItem {
     constructor(args) {
@@ -24,7 +30,7 @@ class ListItem {
             bus.emit("list-item:selected", { uid: this.uid });
         });    
         this.expander.addEventListener("click", (e) => {
-            bus.emit("list-item:expander", { uid: this.uid });
+            bus.emit("list-item:expanded", { uid: this.uid });
         });    
     }
     getHost() { return this.host; }
@@ -35,22 +41,6 @@ function ctor(args = {}) {
     return new ListItem(args);
 }
 
-function _ctor(args = {}) {
-    const host = document.createElement('div');
-    const shadow = host.attachShadow({ mode: 'closed' });
-    shadow.appendChild(fragment.cloneNode(true));
-
-    const row = shadow.querySelector('.list-item');
-    const expander = shadow.querySelector('.expander');
-    const label = shadow.querySelector('.label');
-    label.textContent = args.label;
-
-    return {
-        getHost() { return host; },
-        getInstance() { return {} }
-    };
-}
-
 const IListItem = ({ host, instance: self }) => {
     return {
         get uid() { return self.uid; },
@@ -58,7 +48,7 @@ const IListItem = ({ host, instance: self }) => {
         // determines indentation of item content
         get depth() { return self.depth; },
         set depth(d) {
-            self.expander.style.marginLeft = `${d * 16}px`;
+            self.expander.style.marginLeft = `${d * 14}px`;
             self.depth = d;
         },
 

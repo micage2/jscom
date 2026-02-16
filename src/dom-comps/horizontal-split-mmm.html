@@ -7,17 +7,17 @@
         width: 100%;
     }
     
+    ::slotted(div) {
+        overflow: hidden;
+        padding: 0 !important;
+    }
+    
     slot[name="top"],
     slot[name="bottom"] {
         width: 100%;
         overflow: hidden;
     }
 
-    ::slotted(div) {
-        overflow: hidden;
-        padding: 0 !important;
-    }
-    
     .divider {
         position: relative;
         height: 2px;

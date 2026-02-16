@@ -6,6 +6,14 @@ import { bus } from '../shared/event-bus.js';
 const html_file = "./src/dom-comps/list-view.html";
 const fragment = await loadFragment(html_file);
 
+/**
+ * emits:
+ *      "list-view:item-expanded", msg: { item }
+ *      "list-view:item-selected", msg: { item }
+*/
+
+
+
 /** @implements IDomNode */
 class ListView {
     constructor(args) {
@@ -18,21 +26,31 @@ class ListView {
         this.list = [];
         this.selectedItem = "";
 
-        bus.on('list-item:expander', ({uid}) => {
+        bus.on('list-item:expanded', ({uid}) => {
             const item = this.items.get(uid);
-            console.log(`expand ${uid}, open: ${item.open}`);
             item.open = item.open ? false : true;
             this.toggleSubtreeOpen(item);
+
+            console.log(`expanded ${uid}, open: ${item.open}`);
+            bus.emit('list-view:item-expanded', { item })
         });
+
         bus.on('list-item:selected', ({uid}) => {
-            if (this.selectedItem) {
-                this.selectedItem.selected = false;
-            }
             const item = this.items.get(uid);
-            console.log(`${item.text}, d: ${item.depth}`);
-            item.selected = true;
-            this.selectedItem = item;            
+            this.selectItem(item);
         });
+    }
+
+    selectItem(item) {
+        // set select state of previously selected item
+        if (this.selectedItem) {
+            this.selectedItem.selected = false;
+        }
+        item.selected = true;
+        this.selectedItem = item;            
+
+        // console.log(`${item.text} (${item.depth})`);
+        bus.emit('list-view:item-selected', { item });
     }
 
     toggleSubtreeOpen(item) {
@@ -40,11 +58,13 @@ class ListView {
         while(i < this.endOfSubtree(item)) {
             const it = this.list[i];
             it.show = !it.show;
+
             // skip closed subtrees
             if (it.isParent && !it.open) {
                 i = this.endOfSubtree(it);
                 continue;
             }
+            
             i++;
         }    
 
@@ -81,28 +101,21 @@ const IListView = ({ host, instance: self }) => {
         // sadly we need this init step.
         init() {
             if (!self.items.size) {
-                const root = DOM.create(self.itemClassId, { label: "root (0)", uid: uid(), depth: 0 });
+                const root = DOM.create(self.itemClassId, { label: "root", uid: uid(), depth: 0 });
                 DOM.attach(this, root, { slot: "content" });
                 self.items.set(root.uid, root);
                 self.list.push(root);
                 root.selected = true;
                 self.selectedItem = root;
+                bus.emit('list-view:item-selected', { item: root })
             }
             return this;
         },
-
-// Note: when adding we have to find the last child of the
-// selected item. This is done by walking down the list of items,
-// starting with the next item after the selected item, and
-// check for each item if it has item.depth == selectedItem.depth.
-// If it has, we insert a new item before this item and set
-// the new items depth to selectedItem.depth + 1.
-
         add(args = {}) {
             const insertAt = self.endOfSubtree(self.selectedItem);
             const sibl = self.list[insertAt-1];
             self.selectedItem.isParent = true;
-            if (!self.selectedItem.open){
+            if (!self.selectedItem.open) {
                 self.toggleSubtreeOpen(self.selectedItem);
                 self.selectedItem.open =! self.selectedItem.open;
             }
@@ -115,10 +128,19 @@ const IListView = ({ host, instance: self }) => {
             self.items.set(item.uid, item);
             self.list.splice(insertAt, 0, item);
 
+            // update selection listners
+            bus.emit('list-view:item-selected', { item: self.selectedItem });
+
             return this; // this IListView
         },
-        select(uid) {
+        remove(uid) {
+            const item = self.items.get(uid);
+            const idx = self.list.indexOf(item);
 
+        },
+        select(uid) {
+            const item = self.items.get(uid);
+            self.selectItem(item);
         }
     };
 };

@@ -42,7 +42,7 @@ function ctor(args) {
     css_rules.add("background", args?.color ?? '#234');
     host.style.cssText = css_rules.toString();
 
-    const shadow = host.attachShadow({ mode: 'open' });
+    const shadow = host.attachShadow({ mode: 'closed' });
     shadow.innerHTML = `
     <style>
         div.${class_id} { padding: 2px; color: #eee; }

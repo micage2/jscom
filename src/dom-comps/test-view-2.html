@@ -1,0 +1,37 @@
+<style>
+    :host{
+        background-color: #151410;
+    }
+    div {
+        display: flex;
+        height: 100%;
+        /* gap: 10px; */
+        /* flex-wrap: wrap; */
+        justify-content: space-between;
+        padding: 2px;
+        background-color: #151410;
+    }
+    button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border: none;
+        color: #ddd;
+        background-color: transparent;
+        font-size: 1rem;
+        position: relative;
+    }
+    button:hover {
+        background-color: hsl(40, 10%, 20%);
+    }
+    button:active {
+        top: -1px;
+        background-color: hsl(40, 10%, 20%);
+    }
+</style>
+<div class="button-bar">
+    <button class="add-button">+</button>
+    <button class="remove-button">x</button>
+</div>

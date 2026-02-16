@@ -43,15 +43,34 @@ function ctor(args = {}) {
     const leftSlot = shadow.querySelector('slot[name="left"]');
     const rightSlot = shadow.querySelector('slot[name="right"]');
     const thumb = shadow.querySelector('.thumb');
+    const divider = shadow.querySelector('.divider');
+    const dividerWidth = divider.offsetWidth;
+
+    const minLeft = args.minLeft || 2;
+    const minRight = args.minRight || 2;
 
     let ratio = args.ratio ?? 0.5;
     let isDragging = false;
 
+    // original, not working b/o dividerSize
+    const __update = () => {
+        const total = host.offsetWidth;
+        const dividerSize = 6;
+        const leftWidth = Math.max(50, Math.round(total * ratio - dividerSize / 2));
+        const rightWidth = total - leftWidth - dividerSize;
+
+        const leftChild = leftSlot?.assignedElements?.()[0];
+        const rightChild = rightSlot?.assignedElements?.()[0];
+
+        if (leftChild) leftChild.style.width = leftWidth + 'px';
+        if (rightChild) rightChild.style.width = rightWidth + 'px';
+    };
+
     const update = () => {
         const total = host.offsetWidth;
         const dividerSize = 2;
-        const leftWidth = Math.max(32, Math.round(total * ratio - dividerSize / 2));
-        const rightWidth = Math.max(32, total - leftWidth - dividerSize);
+        const leftWidth = Math.min(total - minRight, Math.max(minLeft, total * ratio - dividerWidth / 2));
+        const rightWidth = Math.round(total - leftWidth - dividerWidth / 2);
 
         const leftChild = leftSlot?.assignedElements?.()[0];
         const rightChild = rightSlot?.assignedElements?.()[0];
@@ -75,9 +94,8 @@ function ctor(args = {}) {
 
         const rect = host.getBoundingClientRect();
         const currentX = e.clientX - rect.left;
-
-        // ratio = Math.max(0.1, Math.min(0.9, currentX / rect.width));
         ratio = currentX / rect.width;
+
         update();
     }
 
@@ -92,8 +110,8 @@ function ctor(args = {}) {
     new ResizeObserver(update).observe(host);
 
     return {
-        getRootNode() { return host; },
-        getData() { return { ratio, update }; }
+        getHost() { return host; },
+        getInstance() { return { ratio, update }; }
     };
 }
 

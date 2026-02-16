@@ -2,20 +2,32 @@
 import { DomRegistry as DOM } from "../dom-registry.js";
 import { CSSRules } from "../shared/dom-helper.js";
 
-const IComponentImpl = ({ root }) => ({
+const IComponentImpl = ({ host, instance }) => ({
     dispose() {
-        root.remove();
+        host.remove();
+    },
+    set text(str) {
+        instance.textContent = str;
+    }
+});
+
+
+// note: not working! probably b/o the closed shadow
+const IText = ({ host, instance }) => ({
+    set text(str) {
+        instance.textContent = str;
     }
 });
 
 const roleFactories = new Map([
     ['Component', IComponentImpl],
+    ['Text', IText],
 ]);
 
 const roleProvider = (role = "Component") => roleFactories.get(role) ?? null;
 
 
-function domFactory(args) {
+function ctor(args) {
     const host = document.createElement('div');
     const css_rules = CSSRules({
         "color": "white",
@@ -27,23 +39,26 @@ function domFactory(args) {
         "font-size": "1rem",
         "overflow": "hidden",
     });
-    css_rules.add("background", args?.color ?? '#555');
+    css_rules.add("background", args?.color ?? '#234');
     host.style.cssText = css_rules.toString();
 
-    const shadow = host.attachShadow({ mode: 'closed' });
-
+    const shadow = host.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
-      <style>
-        div { padding: 2px; color: #eee; }
-      </style>
-      <div>${args?.text ?? 'Placeholder'}</div>
+    <style>
+        div.${class_id} { padding: 2px; color: #eee; }
+        .${class_id} .text { color: tomato; }
+    </style>
+    <div class="${class_id}">
+        <pre class='text'>${args.text || 'Problem'}</pre>
+    </div>
     `;
+    const text_field = shadow.querySelector('.text');
 
     return {
-        getRootNode() { return host; },
-        getData() { return {}; }
+        getHost() { return host; },
+        getInstance() { return text_field; }
     };
 }
 
-const class_id = DOM.register(domFactory, roleProvider);
+const class_id = DOM.register(ctor, roleProvider);
 export default class_id;

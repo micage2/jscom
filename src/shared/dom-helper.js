@@ -1,3 +1,7 @@
+function uid() {
+    return "" + Math.random().toString(36).slice(2, 11);
+}
+
 function create_sheet(code) {
     const sheet = new CSSStyleSheet();
     sheet.replaceSync(code);
@@ -82,5 +86,5 @@ export async function loadFragment(file) {
 }
 
 export {
-    create_sheet, fitChildDimensions, logobj
+    create_sheet, fitChildDimensions, logobj, uid,
 }

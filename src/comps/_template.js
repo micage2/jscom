@@ -46,4 +46,5 @@ function ctor(args = {}) {
     };
 }
 
-export const TEMPLATE_CLSID = Registry.register(ctor, roleProvider);
+const class_id = Registry.register(ctor, roleProvider);
+export default class_id;

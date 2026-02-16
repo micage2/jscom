@@ -1,0 +1,69 @@
+<!-- list-item.html -->
+<style>
+    :host {
+        display: block;
+        outline: none;
+        user-select: none;
+    }
+
+    .list-item {
+        display: flex;
+        box-sizing: border-box;
+        align-items: center;
+        height: 28px;
+        padding: 0 8px;
+        cursor: default;
+        color: #ddd;
+        transition: background-color 0.08s;
+    }
+    .list-item.hidden {
+        display: none;
+        transition: display 1.2s;
+    }
+
+    .list-item:hover {
+        background-color: #2a2a2a;
+    }
+
+    .list-item.selected {
+        background: #04356560;
+        border: 1px solid #06f;
+        color: white;
+    }
+
+    .expander {
+        width: 16px;
+        height: 16px;
+        margin-right: 4px;
+        background: none;
+        border: none;
+        padding: 0;
+        font-size: 12px;
+        line-height: 16px;
+        color: #bbb;
+        cursor: pointer;
+        opacity: 0;
+    }
+
+    .list-item.has-children .expander {
+        opacity: 1;
+    }
+
+    .expander:hover {
+        color: #eef;
+    }
+
+    .label {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 13px;
+    }
+</style>
+
+<div class="list-item">
+    <button class="expander">▽</button>
+    <span class="label"></span>
+</div>
+<!-- ▶▷▼▽ -->

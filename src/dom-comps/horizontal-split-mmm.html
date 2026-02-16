@@ -1,10 +1,21 @@
 <style>
-    :host { display: flex; flex-direction: column; height: 100%; width: 100%; }
+    :host {
+        /* no impact */
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        width: 100%;
+    }
     
     slot[name="top"],
     slot[name="bottom"] {
-        width:100%;
-        overflow:hidden;
+        width: 100%;
+        overflow: hidden;
+    }
+
+    ::slotted(div) {
+        overflow: hidden;
+        padding: 0 !important;
     }
     
     .divider {
@@ -15,9 +26,9 @@
     
     .thumb {
         position: absolute;
-        top: -2px;
+        top: -3px;
         z-index: 1;
-        height: 4px;
+        height: 6px;
         width: 100%;
         background:#57f;
         opacity: 0;
@@ -32,8 +43,8 @@
         transition: opacity 0.1s;
         transition-delay: 0.2s;
     }
-    </style>
-    <slot name="top"></slot>
-    <div class="divider"><div class="thumb"></div></div>
-    <slot name="bottom"></slot>
+</style>
+<slot name="top"></slot>
+<div class="divider"><div class="thumb"></div></div>
+<slot name="bottom"></slot>
     

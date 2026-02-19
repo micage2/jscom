@@ -3,7 +3,7 @@
  *  ctor() has to return it
  * @typedef {Object} IDomNode
  * @property {function(): HTMLElement} getHost - root node of the component
- * @property {function(): HTMLElement} getInstance - food for role factory
+ * @property {function(): any} getInstance - food for role factories
  */
 
 
@@ -40,14 +40,14 @@ export const DomRegistry = {
         const instance = iDomNode.getInstance();
 
         // TODO: instances should be mapped to a list of roles
-        // that have been already exposed
-        // if there exists already a role for that instance
+        // that have been already exposed on that instance.
+        // If there exists already a role for that instance
         // return the existing one
 
         const as = (r) => {
             const role_factory = klass.role_ctor(r);
             if (role_factory) {
-                const iface = role_factory({ host, instance });
+                const iface = role_factory(instance);
                 if(iface) {
                     iface.as = as;
 
@@ -65,83 +65,46 @@ export const DomRegistry = {
                 return { as };
             }
         };
+
         const iface = as(role);
         privateNodes.set(iface, iDomNode);
 
         return iface;
     },
 
-    after(inode, isibl, options = {}) {
-        const sibling = privateNodes.get(isibl);
-        if (!sibling)
-            return false;
-
+    /**
+     * @param {IDomNode} inode - the component to insert
+     * @param {IDomNode} itarget - where to insert
+     * @param {Object} options
+     * @property {"parent" | "before" | "after"} options.mode
+     * @property {string} options.slot - CSS name of slot
+     */
+    attach(inode, itarget, options = {}) {
         const node = privateNodes.get(inode);
         if (!node)
-            return false;
+            throw new Error(`DomNode source is not registered`);
 
-        const existingNode = sibling.getHost();
-        if (!existingNode)
-            return false;
+        const target = privateNodes.get(itarget);
+        if (!target)
+            throw new Error(`DomNode target is not registered`);
 
-        const newNode = node.getHost();
-        if (!newNode)
-            return false;
+        const newHost = node.getHost();
+        if (!newHost)
+            throw new Error(`source host is invalid.`);
 
-        newNode.slot = options.slot || '';
-        existingNode.parentNode.insertBefore(newNode, existingNode.nextSibling);
+        const targetHost = target.getHost();
+        if (!targetHost)
+            throw new Error(`target host is invalid.`);
 
-        return true;
-    },
+        newHost.slot = options.slot || '';
 
-    attach(parentIface, childIface, options = {}) {
-        const parent = privateNodes.get(parentIface);
-        if (!parent)
-            return false;
-
-        const child = privateNodes.get(childIface);
-        if (!child)
-            return false;
-
-        const parentHost = parent.getHost();
-        if (!parentHost)
-            return false;
-
-        const childRoot = child.getHost();
-        if (!childRoot)
-            return false;
-
-        childRoot.slot = options.slot || '';
-        parentHost.appendChild(childRoot);
-
-        return true;
-    },
-
-    attachMany(parentIface, childIfaces, options = {}) {
-        const parent = privateNodes.get(parentIface);
-        if (!parent) return false;
-
-        const parentHost = parent.getHost();
-        if (!parentHost) return false;
-
-        const fragment = document.createDocumentFragment();
-        let attached = 0;
-
-        childIfaces.forEach(childIface => {
-            const child = privateNodes.get(childIface);
-            if (!child) return;
-
-            const childRoot = child.getHost();
-            if (!childRoot) return;
-
-            childRoot.slot = options.slot || '';
-            fragment.appendChild(childRoot);
-            attached++;
-        });
-
-        parentHost.appendChild(fragment);
-
-        return attached === childIfaces.length;
+        let res = null;
+        switch (options.mode || "parent") {
+            case "parent": res = targetHost.appendChild(newHost); break;
+            case "before": res = targetHost.parentNode.insertBefore(newHost, targetHost); break;
+            case "after": res = targetHost.parentNode.insertBefore(newHost, targetHost.nextSibling);
+        }
+        if (!res) throw new Error(`DOM insertion failed.`);
     },
 
     detach(childIface) {
@@ -158,7 +121,7 @@ export const DomRegistry = {
     detachMany(childIfaces) {
         let success = true;
         childIfaces.forEach(childIface => {
-            if (!DomRegistry.detach(childIface)) success = false;
+            if (!this.detach(childIface)) success = false;
         });
         return success;
     },
@@ -176,5 +139,9 @@ export const DomRegistry = {
         if (instance) {
             rootEl.appendChild(instance.getHost());
         }
+    },
+
+    equals(iface1, iface2) {
+        return privateNodes.get(iface1) === privateNodes.get(iface2);
     }
 };

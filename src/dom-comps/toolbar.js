@@ -61,6 +61,9 @@ function ctor(args = {}) {
     const addBtn = shadow.querySelector(`.add-button`);
     addBtn.onclick = () => bus.emit('toolbar:add-item');
 
+    const addFolderBtn = shadow.querySelector(`.add-folder-button`);
+    addFolderBtn.onclick = () => bus.emit('toolbar:add-folder');
+
     const removeBtn = shadow.querySelector(`.remove-button`);
     removeBtn.onclick = () => bus.emit('toolbar:remove-selected');
 

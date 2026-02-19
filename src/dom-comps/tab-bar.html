@@ -1,0 +1,75 @@
+<style>
+    :host {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        contain: layout style;
+        background-color: #151410;
+    }
+
+    .tab-bar {
+        display: flex;
+        flex-flow: row nowrap;
+        align-items: stretch;
+        position: relative;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: thin;
+        -webkit-overflow-scrolling: touch;
+        background: var(--tabbar-bg, #222);
+    }
+
+    /* Scroll shadows – optional but nice UX */
+    .tab-bar::before,
+    .tab-bar::after {
+        content: "";
+        position: absolute;
+        inset-block: 0;
+        z-index: 1;
+        pointer-events: none;
+        width: 24px;
+        background: linear-gradient(to right, var(--tabbar-bg), transparent);
+    }
+
+    .tab-bar::after {
+        right: 0;
+        background: linear-gradient(to left, var(--tabbar-bg), transparent);
+        transform: translateX(100%);
+    }
+
+    ::slotted(*) {
+        flex: 0 0 auto;
+        /* content-sized by default */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 1.2rem;
+        min-width: 60px;
+        height: 100%;
+        color: var(--tab-color, #ccc);
+        background: none;
+        border: none;
+        cursor: pointer;
+        user-select: none;
+        white-space: nowrap;
+    }
+
+    ::slotted([active]) {
+        color: var(--tab-active-color, white);
+        background: var(--tab-active-bg, #444);
+        border-bottom: 3px solid var(--accent, #58f);
+    }
+
+    .content {
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+    }
+</style>
+
+<div class="tab-bar" role="tab-bar">
+    <slot name="tabs"></slot>
+</div>
+<div class="content">
+    <slot></slot> <!-- panels appear here -->
+</div>

@@ -2,12 +2,12 @@
 import { DomRegistry as DOM } from "../dom-registry.js";
 import { CSSRules } from "../shared/dom-helper.js";
 
-const IComponentImpl = ({ host, instance }) => ({
+const IComponentImpl = (self) => ({
     dispose() {
         host.remove();
     },
     set text(str) {
-        instance.textContent = str;
+        self.textContent = str;
     }
 });
 

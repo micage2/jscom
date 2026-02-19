@@ -15,12 +15,12 @@ const IComponentImpl = ({ root }) => ({
 
 const IContainerImpl = ({ root, data }) => ({
     setLeft(child) {
-        DOM.attach(this, child, { slot: 'left' });
+        DOM.attach(child, this, { mode: 'parent', slot: 'left' });
         return this;
     },
 
     setRight(child) {
-        DOM.attach(this, child, { slot: 'right' });
+        DOM.attach(child, this, { mode: 'parent', slot: 'right' });
         return this;
     }
 });

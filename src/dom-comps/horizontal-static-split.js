@@ -12,16 +12,20 @@ const IComponentImpl = ({ root }) => ({
     }
 });
 
-const IContainerImpl = ({ host, instance: { top, slot_top, slot_bottom } }) => ({
+const IContainerImpl = (self) => ({
     setTop(child) {
-        DOM.attach(this, child, { slot: 'top' });
-        slot_top.style.height = top + "px";
+        DOM.attach(child, this, {
+            mode: 'parent',
+            slot: 'top'
+        });
 
         return this;
     },
     
     setBottom(child) {
-        DOM.attach(this, child, { slot: 'bottom' });
+        DOM.attach(child, this, {
+            slot: 'bottom'
+        });
         return this;
     }
 });

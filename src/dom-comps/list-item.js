@@ -11,79 +11,89 @@ import { bus } from '../shared/event-bus.js';
 
 
 const html_file = "./src/dom-comps/list-item.html";
+
+/** @type {DocumentFragment} */
 const fragment = await loadFragment(html_file);
 
+/** @implements {IDomNode} */
 class ListItem {
-    constructor(args) {
+    constructor(args = {}) {
         this.host = document.createElement('div');
         const shadow = this.host.attachShadow({ mode: 'closed' });
         shadow.appendChild(fragment.cloneNode(true));
         this.uid = uid();
     
-        this.row = shadow.querySelector('.list-item');
-        this.expander = shadow.querySelector('.expander');
+        this.content = shadow.querySelector('.list-item');
+        this.icon = shadow.querySelector('.expander');
+        this.icon.textContent = args.icon || '□';
         this.label = shadow.querySelector('.label');
         this.label.textContent = args.label || this.uid;
         this.depth = args.depth || 0;
 
-        this.row.addEventListener("click", (e) => {
+        this.content.addEventListener("click", (e) => {
             bus.emit("list-item:selected", { uid: this.uid });
         });    
-        this.expander.addEventListener("click", (e) => {
-            bus.emit("list-item:expanded", { uid: this.uid });
+        this.icon.addEventListener("click", (e) => {
+            bus.emit("list-item:icon-clicked", {
+                uid: this.uid,
+                label: this.label.textContent,
+                icon: this.icon.textContent
+            });
         });    
     }
+
+    // IDomNode impl
     getHost() { return this.host; }
     getInstance() { return this; }
 }
 
+/**
+ * @param {Object} args
+ * @property {number} [args.depth]
+ * @property {string} [args.label]
+ * @returns {ListItem}
+ */
 function ctor(args = {}) {
     return new ListItem(args);
 }
 
-const IListItem = ({ host, instance: self }) => {
-    return {
-        get uid() { return self.uid; },
-        
-        // determines indentation of item content
-        get depth() { return self.depth; },
-        set depth(d) {
-            self.expander.style.marginLeft = `${d * 14}px`;
-            self.depth = d;
-        },
+/** 
+ * @param {ListItem}
+ * @returns {IListItem}
+ */
+const IListItem = (item) => ({
+    get uid() { return item.uid; },
+    
+    // determines indentation of item content
+    get depth() { return item.depth; },
+    set depth(d) {
+        item.icon.style.marginLeft = `${d * 14}px`;
+        item.depth = d;
+    },
 
-        // show/hide item
-        get show() { return self.row.classList.contains('hidden'); },
-        set show(state) {
-            state ? self.row.classList.add('hidden')
-                  : self.row.classList.remove('hidden');
-        },
-        
-        // label text
-        get text() { return self.label.textContent; },
-        set text(str) { self.label.textContent = str; },
+    // show/hide item
+    get show() { return !item.content.classList.contains('hidden'); },
+    set show(state) {
+        state ? item.content.classList.remove('hidden')
+                : item.content.classList.add('hidden');
+    },
 
-        // expand/collape state
-        get open() { return self.expander.textContent === "▷" ? false : true },
-        set open(state) {
-            self.expander.textContent = state ? "▽" : "▷";
-        },
-        
-        // select/deselect state
-        get selected() { self.row.classList.contains("selected"); },
-        set selected(state) {
-            state ? self.row.classList.add("selected")
-                  : self.row.classList.remove("selected");
-        },
+    // icon
+    get icon() { return item.icon.textContent; },
+    set icon(code) { item.icon.textContent = code; },
+    
+    // label text
+    get text() { return item.label.textContent; },
+    set text(str) { item.label.textContent = str; },
 
-        // isParent state - display down/right arrow
-        get isParent() { return self.row.classList.contains("has-children"); },
-        set isParent(state) {
-            state ? self.row.classList.add("has-children") 
-                  : self.row.classList.remove("has-children");
-        },
-    };
-};
+    // select/deselect state
+    get selected() { item.content.classList.contains("selected"); },
+    set selected(state) {
+        state ? item.content.classList.add("selected")
+                : item.content.classList.remove("selected");
+    },
+
+});
 
 const roleMap = new Map([
     ["ListItem", IListItem],

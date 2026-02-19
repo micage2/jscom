@@ -1,16 +1,8 @@
 <style>
-    _host {
-        /* no impact */
-        /* display: flex; */
-        /* flex-direction: column; */
-        height: 100%;
-        width: 100%;
-        /* background-color: #151410; */
-    }
     :host {
         display: flex;
         flex-direction: column;
-        height: 100%;           /* or whatever container size you want */
+        height: 100%;
         width: 100%;
         box-sizing: border-box;
     }
@@ -20,14 +12,23 @@
         padding: 0 !important;
     } */
 
-    ::slotted(div:first-child) {
-        height: 32px !important;
+    /* Style slotted child components directly (they become the flex items)
+       toolbar = 32px, no growing    
+    */
+    ::slotted([slot="top"]) {
+        flex: 0 0 30px;
+        width: 100%;
+        min-height: 0;
     }
 
-    slot[name="top"],
-    slot[name="bottom"] {
+    ::slotted([slot="bottom"]) {
+        flex: 1 1 auto;
+        min-height: 0;
+        /* crucial for nested scrolling */
         width: 100%;
-        overflow: hidden;
+        overflow: auto;
+        /* or hidden, visible, etc. */
+        /* any other outer styling for the TreeView */
     }
 
     .divider {
@@ -37,5 +38,4 @@
 </style>
 <slot name="top"></slot>
 <div class="divider"></div>
-</div>
 <slot name="bottom"></slot>

@@ -10,12 +10,18 @@ const IComponentImpl = ({ root }) => ({
 
 const IContainerImpl = ({ root, data }) => ({
     setTop(child) {
-        DomRegistry.attach(this, child, { slot: 'top' });
+        DomRegistry.attach(child, this, {
+            mode: 'parent',
+            slot: 'top'
+        });
         return this;
     },
     
     setBottom(child) {
-        DomRegistry.attach(this, child, { slot: 'bottom' });
+        DomRegistry.attach(child, this, {
+            mode: 'parent',
+            slot: 'bottom'
+        });
         return this;
     }
 });

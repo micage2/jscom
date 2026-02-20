@@ -47,11 +47,23 @@ function ctor(args = {}) {
     shadow.appendChild(clone);
 
     const slot_top = shadow.querySelector('slot[name="top"]');
+    const divider = shadow.querySelector('.divider');
     const slot_bottom = shadow.querySelector('slot[name="bottom"]');
 
     const topHeight = args.top || 32;
-    if (slot_top) slot_top.style.height = topHeight + 'px !important';
-    if (slot_bottom) slot_bottom.style.height = total - topHeight + 'px';
+    const dividerHeight = args.divider || 1;
+
+    const update = () => {
+        const total = host.offsetHeight;
+
+        const topChild = slot_top?.assignedElements?.()[0];
+        const bottomChild = slot_bottom?.assignedElements?.()[0];
+
+        if (topChild) topChild.style.height = topHeight + 'px';
+        if (bottomChild) bottomChild.style.height = total - topHeight - divider.offsetHeight + 'px';
+    };
+
+    new ResizeObserver(update).observe(host);
 
     return {
         getHost() { return host; },

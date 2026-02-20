@@ -1,7 +1,12 @@
-// vertical-split.js
+// vertical-split-mmm.js
+import { DomRegistry as DOM } from '../dom-registry.js';
+import { loadFragment } from '../shared/dom-helper.js';
 
-import { DomRegistry } from '../dom-registry.js';
+const html_file = "./src/dom-comps/vertical-split.html";
+const fragment = await loadFragment(html_file);
 
+
+// ===          roles/interfaces            ===
 const IComponentImpl = ({ root }) => ({
     dispose() {
         root.remove();
@@ -10,47 +15,45 @@ const IComponentImpl = ({ root }) => ({
 
 const IContainerImpl = ({ root, data }) => ({
     setLeft(child) {
-        DomRegistry.attach(this, child, { slot: 'left' });
+        DOM.attach(child, this, { mode: 'parent', slot: 'left' });
+        return this;
     },
 
     setRight(child) {
-        DomRegistry.attach(this, child, { slot: 'right' });
+        DOM.attach(child, this, { mode: 'parent', slot: 'right' });
+        return this;
     }
 });
 
-const roleFactories = new Map([
+const roleMap = new Map([
     ['IComponent', IComponentImpl],
-    ['IContainer', IContainerImpl],
+    ['Container', IContainerImpl],
 ]);
+const roles = (role = 'Container') => roleMap.get(role) ?? null;
 
-const roleProvider = role => roleFactories.get(role) ?? null;
 
-
-function domFactory(args = {}) {
+// ===          constructor         ===
+function ctor(args = {}) {
     const host = document.createElement('div');
-    host.style.cssText = 'display:flex; flex-direction:row; height:100%; width:100%; overflow:hidden;';
-
     const shadow = host.attachShadow({ mode: 'closed' });
 
-    shadow.innerHTML = `
-    <style>
-        :host { display:flex; flex-direction:row; height:100%; width:100%; }
-        slot[name="left"], slot[name="right"] { flex: 1; overflow:hidden; }
-        .divider { width:6px; background:#444; cursor:col-resize; user-select:none; }
-    </style>
-    <slot name="left"></slot>
-    <div class="divider"></div>
-    <slot name="right"></slot>
-  `;
+    const clone = fragment.cloneNode(true);
+    shadow.appendChild(clone);
 
-    const divider = shadow.querySelector('.divider');
     const leftSlot = shadow.querySelector('slot[name="left"]');
     const rightSlot = shadow.querySelector('slot[name="right"]');
+    const thumb = shadow.querySelector('.thumb');
+    const divider = shadow.querySelector('.divider');
+    const dividerWidth = divider.offsetWidth;
 
-    let ratio = args.initialRatio ?? 0.5;
+    const minLeft = args.minLeft || 2;
+    const minRight = args.minRight || 2;
+
+    let ratio = args.ratio ?? 0.5;
     let isDragging = false;
 
-    const update = () => {
+    // original, not working b/o dividerSize
+    const __update = () => {
         const total = host.offsetWidth;
         const dividerSize = 6;
         const leftWidth = Math.max(50, Math.round(total * ratio - dividerSize / 2));
@@ -63,9 +66,23 @@ function domFactory(args = {}) {
         if (rightChild) rightChild.style.width = rightWidth + 'px';
     };
 
-    divider.addEventListener('pointerdown', e => {
+    const update = () => {
+        const total = host.offsetWidth;
+        const dividerSize = 2;
+        const leftWidth = Math.min(total - minRight, Math.max(minLeft, total * ratio - dividerWidth / 2));
+        const rightWidth = Math.round(total - leftWidth - dividerWidth / 2);
+
+        const leftChild = leftSlot?.assignedElements?.()[0];
+        const rightChild = rightSlot?.assignedElements?.()[0];
+
+        if (leftChild) leftChild.style.width = leftWidth + 'px';
+        if (rightChild) rightChild.style.width = rightWidth + 'px';
+    };
+
+    thumb.addEventListener('pointerdown', e => {
         e.preventDefault();
         isDragging = true;
+        thumb.classList.toggle("dragging");
         document.addEventListener('pointermove', onMove, { passive: false });
         document.addEventListener('pointerup', onUp);
         document.addEventListener('pointercancel', onUp);
@@ -77,13 +94,14 @@ function domFactory(args = {}) {
 
         const rect = host.getBoundingClientRect();
         const currentX = e.clientX - rect.left;
+        ratio = currentX / rect.width;
 
-        ratio = Math.max(0.1, Math.min(0.9, currentX / rect.width));
         update();
     }
 
     function onUp() {
         isDragging = false;
+        thumb.classList.toggle("dragging");
         document.removeEventListener('pointermove', onMove);
         document.removeEventListener('pointerup', onUp);
         document.removeEventListener('pointercancel', onUp);
@@ -92,9 +110,10 @@ function domFactory(args = {}) {
     new ResizeObserver(update).observe(host);
 
     return {
-        getRootNode() { return host; },
-        getData() { return { ratio, update }; }
+        getHost() { return host; },
+        getInstance() { return { ratio, update }; }
     };
 }
 
-export const VERTICAL_SPLIT_CLSID = DomRegistry.register(domFactory, roleProvider);
+const class_id = DOM.register(ctor, roles);
+export default class_id;

@@ -31,14 +31,17 @@ class ListView {
         bus.on('list-item:icon-clicked', ({uid, label, icon}) => {
             const item = this.items.get(uid);
 
-            this.toggleFolder(item);
-                    
-            console.log(`[ListView] expanded ${label}, open: ${this.isFolderOpen(item)}`);
+            // this can also come from other instances of ListView
+            // so better check if this message belongs to us
+            if (item) this.toggleFolder(item);
         });
 
         bus.on('list-item:selected', ({uid}) => {
             const item = this.items.get(uid);
-            this.selectItem(item);
+            if (!item) {
+                // console.error(`Item does not exist. ${item}`);                
+            }
+            else this.selectItem(item);
         });
     }
 
@@ -101,10 +104,10 @@ class ListView {
         return i;
     }
 
-    // find item with depth === item.depth - 1
+    // find previous item with depth === item.depth - 1
     parent(item) {
         const start = this.list.indexOf(item);
-        if (start === 0) return null;
+        if (start === 0) return null; // item is root
 
         let i = start;
         while (i > 0) {
@@ -112,8 +115,9 @@ class ListView {
             if(this.list[i].depth === item.depth - 1)
                 return { index: i, item: this.list[i] };
         }
-        return null;
+        return null; // impossible
     }
+    // find previous item with depth === item.depth
     previous(item) {
         const start = this.list.indexOf(item);
         if (start === 0) return null;
@@ -128,7 +132,9 @@ class ListView {
         }
         return { index: i, item: null, parent: this.list[0] };
     }
-    next(item) {}
+    // find next item with depth === item.depth
+    next(item) {        
+    }
 
     // IDomNode impl
     getHost() {
@@ -194,8 +200,6 @@ const IListView = (self) => {
                 insertAt = self.endOfSubtree(parent.item);
                 target = self.list[insertAt-1];
                 item.depth = parent.item.depth + 1;
-                console.log(`${item.depth}`);
-                
             }
 
             DOM.attach(item, target, { mode: 'after', slot: "content" });
@@ -214,7 +218,6 @@ const IListView = (self) => {
         removeSelected() {
             // don't remove root
             if (DOM.equals(self.selectedItem, self.list[0])) {
-                console.log(`${"equal"}`);                
                 return;
             }
 

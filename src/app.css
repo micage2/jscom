@@ -1,0 +1,17 @@
+:root {
+    --color-bg: #1d1c1a;
+    --color-text: #ccc;
+
+    /* toolbar */
+    --toolbar-height: 32px;
+    --toolbar-bg: var(--color-bg);
+    --toolbar-btn-bgcolor: transparent;
+    --toolbar-btn-color: var(--color-text);
+    --toolbar-btn-hover-color: #ddd;
+    --toolbar-btn-hover-bgcolor: #444;
+    --toolbar-btn-active-color: #ddd;
+    --toolbar-btn-active-bgcolor: var(--toolbar-btn-hover-bgcolor);
+
+
+    --panel-bg: var(--toolbar-bg);
+}

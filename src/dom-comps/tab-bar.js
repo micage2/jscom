@@ -26,7 +26,7 @@ class TabBar {
 
 const ctor = (args = {}) => new TabBar(args);
 
-const ITabBar = ({ host, instance: self }) => {
+const ITabBar = (self) => {
     return {
         get uid() { return self.uid; },
 

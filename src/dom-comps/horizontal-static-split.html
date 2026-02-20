@@ -7,32 +7,28 @@
         box-sizing: border-box;
     }
 
-    /* ::slotted(div) {
-        overflow: hidden;
-        padding: 0 !important;
-    } */
-
-    /* Style slotted child components directly (they become the flex items)
+    /* Style slotted child components directly 
+       (they become the flex items)
        toolbar = 32px, no growing    
     */
     ::slotted([slot="top"]) {
-        flex: 0 0 30px;
-        width: 100%;
-        min-height: 0;
+        /* flex: 0 0 32px; */
+        /* width: 100%; */
+        /* min-height: 0; */
     }
 
     ::slotted([slot="bottom"]) {
-        flex: 1 1 auto;
-        min-height: 0;
+        /* flex: 1 1 auto;
+        min-height: 0; */
         /* crucial for nested scrolling */
-        width: 100%;
-        overflow: auto;
+        /* width: 100%;
+        overflow: auto; */
         /* or hidden, visible, etc. */
         /* any other outer styling for the TreeView */
     }
 
     .divider {
-        height: 2px;
+        height: 1px;
         background: #444;
     }
 </style>

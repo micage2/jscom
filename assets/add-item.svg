@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg width="24" height="24" viewBox="0 0 72 36" xmlns="http://www.w3.org/2000/svg">
+    <style>
+        .heavy {
+            font: 36px sans-serif;
+        }
+    </style>
+    <g stroke-width="3" stroke="#ccc" fill="none"
+        stroke-linecap="round" stroke-miterlimit="0.5"
+    >
+        <path d="
+            m 22 16
+            v 31
+            h 32
+            v -43
+            h -20
+            v 12
+            h-12
+            l 12 -12
+            " />
+    </g>
+    <g stroke-width=".2" stroke="#68b" fill="none" display="none">
+        <path d="
+            m 22 16
+            v 31
+            h 32
+            v -43
+            h -20
+            v 12
+            h-12
+            l 12 -12
+            " />
+    </g>
+    <text x="28" y="46" class="heavy" fill="#ccc">+</text>
+    <path name="dummy" d="M0 0 l10 -10 l-10 10 Z" stroke="none"/>
+</svg>
+<!-- C 2  0  0  2  0  5 -->

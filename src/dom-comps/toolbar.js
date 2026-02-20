@@ -6,14 +6,15 @@ import { makeFragment, loadFragment } from '../shared/dom-helper.js';
 /**
  * emits:
  *      "toolbar:add-item"
- *      "toolbar:remove-selected"
+ *      "toolbar:add-folder"
+ *      "toolbar:thrash-bin"
  */
 
 
-const html_file = "./src/dom-comps/toolbar.html";
+const html_file = "./src/dom-comps/toolbar2.html";
 const fragment = await loadFragment(html_file);
 
-const html = `
+const html_string = `
 <style>
     :host{
         background-color: #151410;
@@ -44,6 +45,7 @@ const html = `
 </style>
 <div class="button-bar">
     <button class="add-button">+</button>
+    <button class="add-folder-button">+</button>
     <button class="remove-button">x</button>
 </div>
 `;
@@ -52,20 +54,21 @@ function ctor(args = {}) {
     const host = document.createElement('div');
     const shadow = host.attachShadow({ mode: 'closed' });
     
-    // const fragment = makeFragment(html);
+    // alternatively
+    // const fragment = makeFragment(html_string);
 
     const clone = fragment.cloneNode(true);
     shadow.appendChild(clone);
 
 
-    const addBtn = shadow.querySelector(`.add-button`);
+    const addBtn = shadow.querySelector(`.add-item-button`);
     addBtn.onclick = () => bus.emit('toolbar:add-item');
 
     const addFolderBtn = shadow.querySelector(`.add-folder-button`);
     addFolderBtn.onclick = () => bus.emit('toolbar:add-folder');
 
-    const removeBtn = shadow.querySelector(`.remove-button`);
-    removeBtn.onclick = () => bus.emit('toolbar:remove-selected');
+    const removeBtn = shadow.querySelector(`.tool-btn.delete`);
+    removeBtn.onclick = () => bus.emit('toolbar:thrash-bin');
 
     return {
         getHost: () => host,

@@ -1,5 +1,6 @@
 function uid() {
-    return "" + Math.random().toString(36).slice(2, 11);
+    // return "" + Math.random().toString(36).slice(2, 11);
+    return crypto.randomUUID();
 }
 
 function create_sheet(code) {

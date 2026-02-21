@@ -22,20 +22,22 @@
             h21
             " />
     </g>
-    <g stroke-width=".2" stroke="#68b" fill="none">
+    <g stroke-width=".2" stroke="#68b" fill="none" display="none">
         <path d="
-            m 56 10
-            h -20
-            s -3 -7, -8 -7
-            h -9
-            s -5 0, -5 5
-            v 37
+            m 14 10
+            v 35
             s 0 3, 3 3
             h 40
             s 3 0, 3 -3
             v -32
             s 0 -3, -3 -3
-            z"/>
+            h -21
+            s -3 -7, -8 -7
+            h -9
+            s -5 0, -5 5
+            v2
+            h21
+            "/>
         <path d="m 14 10 h22" />
     </g>
     <text x="27" y="42" class="heavy" fill="#ccc">+</text>

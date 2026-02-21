@@ -18,6 +18,8 @@ const fragment = await loadFragment(html_file);
 /** @implements IDomNode */
 class ListView {
     constructor(args) {
+        this.msg_sources = new Set();
+
         this.host = document.createElement('div');
         const shadow = this.host.attachShadow({ mode: 'closed' });
         shadow.appendChild(fragment.cloneNode(true));
@@ -247,11 +249,27 @@ const IListView = (self) => {
     };
 };
 
+const IMsgTarget = (self) => {
+    return {
+        connect(source_uid) {
+            self.msg_sources.add(source_uid);
+        },
+        disconnect(source_uid) {
+            self.msg_sources.delete(source_uid);
+        },
+        isConnected(source_uid) {
+            return self.msg_sources.has(source_uid);
+        }
+    }
+};
+
 const roleMap = new Map([
     ["ListView", IListView],
+    ["MsgTarget", IMsgTarget],
+
 ]);
 const roleProvider = (role = "ListView") => roleMap.get(role) ?? null;
 
 
-const LIST_VIEW_CLSID = DOM.register(ctor, roleProvider); // no roles needed
+const LIST_VIEW_CLSID = DOM.register(ctor, roleProvider);
 export default LIST_VIEW_CLSID;

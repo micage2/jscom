@@ -1,7 +1,7 @@
 // src/dom-comps/test-view-2.js
 import { DomRegistry as DOM } from '../dom-registry.js';
 import { bus } from '../shared/event-bus.js';
-import { makeFragment, loadFragment } from '../shared/dom-helper.js';
+import { makeFragment, loadFragment, uid as Uid } from '../shared/dom-helper.js';
 
 /**
  * emits:
@@ -51,44 +51,46 @@ const html_string = `
 `;
 
 function ctor(args = {}) {
+    const uid = Uid();
     const host = document.createElement('div');
     const shadow = host.attachShadow({ mode: 'closed' });
     
     // alternatively
     // const fragment = makeFragment(html_string);
-
+    
     const clone = fragment.cloneNode(true);
     shadow.appendChild(clone);
 
-
     const addBtn = shadow.querySelector(`.add-item-button`);
-    addBtn.onclick = () => bus.emit('toolbar:add-item');
-
     const addFolderBtn = shadow.querySelector(`.add-folder-button`);
-    addFolderBtn.onclick = () => bus.emit('toolbar:add-folder');
-
     const removeBtn = shadow.querySelector(`.tool-btn.delete`);
-    removeBtn.onclick = () => bus.emit('toolbar:thrash-bin');
 
     return {
         getHost: () => host,
-        getInstance: () => status,
+        getInstance: () => ({ status, addBtn, addFolderBtn, removeBtn, uid }),
     };
 }
 
-const ITestView = ({ host, instance: status }) => {
+const IToolbar = (self) => {
+    const { status, addBtn, addFolderBtn, removeBtn } = self;
+
+    addBtn.onclick = () => bus.emit('toolbar:add-item', { from: self.uid });
+    removeBtn.onclick = () => bus.emit('toolbar:thrash-bin', { from: self.uid });
+    addFolderBtn.onclick = () => bus.emit('toolbar:add-folder', { from: self.uid });
+
     return {
         set text(text) {
             status.textContent = text;
-        }
+        },
+        get uid() { return self.uid; }
     };
 };
 
 const roleMap = new Map([
-    ["TestView", ITestView],
+    ["Toolbar", IToolbar],
 ]);
 
-const roleProvider = (role = "TestView") => roleMap.get(role) ?? null;
+const roleProvider = (role = "Toolbar") => roleMap.get(role) ?? null;
 
 const TEST_VIEW_CLSID = DOM.register(ctor, roleProvider);
 export default TEST_VIEW_CLSID;

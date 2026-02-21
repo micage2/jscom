@@ -30,16 +30,27 @@ const modelRoot = {
 };
 
 // register events first
-bus.on('toolbar:add-item', (a) => {
-    const item = listView.add({ label: '' });
-    listView.select(item);
+bus.on('toolbar:add-item', (msg) => {
+    if (listView.as("MsgTarget").isConnected(msg.from)) {
+        const item = listView.add({ label: '' });
+    }
+    else if (listView2.as("MsgTarget").isConnected(msg.from)) {
+        const item = listView2.add({ label: '' });
+    }
 });
-bus.on('toolbar:add-folder', (a) => {
-    const item = listView.add({ type: 'folder', label: '' });
-    listView.select(item);
+bus.on('toolbar:add-folder', (msg) => {
+    if (listView.as("MsgTarget").isConnected(msg.from)) {
+        const item = listView.add({ type: 'folder', label: '' });
+        listView.select(item);
+    }
+    else if (listView2.as("MsgTarget").isConnected(msg.from)) {
+        const item = listView2.add({ type: 'folder', label: '' });
+    }
 });
-bus.on('toolbar:thrash-bin', (a) => {
-    listView.removeSelected();
+bus.on('toolbar:thrash-bin', (msg) => {
+    if (listView.as("MsgTarget").isConnected(msg.from)) {
+        listView.removeSelected();
+    }
 });
 bus.on("list-view:item-selected", ({item}) => {
     let str = `${item.text}`;
@@ -58,6 +69,9 @@ const dummy4 = Create(DUMMY, { text: "4" });
 const dummy5 = Create(DUMMY, { text: "5" });
 listView.init();
 listView2.init();
+
+listView.as("MsgTarget").connect(toolbar.uid);
+listView2.as("MsgTarget").connect(toolbar2.uid);
 
 DOM.mount(
     Create(LEFT_RIGHT, { ratio: 0, minLeft: 200, minRight: 200 })

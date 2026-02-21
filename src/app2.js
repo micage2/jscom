@@ -51,6 +51,9 @@ bus.on('toolbar:thrash-bin', (msg) => {
     if (listView.as("MsgTarget").isConnected(msg.from)) {
         listView.removeSelected();
     }
+    else if (listView2.as("MsgTarget").isConnected(msg.from)) {
+        listView2.removeSelected();
+    }
 });
 bus.on("list-view:item-selected", ({item}) => {
     let str = `${item.text}`;

@@ -1,42 +1,104 @@
 <style>
-    :host{
-        background-color: #151410;
+    :host {
         height: 100%;
         width: 100%;
+        box-sizing: border-box;
     }
-    div {
-        display: flex;
+
+    .toolbar {
+        --height: var(--toolbar-height);
+        /* height: var(--height); */
         height: 100%;
-        /* gap: 10px; */
-        /* flex-wrap: wrap; */
+        min-height: var(--height);
+
+        /* optional */
+        background-color: var(--toolbar-bg);
+
+        display: flex;
+        align-items: center;
+        padding: 0 8px;
+        gap: 8px;
+        /* spacing between left & right groups */
+
+        /* Very important line ↓ */
         justify-content: space-between;
-        /* padding: 2px; */
-        background-color: #151410;
     }
-    button {
+
+    /* Groups */
+    .toolbar-left,
+    .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        /* spacing between buttons */
+        height: 100%;
+    }
+
+    .toolbar-right {
+        margin-left: auto;
+        /* ← classic way to push to right */
+        /* or just rely on justify-content: space-between on parent */
+    }
+
+    /* Individual buttons */
+    .tool-btn {
+        --size: 28px;
+
+        width: var(--size);
+        height: inherit;
+        min-width: var(--size);
+
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 24px;
-        /* height: 24px; */
-        border: none;
-        color: #ddd;
-        background-color: transparent;
-        font-size: 1rem;
-        position: relative;
+
+        background: var(--toolbar-btn-bgcolor);
+        border: 1px solid transparent;
+        /* border-radius: 5px; */
+
+        color: var(--toolbar-btn-color);
+        font-size: 16px;
+        line-height: 1;
+
+        cursor: pointer;
+        /* transition: all 0.13s ease; */
     }
-    button:hover {
-        background-color: hsl(40, 10%, 20%);
+    .tool-btn:hover {
+        background: var(--toolbar-btn-hover-bgcolor);
     }
-    button:active {
-        border: 1px solid hsl(220, 20%, 50%);
+    .tool-btn:active {
+        background: var(--toolbar-btn-active-bgcolor);
+        color: var(--toolbar-btn-active-color);
+    }
+
+    /* Optional variants */
+    .tool-btn.active {
+        background: #e2e6ea;
+        border-color: #adb5bd;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+    }
+    .tool-btn.delete {
+        color: red;
+    }
+    .tool-btn.delete:hover {
+        background: var(--toolbar-btn-hover-bgcolor);
+    }
+
+    /* If you use symbols instead of SVG */
+    .symbol {
+        font-family: "Segoe UI Symbol", "Apple Color Emoji", sans-serif;
+        font-weight: normal;
+    }
+
+    .tool-btn.add-item-button {
+        background-image: url("./assets/add-item.svg");
+        background-repeat: no-repeat;
+    }
+    .tool-btn.add-folder-button {
+        background-image: url("./assets/add-folder.svg");
+        background-repeat: no-repeat;
     }
 </style>
-<div class="button-bar">
-    <button class="add-button">+</button>
-    <button class="add-folder-button">○</button>
-    <button class="remove-button">x</button>
-</div>
 <div class="toolbar">
     <div class="toolbar-left">
         <button class="tool-btn add-item-button" title="New Item"></button>
@@ -44,23 +106,6 @@
     </div>
 
     <div class="toolbar-right">
-        <!-- <button class="tool-btn" title="Align left">⇤</button>
-        <button class="tool-btn" title="Align center">↔</button>
-        <button class="tool-btn" title="Align right">⇥</button> -->
         <button class="tool-btn delete" title="Delete">🗑</button>
     </div>
 </div>
-<!-- <div class="__toolbar-left">
-    <button class="tool-btn" title="Bold">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">…</svg>
-    </button>
-    <button class="tool-btn active" title="Italic">
-        <span class="symbol">𝑖</span>
-    </button>
-    <button class="tool-btn" title="Underline">
-        <span class="symbol">U̲</span>
-    </button>
-    <button class="tool-btn" title="Bullet list">•</button>
-    <button class="tool-btn delete" title="Delete">🗑</button>
-    <button class="tool-btn delete" title="Delete">😀</button>
-</div> -->

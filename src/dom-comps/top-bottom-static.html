@@ -5,6 +5,7 @@
         height: 100%;
         width: 100%;
         box-sizing: border-box;
+        overflow: hidden;
     }
 
     /* Style slotted child components directly 
@@ -13,16 +14,16 @@
     */
     ::slotted([slot="top"]) {
         /* flex: 0 0 32px; */
-        /* width: 100%; */
+        width: 100%;
         /* min-height: 0; */
     }
 
     ::slotted([slot="bottom"]) {
-        /* flex: 1 1 auto;
-        min-height: 0; */
+        /* flex: 1 1 auto; */
+        /* min-height: 0; */
         /* crucial for nested scrolling */
-        /* width: 100%;
-        overflow: auto; */
+        width: 100%;
+        overflow: hidden;
         /* or hidden, visible, etc. */
         /* any other outer styling for the TreeView */
     }

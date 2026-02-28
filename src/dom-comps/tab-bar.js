@@ -1,7 +1,10 @@
 // src/dom-comps/tab-bar.js
 import { DomRegistry as DOM } from '../dom-registry.js';
-import { loadFragment, uid } from '../shared/dom-helper.js';
-import { bus } from '../shared/event-bus.js';
+import { loadFragment } from '../shared/dom-helper.js';
+import TBS from './top-bottom.js';
+// import SIMPLE from './simple-view.js'; // fallback
+import TAB from './list-item.js'; // fallback
+ 
 
 const html_file = "./src/dom-comps/tab-bar.html";
 const fragment = await loadFragment(html_file);
@@ -12,52 +15,70 @@ class TabBar {
         this.host = document.createElement('div');
         const shadow = this.host.attachShadow({ mode: 'closed' });
         shadow.appendChild(fragment.cloneNode(true));
-        this.uid = uid();
 
-        this.row = shadow.querySelector('.tab-bar');
+        this.tabbar = shadow.querySelector('.tab-bar');
+        this.view = shadow.querySelector('.view');
 
-        this.row.addEventListener("click", (e) => {
-            bus.emit("tab-bar:selected", { uid: this.uid });
-        });
+        this.tabs = new Map() // tab.uid -> view
+        this.tab_positions = []; // tab.uid
+        this.tab_clsid = args.tab_clsid || TAB;
+        this.seltab = -1;
     }
+
     getHost() { return this.host; }
     getInstance() { return this; }
 }
 
 const ctor = (args = {}) => new TabBar(args);
 
-const ITabBar = (self) => {
+const TabBarFactory = (self) => {
     return {
-        get uid() { return self.uid; },
+        addTab(title, view, activate = false) {
+            // get view of seltab and detach it
+            if (self.seltab > -1) {
+                const tab_uid = self.tab_positions[self.seltab];
+                const entry = self.tabs.get(tab_uid);
+                DOM.detach(entry.view);
+                entry.tab.set_selected(false);
+            }
 
-        addTab(tabElement, panelElement, activate = false) {
-            DOM.attach(tabElement, this, { slot: 'tabs' });
-            DOM.attach(panelElement, this); // default slot = content area
+            const tab = DOM.create(self.tab_clsid, { title: title || 'empty' });
+            DOM.attach(tab, this, { slot: 'tabs', mode: 'parent' });
+            DOM.attach(view, this);
+            tab.set_selected(true);
 
-            // Optional: set panel hidden by default, show when active
-            panelElement.hidden = true;
-
-            if (activate) this.activateTab(tabElement);
-            return this;
+            self.tabs.set(tab.uid, {tab, view});
+            self.tab_positions.push(tab.uid);
+            self.seltab = self.tab_positions.length - 1;
         },
 
         activateTab(tab) {
-            // remove active from all
-            root.shadowRoot.querySelectorAll('slot[name="tabs"] ::slotted(*)')
-                .forEach(el => el.removeAttribute('active'));
+        },
 
-            tab.setAttribute('active', '');
+        swap(tab1_title, tab2_title) {
 
-            // find corresponding panel (by index, data-tab-id, or aria-controls)
-            // then hide all panels, show the matching one
-        }
+        },
+
+        removeTab(title) {
+
+        },
     };
 };
 
-const roleMap = new Map([
-    ["TabBar", ITabBar],
-]);
-const roleProvider = (role = "TabBar") => roleMap.get(role) ?? null;
+const clsid = DOM.register(ctor, function(role, action, reaction) {
+    
+    role("TabBar", self => TabBarFactory(self), true);
 
-const cls_id = DOM.register(ctor, roleProvider);
-export default cls_id;
+    action('select');
+
+    // payload contains:
+    // 1. tab title, 2. view
+    reaction('add-tab', function(payload) {
+        console.log(`[TabBar DOM.register] 'add-tab', ${name}`);        
+        this.addTab(payload.title, payload.view);
+    });
+}, {
+    name: 'TabBar',
+    description: ''
+});
+export default clsid;

@@ -11,6 +11,7 @@ html {
     --fontsize: 1rem;
     --color-bg: #1d1c1a;
     --color-text: #ccc;
+    --color-active: #0af;
 
     /* toolbar */
     --toolbar-height: 32px;

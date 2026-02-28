@@ -13,7 +13,7 @@ const gen_clsid = (prefix = "") =>
 
 export const DomRegistry = {
 
-    register(ctor, config) {
+    register(ctor, config, info = {}) {
         const clsid = gen_clsid('CLSID_');
         
         // collect roles (supported interfaces)
@@ -40,9 +40,14 @@ export const DomRegistry = {
             config(role, action, reaction);
         }
 
-        klasses.set(clsid, { ctor, roles, actions, reactions, default_role });
+        klasses.set(clsid, { ctor, roles, actions, reactions, default_role, info });
 
         return clsid;
+    },
+
+    getClassInfo(clsid) {
+        const klass = klasses.get(clsid);
+        return klass ?? klass.info;
     },
 
     create(compId, options = {}) {
@@ -159,7 +164,7 @@ export const DomRegistry = {
 
         sourceHost.slot = options.slot || '';
 
-        switch (options.mode) {
+        switch (options.mode || "parent") {
             case "parent":
                 targetHost.appendChild(sourceHost);
                 break;

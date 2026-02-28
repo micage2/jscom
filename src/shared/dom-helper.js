@@ -67,6 +67,15 @@ export async function loadSheet(file) {
     return sheet;
 }
 
+export async function load_file(file) {
+    const sheet = new CSSStyleSheet();
+
+    const response = await fetch(file);
+    const cssText = await response.text();
+
+    return cssText;
+}
+
 export async function loadFragment(file) {
     const resp = await fetch(file);
     if (!resp.ok)

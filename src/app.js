@@ -130,7 +130,7 @@ apps.set("4", {
 });
 apps.set("5", {
     name: "5",
-    title: "Experiments",
+    title: "Testing complex layouts",
     root: () => {
         const toolbar = $$(TOOLBAR);
         const listview = $$(LISTVIEW, { itemClassId: LISTITEM });
@@ -168,43 +168,45 @@ apps.set("5", {
             )
     }        
 });
+apps.set("6", {
+    name: "6",
+    title: "Tabbar development, work in progress",
+    root: () => {
+        const tabbar = $$(TABBAR, { tab_clsid: LISTITEM });
+        const toolbar = $$(TOOLBAR);
+        const listview = $$(LISTVIEW, { itemClassId: LISTITEM });
 
-if (APP == "9") {
-    const toolbar = $$(TOOLBAR);
-    const svgview = $$(SVGVIEW);
-    const propview = $$(PROPVIEW);
+        DOM.connect(toolbar, 'add-item', listview, 'add-item');
+        DOM.connect(toolbar, 'trash-bin', listview, 'remove-selected');
+        DOM.connect(listview, 'selected', tabbar, 'add-tab');
 
-    DOM.connect(propview, 'value.1', svgview, 'set-point-x');
-    DOM.connect(propview, 'value.2', svgview, 'set-point-y');
-    DOM.connect(svgview, 'point-x', propview, 'value.1');
-    DOM.connect(svgview, 'point-y', propview, 'value.2');
+        return $$(LR, {ratio:.3})
+            .setLeft($$(TBS)
+                .setTop(toolbar)
+                .setBottom(listview)
+            )
+            .setRight(tabbar)
+    }
+});
+apps.set("9", {
+    name: "9",
+    title: "SVG View",
+    root: () => {
+        const toolbar = $$(TOOLBAR);
+        const svgview = $$(SVGVIEW);
+        const propview = $$(PROPVIEW);
 
-    DOM.mount($$(TBS)
-        .setTop(toolbar)
-        .setBottom($$(TBS, { top: 100 })
+        DOM.connect(propview, 'value.1', svgview, 'set-point-x');
+        DOM.connect(propview, 'value.2', svgview, 'set-point-y');
+        DOM.connect(svgview, 'point-x', propview, 'value.1');
+        DOM.connect(svgview, 'point-y', propview, 'value.2');
+
+        return $$(TBS, { top: 100 })
             .setTop(propview)
             .setBottom(svgview)
-        )
-    );
-}
-
-if (APP == "6") {
-    const tabbar = $$(TABBAR, { tab_clsid: LISTITEM });
-    const toolbar = $$(TOOLBAR);
-    const listview = $$(LISTVIEW, { itemClassId: LISTITEM });
-
-    DOM.connect(toolbar, 'add-item', listview, 'add-item');
-    DOM.connect(toolbar, 'trash-bin', listview, 'remove-selected');
-    DOM.connect(listview, 'selected', tabbar, 'add-tab');
-
-    DOM.mount($$(LR, {ratio:.3})
-        .setLeft($$(TBS)
-            .setTop(toolbar)
-            .setBottom(listview)
-        )
-        .setRight(tabbar)
-    );
-}
+            
+    }        
+});
 
 if (APP == "7") {
     const btn_app = $$(BUTTON, { name: "1" });

@@ -29,7 +29,7 @@ class ListView {
 
     isFolder(item) {
         if (typeof item.get_icon !== 'function') {
-            console.log(`[ListView.isFolder()] item needs alt least a get_icon() function ${item.uid}`);            
+            console.log(`[ListView.isFolder()] item needs at least a get_icon() function ${item.uid}`);            
             return false;
         }
         return this.folderIcons.open === item.get_icon() || this.folderIcons.closed === item.get_icon();

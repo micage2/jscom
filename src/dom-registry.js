@@ -1,117 +1,187 @@
-// src/dom-registry.js
-/** contract for all DOM components
- *  ctor() has to return it
- * @typedef {Object} IDomNode
- * @property {function(): HTMLElement} getHost - root node of the component
- * @property {function(): any} getInstance - food for role factories
- */
+// dom-registry.js
 
+// import { Mediator } from './shared/mediator.js';  // your existing Mediator class
 
-let klasses = new Map(); // clsid → { ctor, role_ctor }
+const klasses = new Map();           // clsid → { ctor, roleFactories: [{roleName, factory}] }
+const privateNodes = new WeakMap();  // iface → { instance, host }
+const roleMaps = new WeakMap();      // iface → Map<roleName, roleImpl>
+const ifaceWiring = new WeakMap();   // iface → { _outputWires: Map<roleName, Set<Mediator>>, _inputWires: Map<roleName, Mediator> }
+const connections = new Map();       // key → { mediator }
 
-let privateNodes = new WeakMap(); // iface → instance (private)
+const gen_clsid = (prefix = "") => 
+    `${prefix}` + Math.random().toString(36).slice(2, 11);
 
 export const DomRegistry = {
-    register(ctor, role_ctor) {
-        const clsid = "CLS_" + Math.random().toString(36).slice(2, 11);
-        klasses.set(clsid, { ctor, role_ctor });
+
+    register(ctor, config) {
+        const clsid = gen_clsid('CLSID_');
+        
+        // collect roles (supported interfaces)
+        const roles = new Map();
+        let default_role = null;
+        const role = (name, impl, _default) => {
+            roles.set(name, impl);
+            if (_default) default_role = name;
+        };
+        
+        // collect actions (message emitter)
+        const actions = new Map();
+        const action = (name) => {
+            actions.set(name);
+        };
+        
+        // collect reactions (message handler)
+        const reactions = new Map();
+        const reaction = (name, impl) => {
+            reactions.set(name, impl);
+        };
+
+        if (typeof config === 'function') {
+            config(role, action, reaction);
+        }
+
+        klasses.set(clsid, { ctor, roles, actions, reactions, default_role });
 
         return clsid;
     },
 
-    create(clsid, args = {}, role) {
-        const klass = klasses.get(clsid);
-        if (!klass) {
-            console.warn(`No component registered for ${clsid}`);
+    create(compId, options = {}) {
+        const klass = klasses.get(compId);
+        if (!klass) throw new Error(`Unknown component type: ${compId}`);
 
-            return null;
-        }
+        // Create pure public interface object
+        const iface = {
+            uid: crypto.randomUUID(),
+            type: compId,
 
-        /** @type IDomNode */
-        const iDomNode = klass.ctor(args);
-        if (!iDomNode) {
-            console.warn(`ctor returned null for ${clsid}`);
-        }
-
-        const host = iDomNode.getHost();
-        if (!host)
-            throw new Error(`Invalid host for ${clsid}`);
-
-        const instance = iDomNode.getInstance();
-
-        // TODO: instances should be mapped to a list of roles
-        // that have been already exposed on that instance.
-        // If there exists already a role for that instance
-        // return the existing one
-
-        const as = (r) => {
-            const role_factory = klass.role_ctor(r);
-            if (role_factory) {
-                const iface = role_factory(instance);
-                if(iface) {
-                    iface.as = as;
-
-                    return iface;
-                }
-                else {
-                    console.log(`role ${r} not created for comp ${clsid}.`);
-
+            as(roleName) {
+                const ih = privateNodes.get(this);
+                const roleImpl = klass.roles.get(roleName);
+                if (!roleImpl) {
+                    console.warn(`No role '${roleName}' on ${compId} #${iface}`);
                     return null;
                 }
-            }
-            else {
-                console.log(`no role ${r} for comp ${clsid} found.`);
 
-                return { as };
+                const iface = Object.assign({}, this, roleImpl(ih.instance))
+                // const iface = { ...roleImpl(ih.instance) };
+                privateNodes.set(iface, ih);
+
+                return iface;
+            },
+
+            call: function (functionName, args) {
+                const key = `${this.uid}:${functionName}`;
+                const conn = connections.get(key);
+                if (!conn) { // inactive
+                    // console.info(`No connection for '${functionName}' on ${this.type} #${this.uid}`);
+                    return null; // TODO: do we need a return value?
+                }
+
+                const sink_klass = klasses.get(conn.sinkIface.type);
+                const sink_func = sink_klass.reactions.get(conn.sinkFuncName);
+
+                const sink_ih = privateNodes.get(conn.sinkIface);
+                if (typeof sink_func !== 'function') return null; // TODO: see above
+
+                return sink_func.bind(conn.sinkIface)(args || functionName);
             }
         };
 
-        const iface = as(role);
-        privateNodes.set(iface, iDomNode);
+        // Call ctor — returns IDomNode interface object
+        const nodeInterface = klass.ctor.bind(iface)(options, iface.call.bind(iface));
 
-        return iface;
+        // Validate protocol
+        if (!nodeInterface ||
+            typeof nodeInterface.getHost !== 'function' ||
+            typeof nodeInterface.getInstance !== 'function') {
+            throw new Error(`ctor for ${compId} did not return valid IDomNode interface`);
+        }
+
+        const instance = nodeInterface.getInstance();
+        const host = nodeInterface.getHost();
+
+        // Store unpacked instance + host
+        privateNodes.set(iface, { instance, host });
+
+        return klass.default_role ? iface.as(klass.default_role) : iface;
     },
 
-    /**
-     * @param {IDomNode} inode - the component to insert
-     * @param {IDomNode} itarget - where to insert
-     * @param {Object} options
-     * @property {"parent" | "before" | "after"} options.mode
-     * @property {string} options.slot - CSS name of slot
-     */
-    attach(inode, itarget, options = {}) {
-        const node = privateNodes.get(inode);
-        if (!node)
-            throw new Error(`DomNode source is not registered`);
+    _connect(action, reaction, config = { type: number, min: 0, max: 1 }) {
+    },
 
-        const target = privateNodes.get(itarget);
-        if (!target)
-            throw new Error(`DomNode target is not registered`);
-
-        const newHost = node.getHost();
-        if (!newHost)
-            throw new Error(`source host is invalid.`);
-
-        const targetHost = target.getHost();
-        if (!targetHost)
-            throw new Error(`target host is invalid.`);
-
-        newHost.slot = options.slot || '';
-
-        let res = null;
-        switch (options.mode || "parent") {
-            case "parent": res = targetHost.appendChild(newHost); break;
-            case "before": res = targetHost.parentNode.insertBefore(newHost, targetHost); break;
-            case "after": res = targetHost.parentNode.insertBefore(newHost, targetHost.nextSibling);
+    connect(sourceIface, sourceFuncName, sinkIface, sinkFuncName) {
+        if (!sourceIface) {
+            console.warn(`[DOM.connect] no source for ${sourceFuncName}`)
+            return false;
         }
-        if (!res) throw new Error(`DOM insertion failed.`);
+        if (!sinkIface) {
+            console.warn("[DOM.connect] no sink")
+            return false;
+        }
+
+        const sourceKlass = klasses.get(sourceIface.type);
+        const sinkKlass = klasses.get(sinkIface.type);
+
+        const sinkFunc = sinkKlass.reactions.get(sinkFuncName);
+
+        const key = `${sourceIface.uid}:${sourceFuncName}`;
+        if (connections.has(key))
+            return false;
+
+        connections.set(key, { sinkIface, sinkFuncName });
+        return true;
+    },
+
+    attach(sourceIface, targetIface, options = {}) {
+        const node_source = privateNodes.get(sourceIface);
+        if (!node_source) {
+            console.warn(`[DOM.attach] Invalid source.`);            
+            return false;
+        }
+
+        const node_target = privateNodes.get(targetIface);
+        if (!node_target) {
+            console.warn(`[DOM.attach] Invalid target.`);            
+            return false;
+        }
+
+        const sourceHost = node_source.host;
+        if (!sourceHost) {
+            console.warn(`[DOM.attach] No source host`);
+            return false;
+        }
+        const targetHost = node_target.host;
+        if (!targetHost) {
+            console.warn(`[DOM.attach] No target host`);
+            return false;
+        }
+
+
+        sourceHost.slot = options.slot || '';
+
+        switch (options.mode) {
+            case "parent":
+                targetHost.appendChild(sourceHost);
+                break;
+            case "before":
+                targetHost.parentNode?.insertBefore(sourceHost, targetHost);
+                break;
+            case "after":
+                targetHost.parentNode?.insertBefore(sourceHost, targetHost.nextSibling);
+                break;
+            default:
+                console.warn(`Invalid attach mode: ${mode}`);
+                return false;
+        }
+
+        return true;
     },
 
     detach(childIface) {
         const child = privateNodes.get(childIface);
         if (!child) return false;
 
-        const childRoot = child.getHost();
+        const childRoot = child.host;
         if (!childRoot || !childRoot.parentNode) return false;
 
         childRoot.parentNode.removeChild(childRoot);
@@ -135,9 +205,12 @@ export const DomRegistry = {
             document.body.appendChild(rootEl);
         }
 
-        const instance = privateNodes.get(rootIface);
-        if (instance) {
-            rootEl.appendChild(instance.getHost());
+        const { host, instance } = privateNodes.get(rootIface);
+        if (instance && host) {
+            rootEl.appendChild(host);
+        }
+        else {
+            console.warn(`No node info for CLS: ${rootIface.type}`);            
         }
     },
 

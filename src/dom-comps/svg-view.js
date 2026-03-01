@@ -116,7 +116,7 @@ function ctor(args = {}) {
     shadow.appendChild(fragment.cloneNode(true));
 
     const svg = shadow.querySelector('svg');
-    svg.onclick = function(e) { this.classList.toggle('selected'); }
+    // svg.onclick = function(e) { this.classList.toggle('selected'); }
 
     const path = shadow.querySelector('path');
     const path_data_0 = path.getPathData({ normalize: true });

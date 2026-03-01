@@ -50,8 +50,10 @@ const IOnlyOneBoxFactory = function({ box, roots, active_root }) {
             
             const root_old = roots.get(active_root);
             DOM.detach(root_old);
+
             const root = roots.get(name);
             DOM.attach(root, this, { slot: 'content'});
+            
             active_root = name;
         }
     };

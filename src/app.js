@@ -17,7 +17,6 @@ import ONLYONEBOX from './dom-comps/only-one-box.js'
 const $$ = DOM.create;
 const Simple = (str) => $$(SIMPLE, { title: str });
 
-const APP = 8;
 const apps = new Map();
 
 apps.set("1", {
@@ -188,6 +187,32 @@ apps.set("6", {
             .setRight(tabbar)
     }
 });
+apps.set("7", {
+    name: "7",
+    title: "Testing my SVG-Buttons",
+    root: () => {
+        const box = $$(BOX);
+        const simple = Simple('');
+
+        // create button and connect to "simple"
+        const buttons = [
+            { name: "File" },
+            { name: "Edit" },
+            { name: "New File", svg_file: "./assets/add-item.svg"},
+            { name: "New Folder", svg_file: "./assets/add-folder.svg"},
+        ].map(entry => {
+            const btn = $$(BUTTON, entry);
+            DOM.connect(btn, 'clicked', simple, 'timed');
+            return btn;
+        });
+
+        box.addMany(buttons);
+
+        return $$(TBS)
+            .setTop(box)
+            .setBottom(simple)
+    }    
+});
 apps.set("9", {
     name: "9",
     title: "SVG View",
@@ -208,52 +233,26 @@ apps.set("9", {
     }        
 });
 
-if (APP == "7") {
+// prepare all apps and put them into an 'OnlyOneBox'
+if (1) {
     const btn_app = $$(BUTTON, { name: "1" });
     const btn_file = $$(BUTTON, { name: "2" });
     const btn_add_file = $$(BUTTON, { name: "New File", svg_file: "./assets/add-item.svg"});
     const btn_add_folder = $$(BUTTON, { name: "New Folder", svg_file: "./assets/add-folder.svg"});
     const simple = Simple('');
 
-    const box = $$(BOX);
-    const buttons = apps.values().map(app => {
-        console.log(`${app.name}: ${app.title}`);
-        const btn = $$(BUTTON, { name: app.name });
-        DOM.connect(btn, 'clicked', simple, 'timed');
-        return btn;
-    });
-    box.addMany([...buttons]);
+    const box = $$(BOX, { mode: 'radio' });
+    const only_one_box = $$(ONLYONEBOX);
 
-    // TODO: idea
-    // DOM.connectManyToOne()
-    // DOM.connectOneToMany()
-    // DOM.connectManyToMany()
-
-    DOM.mount($$(TBS)
-        .setTop(box)
-        .setBottom(simple)
-    );
-}
-
-if (APP == "8") {
-    const btn_app = $$(BUTTON, { name: "1" });
-    const btn_file = $$(BUTTON, { name: "2" });
-    const btn_add_file = $$(BUTTON, { name: "New File", svg_file: "./assets/add-item.svg"});
-    const btn_add_folder = $$(BUTTON, { name: "New Folder", svg_file: "./assets/add-folder.svg"});
-    const simple = Simple('');
-
-    const box = $$(BOX);
-    const only_one = $$(ONLYONEBOX);
-
-    // TODO: idea
+    // TODO: idea, just for convenience
     // DOM.connectManyToOne()
     // DOM.connectOneToMany()
     // DOM.connectManyToMany()
 
     const buttons = apps.values().map(app => {
-        console.log(`${app.name}: ${app.title}`);
-        const btn = $$(BUTTON, { name: app.name });
-        DOM.connect(btn, 'clicked', only_one, 'select');
+        const btn = $$(BUTTON, { name: app.name, mode: '2-state' });
+        DOM.connect(btn, 'activated', only_one_box, 'select');
+        DOM.connect(btn, 'activated2', box, 'button-select');
         return btn;
     });
     box.addMany([...buttons]);
@@ -262,14 +261,14 @@ if (APP == "8") {
         name: app.name,
         root: app.root()
     }))];
-    only_one.addMany([...views]);
+    only_one_box.addMany([...views]);
 
     const first = apps.get(apps.keys().next().value);
-    only_one.select(first.name);
+    // only_one_box.select(first.name);
 
     DOM.mount($$(TBS)
         .setTop(box)
-        .setBottom(only_one)
+        .setBottom(only_one_box)
     );
 }
 

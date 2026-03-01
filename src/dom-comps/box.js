@@ -12,6 +12,9 @@ const sheet = create_sheet(
 `);
 
 function ctor(args, call) {
+    const radio_mode = (args.mode === 'radio');
+    const selected = null;
+
     const host = document.createElement('div');
     const shadow = host.attachShadow({ mode: 'closed' });
     shadow.adoptedStyleSheets.push(sheet);
@@ -20,21 +23,13 @@ function ctor(args, call) {
     slot.name = "content";
     shadow.appendChild(slot);
 
-    const content = new WeakSet();
-
-    if (Array.isArray(args.content)) {
-        for (const elem of args.content) {
-            DOM.attach(elem, this, { slot: 'content' });
-        }
-    }
-
     return {
-        getInstance: () => ({content}),
+        getInstance: () => ({shadow, radio_mode, selected}),
         getHost: () => host,
     }
 }
 
-const IBoxFactory = function({content}) {
+const IBoxFactory = function({shadow, radio_mode, selected}) {
     const IBox = {
         add(elem) {
             DOM.attach(elem, this, { slot: 'content' });
@@ -48,14 +43,31 @@ const IBoxFactory = function({content}) {
             }
             return this;
         },
+        select(btn) {
+            const _btn = btn.as('Button');
+            if (!DOM.equals(selected, _btn)) {
+                _btn.select(true);
+                if (selected) selected.select(false);
+
+                selected = _btn;
+            }
+        }
     };
     return IBox;
 }
 
 const clsid = DOM.register(ctor, function(role, action, reaction) {
+
     role("Box", self => IBoxFactory(self), true);
 
-    action('clicked');
+    action('button-state');
+
+    reaction('button-select', function(btn) {
+        this.select(btn);
+    });
+
+    
+
 }, {
     name: 'Box',
     description: 'Container for Buttons and more ...'

@@ -88,7 +88,7 @@ export const DomRegistry = {
                 const sink_ih = privateNodes.get(conn.sinkIface);
                 if (typeof sink_func !== 'function') return null; // TODO: see above
 
-                return sink_func.bind(conn.sinkIface)(args || functionName);
+                return sink_func.bind(conn.sinkIface)(args);
             }
         };
 

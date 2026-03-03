@@ -8,13 +8,13 @@ const roleMaps = new WeakMap();      // iface → Map<roleName, roleImpl>
 const ifaceWiring = new WeakMap();   // iface → { _outputWires: Map<roleName, Set<Mediator>>, _inputWires: Map<roleName, Mediator> }
 const connections = new Map();       // key → { mediator }
 
-const gen_clsid = (prefix = "") => 
+const gen_id = (prefix = "") => 
     `${prefix}` + Math.random().toString(36).slice(2, 11);
 
 export const DomRegistry = {
 
     register(ctor, config, info = {}) {
-        const clsid = gen_clsid('CLSID_');
+        const clsid = gen_id('CLSID_');
         
         // collect roles (supported interfaces)
         const roles = new Map();
@@ -74,7 +74,7 @@ export const DomRegistry = {
                 return iface;
             },
 
-            call: function (functionName, args) {
+            call: function (functionName, args = {}, tranformer = null) {
                 const key = `${this.uid}:${functionName}`;
                 const conn = connections.get(key);
                 if (!conn) { // inactive

@@ -10,6 +10,7 @@ import LISTITEM from './dom-comps/list-item.js'
 import SIMPLE from './dom-comps/simple-view.js'
 import PROPVIEW from './dom-comps/prop-view.js'
 import SVGVIEW from './dom-comps/svg-view.js'
+import SVGVIEW2 from './dom-comps/svg-view-2.js'
 import BUTTON from './dom-comps/button.js'
 import BOX from './dom-comps/box.js'
 import ONLYONEBOX from './dom-comps/only-one-box.js'
@@ -213,6 +214,39 @@ apps.set("7", {
             .setBottom(simple)
     }    
 });
+apps.set("8", {
+    name: "8",
+    title: "New Version of SVG-View component.",
+    root: () => {
+        const box = $$(BOX);
+        const simple = Simple('');
+        const svgview = $$(SVGVIEW2, {
+            file: "./assets/half-circle.svg"
+        });
+
+        // create button and connect to "simple"
+        const buttons = [
+            { name: "File" },
+            { name: "Edit" },
+            { name: "New File", svg_file: "./assets/add-item.svg"},
+            { name: "New Folder", svg_file: "./assets/add-folder.svg"},
+        ].map(entry => {
+            const btn = $$(BUTTON, entry);
+            DOM.connect(btn, 'clicked', simple, 'timed');
+            return btn;
+        });
+        box.addMany(buttons);
+
+        DOM.connect(svgview, 'text', simple, 'title');
+
+        return $$(TBS)
+            .setTop(box)
+            .setBottom($$(TBS)
+                .setTop(simple)
+                .setBottom(svgview)
+            )
+    }    
+});
 apps.set("9", {
     name: "9",
     title: "SVG View",
@@ -249,13 +283,14 @@ if (1) {
     // DOM.connectOneToMany()
     // DOM.connectManyToMany()
 
-    const buttons = apps.values().map(app => {
+    const button_iter = apps.values().map(app => {
         const btn = $$(BUTTON, { name: app.name, mode: '2-state' });
         DOM.connect(btn, 'activated', only_one_box, 'select');
         DOM.connect(btn, 'activated2', box, 'button-select');
         return btn;
     });
-    box.addMany([...buttons]);
+    const buttons = [...button_iter];
+    box.addMany(buttons);
     
     const views = [...apps.values().map(app => ({
         name: app.name,
@@ -263,8 +298,12 @@ if (1) {
     }))];
     only_one_box.addMany([...views]);
 
-    const first = apps.get(apps.keys().next().value);
-    // only_one_box.select(first.name);
+    // sadly, this is ridiculous code!
+    // 'only_one_box' wants a name string
+    // 'box' wants IButton
+    const btn1 = buttons[9];
+    btn1.call('activated', btn1.get_name());
+    btn1.call('activated2', btn1);
 
     DOM.mount($$(TBS)
         .setTop(box)

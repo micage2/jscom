@@ -1,12 +1,6 @@
 function uid() {
-    // return "" + Math.random().toString(36).slice(2, 11);
-    return crypto.randomUUID();
-}
-
-function create_sheet(code) {
-    const sheet = new CSSStyleSheet();
-    sheet.replaceSync(code);
-    return sheet;
+    return Math.random().toString(36).slice(2, 11);
+    // return crypto.randomUUID();
 }
 
 function fitChildDimensions(parent, child) {
@@ -43,20 +37,13 @@ export function CSSRules(rules = {}) {
     };
 };
 
-// not working
-function _loadSheet(file) {
-    // Create a new CSSStyleSheet
+export function create_sheet(code) {
     const sheet = new CSSStyleSheet();
-
-    // Load external CSS (asynchronously, supports @import)
-    // sheet.replace('@import url("styles.css")')
-    // .then(() => sheet)
-    // .catch(err => console.error('Failed to load styles:', err));    
-    sheet.replaceSync(`@import url('${file}')`)
-    shadow.adoptedStyleSheets = [sheet];
+    sheet.replaceSync(code);
+    return sheet;
 }
 
-export async function loadSheet(file) {
+export async function load_sheet(file) {
     const sheet = new CSSStyleSheet();
 
     const response = await fetch(file);
@@ -100,5 +87,5 @@ export function makeFragment(str) {
 }
 
 export {
-    create_sheet, fitChildDimensions, logobj, uid,
+    fitChildDimensions, logobj, uid,
 }

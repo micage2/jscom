@@ -52,7 +52,8 @@ function ctor(args = {}) {
 // creates ISimpleView interface objects
 const ISimpleViewFactory = ({simple, status, initial_text}) => {
     return {
-        set_title(text) { status.textContent = text; },
+        set_title(text) { status.textContent = initial_text = text; },
+        set_timed(text) { status.textContent = text; },
         get_title() { return status.textContent; },
         restore() { status.textContent = initial_text; },
 
@@ -75,7 +76,7 @@ const clsid = DOM.register(ctor, function(role, action, reaction) {
         this.set_title(text);
     });
     reaction('timed', function(text) {
-        this.set_title(text);
+        this.set_timed(text);
         setTimeout(() => { this.restore(); }, 1000);
     });
     reaction('set-text-3', function(text) {

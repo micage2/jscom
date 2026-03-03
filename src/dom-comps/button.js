@@ -69,10 +69,11 @@ function ctor(args, call) {
         else if (args.mode === 'toggle') {
             let state = button.classList.contains('activated') ? 'state1' : 'state2'
             button.classList.toggle('activated');
-            call('toggled', button, state);
+            call('toggled', that.as('Button'), state);
         }
         else {
-            call('clicked', button);
+            // TODO: data transformer
+            call('clicked', that.as('Button'));
         }
     };
     shadow.appendChild(button);

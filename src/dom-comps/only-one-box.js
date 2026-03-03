@@ -64,7 +64,7 @@ const clsid = DOM.register(ctor, function(role, action, reaction) {
     role("Box", self => IOnlyOneBoxFactory(self), true);
 
     reaction('select', function(payload) {
-        console.log(`${payload}`);
+        // console.log(`${payload}`);
         this.select(payload);
     });
 }, {

@@ -1,0 +1,23 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;        
+    gap: 16px;
+    background: #1e1e1e;
+    color: #ddd;
+}
+.svg-view {
+    height: 100%;
+    margin: auto;
+}
+.svg-view svg {
+    border: 1px dashed transparent;
+}
+.svg-view svg.selected {
+    border: 1px dashed #aaa;
+}
+
+.output {
+    position: absolute;
+    bottom: 2px;
+}

@@ -15,15 +15,23 @@
         transform="translate(0 0) rotate(0) translate(0 0)"
     >
         <path class="slim" d="
-            M 10 10
-            C 10 40 60 40 60 10
+            M 0 0
+            C 0 48 64 48 64 0
+            C 64 -20 76 -32 96 -32
             " />
-        <path class="slim dash" d="m10 10 l 0 30"/>
-        <path class="slim dash" d="m60 10 l 0 30"/>
-        <path d="m10 10 z" stroke="red"/>
-        <path d="m10 40 z" stroke="green"/>
-        <path d="m60 10 z" stroke="red"/>
-        <path d="m60 40 z" stroke="green"/>
+        <path d="m 0 0 z" stroke="red"/>
+        <path class="slim dash" d="m 0 0 l 0 64"/>
+        <path d="m 0 64 z" stroke="green"/>
+
+        <path d="m 64 0 z" stroke="red"/>
+        <path class="slim dash" d="m 64 0 l 0 64"/>
+        <path d="m 64 64 z" stroke="green"/>
+
+        <path class="slim dash" d="M 64 0 v-20"/>
+        <path class="slim dash" d="M 96 -32 h -20"/>
+        <path d="M 64 -20 z" stroke="green"/>
+        <path d="M 96 -32 z" stroke="red"/>
+        <path d="M 76 -32 z" stroke="green"/>
     </g>
 </svg>
 <!-- C 2  0  0  2  0  5 -->

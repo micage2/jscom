@@ -123,6 +123,9 @@ function ready(svg) {
         svg,
         viewBox: [0, 0, 72, 36]
     };
+    const vb = svg.viewBox.baseVal;
+    vb.x -= 96; vb.height *= 4;
+    vb.y -= 48; vb.width *= 4;
 
     this.call('text', svg.getAttribute('name'));
 

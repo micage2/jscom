@@ -91,17 +91,6 @@ function draggable(ondrag) {
     }
 }
 
-function get_viewbox(svg) {
-    const viewbox = svg.getAttribute('viewBox');
-    const [x, y, w, h] = viewbox.split(' ');
-    return { x, y, w, h };
-}
-
-function set_viewbox(svg, vb) {
-    const str = Object.values(vb).join(' ');
-    svg.setAttribute('viewBox', str);
-}
-
 function screenToSVG(svg, x, y) {
     const pt = svg.createSVGPoint();
     pt.x = x;
@@ -119,28 +108,9 @@ SVGPoint.prototype.toString = function () {
 }
 
 function ready(svg) {
-    window.MMM = {
-        svg,
-        viewBox: [0, 0, 72, 36]
-    };
     const vb = svg.viewBox.baseVal;
     vb.x -= 96; vb.height *= 4;
     vb.y -= 48; vb.width *= 4;
-
-    this.call('text', svg.getAttribute('name'));
-
-    console.log(svg.getScreenCTM().toString());
-    console.log(svg.getCTM());
-
-
-    svg._onpointerdown = draggable((pos) => {
-        this.call('text', screenToSVG(svg, pos.dx, pos.dy).toString());
-
-        let viewbox = get_viewbox(svg);
-        viewbox.x -= pos.dx;
-        viewbox.y -= pos.dy;
-        set_viewbox(svg, viewbox);
-    });
 
     svg.onwheel = (e) => {
         const delta = e.deltaY > 0 ? 1.1 : 0.9;
@@ -162,7 +132,7 @@ function ready(svg) {
     let isPanning = false;
     let startX, startY;
 
-    svg.addEventListener("mousedown", (e) => {
+    svg.addEventListener("pointerdown", (e) => {
         isPanning = true;
         startX = e.clientX;
         startY = e.clientY;
@@ -171,7 +141,7 @@ function ready(svg) {
         e.preventDefault();
     });
 
-    document.addEventListener("mousemove", (e) => {
+    document.addEventListener("pointermove", (e) => {
         if (!isPanning) return;
         const ctm = svg.getScreenCTM();
         const dx = (e.clientX - startX) / ctm.a;
@@ -185,7 +155,7 @@ function ready(svg) {
         startY = e.clientY;
     });
 
-    document.addEventListener("mouseup", () => {
+    document.addEventListener("pointerup", () => {
         isPanning = false;
         svg.style.cursor = "grab";
     });
@@ -201,39 +171,44 @@ function ctor(args = {}, call) {
     const doc = shadow.querySelector('.svg-view');
     let svg = null;
 
-    if (args.file) {
-        load_file(args.file).then((str) => {
-            doc.innerHTML = str;
-            svg = shadow.querySelector('svg');
-
-            doc.onclick = () => this.call('text', svg.getAttribute('name'));
-
-            ready.call(this, svg);
-        });
-    }
-    else {
-        out.textContent = "Please, load an SVG file!";
-    }
-
-    // svg.onclick = function(e) { this.classList.toggle('selected'); }
-
     return {
         getHost: () => host,
         getInstance: () => ({
-
+            doc, svg, shadow
         }),
     };
 }
 
 // creates ISVGView interface objects
-const ISVGViewFactory = (self) => {
+const ISVGViewFactory = ({ doc, svg, shadow }) => {
     return {
+        load(myfile) {
+            if (typeof myfile === 'string') {
+                load_file(myfile).then((str) => {
+                    doc.innerHTML = str;
+                    svg = shadow.querySelector('svg');
+
+                    ready.call(this, svg);
+                });
+            }
+            else {
+                doc.innerHTML = `<svg viewBox="0 0 64 32">
+                <path d="m -4 6 h-10 v10 h10 z" stroke="red" fill="none" />
+                <text y="16" fill="#ddd">no svg file</Text>
+                </svg>`;
+                svg = shadow.querySelector('svg');
+                ready.call(this, svg);
+        }
+            return this;
+        }
     };
 };
 
 const clsid = DOM.register(ctor, function (role, action, reaction) {
 
     role("SVGView", self => ISVGViewFactory(self), true);
+
+    reaction('file', function(myfile) { this.load(myfile) });
 
 });
 export default clsid;

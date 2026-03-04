@@ -65,16 +65,47 @@ apps.set("3", {
     title: "TreeView with Buttonbar",
     root: () => {
         const toolbar = $$(TOOLBAR);
-        const listView = $$(LISTVIEW, { itemClassId: LISTITEM });
-        listView.init();
+        const listview = $$(LISTVIEW, { itemClassId: LISTITEM });
+        listview.init();
 
-        DOM.connect(toolbar, 'add-item', listView, 'add-item');
-        DOM.connect(toolbar, 'add-folder', listView, 'add-folder');
-        DOM.connect(toolbar, 'trash-bin', listView, 'remove-selected');
+        DOM.connect(toolbar, 'add-item', listview, 'add-item');
+        DOM.connect(toolbar, 'add-folder', listview, 'add-folder');
+        DOM.connect(toolbar, 'trash-bin', listview, 'remove-selected');
         
         return $$(TBS)
             .setTop(toolbar)
-            .setBottom(listView)
+            .setBottom(listview)
+        ;
+    }
+});
+apps.set("3.1", {
+    name: "3.1",
+    title: "TreeView with Buttonbar",
+    root: () => {
+        const info = Simple('TreeView with button and status bar\n\n'
+            + 'Each section is its own component communicating via "connections".\n\n'
+            + 'Comparable to devices like amplifiers, speakers, phono, tape, ...'
+        );
+        const toolbar = $$(TOOLBAR);
+        const listview = $$(LISTVIEW, { itemClassId: LISTITEM }).init({ root: 'Scene'});
+        const status = Simple('no selection');
+
+        DOM.connect(toolbar, 'add-item', listview, 'add-item');
+        DOM.connect(toolbar, 'add-folder', listview, 'add-folder');
+        DOM.connect(toolbar, 'trash-bin', listview, 'remove-selected');
+
+        DOM.connect(listview, 'selected', status, 'title', item => `selected item: ${item.get_title()}`);
+        
+        const toolbar_with_controls = $$(TBS)
+            .setTop(toolbar)
+            .setBottom(listview)
+        ;
+        return $$(TB, { ratio: .12})
+            .setTop(info)
+            .setBottom($$(TBS, { bottomHeight: 32 })
+                .setTop(toolbar_with_controls)
+                .setBottom(status)
+            )
         ;
     }
 });
@@ -190,66 +221,51 @@ apps.set("6", {
 });
 apps.set("7", {
     name: "7",
-    title: "Testing my SVG-Buttons",
+    title: "Testing SVG- amd Text-Buttons. Click on each!",
     root: () => {
         const box = $$(BOX);
-        const simple = Simple('');
+        const info = Simple('\nSVG- and Text-Buttons. Click on each!\n\n'+
+            'Zoom (mouse wheel) and Pan (drag mouse) in lower view');
+        const svgview = $$(SVGVIEW2);
+        const out = Simple();
 
         // create button and connect to "simple"
-        const buttons = [
+        const buttons_info = [
             { name: "File" },
             { name: "Edit" },
             { name: "New File", svg_file: "./assets/add-item.svg"},
             { name: "New Folder", svg_file: "./assets/add-folder.svg"},
-        ].map(entry => {
+        ];
+        const buttons = buttons_info.map(entry => {
             const btn = $$(BUTTON, entry);
-            DOM.connect(btn, 'clicked', simple, 'timed');
+            DOM.connect(btn, 'clicked', out, 'timed', b => b.get_name());
             return btn;
         });
+
+        const transform = (button) => button.get_svg_file();
+        buttons.forEach(b => {
+            DOM.connect(b, 'clicked2', svgview, 'file', transform);
+        });
+        // DOM.connect(buttons[1], 'clicked2', svgview, 'file', transform);
+        // DOM.connect(buttons[2], 'clicked2', svgview, 'file', transform);
+        // DOM.connect(buttons[3], 'clicked2', svgview, 'file', transform);
 
         box.addMany(buttons);
 
         return $$(TBS)
             .setTop(box)
-            .setBottom(simple)
+            .setBottom($$(TB, { ratio: .2})
+                .setTop(info)
+                .setBottom($$(TBS)
+                    .setTop(out)
+                    .setBottom(svgview)
+                )
+            )
     }    
 });
 apps.set("8", {
     name: "8",
-    title: "New Version of SVG-View component.",
-    root: () => {
-        const box = $$(BOX);
-        const simple = Simple('');
-        const svgview = $$(SVGVIEW2, {
-            file: "./assets/half-circle.svg"
-        });
-
-        // create button and connect to "simple"
-        const buttons = [
-            { name: "File" },
-            { name: "Edit" },
-            { name: "New File", svg_file: "./assets/add-item.svg"},
-            { name: "New Folder", svg_file: "./assets/add-folder.svg"},
-        ].map(entry => {
-            const btn = $$(BUTTON, entry);
-            DOM.connect(btn, 'clicked', simple, 'timed');
-            return btn;
-        });
-        box.addMany(buttons);
-
-        DOM.connect(svgview, 'text', simple, 'title');
-
-        return $$(TBS)
-            .setTop(box)
-            .setBottom($$(TBS)
-                .setTop(simple)
-                .setBottom(svgview)
-            )
-    }    
-});
-apps.set("9", {
-    name: "9",
-    title: "SVG View",
+    title: "SVGView with PropView",
     root: () => {
         const toolbar = $$(TOOLBAR);
         const svgview = $$(SVGVIEW);
@@ -260,11 +276,45 @@ apps.set("9", {
         DOM.connect(svgview, 'point-x', propview, 'value.1');
         DOM.connect(svgview, 'point-y', propview, 'value.2');
 
-        return $$(TBS, { top: 100 })
+        return $$(TBS, { topHeight: 100 })
             .setTop(propview)
             .setBottom(svgview)
             
     }        
+});
+apps.set("8.1", {
+    name: "8.1",
+    title: "SVG-View (new version).",
+    root: () => {
+        const box = $$(BOX);
+        const simple = Simple('Early SVG editor for inspiration');
+        // const svgview = $$(SVGVIEW2, { file: "./assets/half-circle.svg" });
+        const svgview = $$(SVGVIEW2).load("./assets/half-circle.svg");
+
+        // create button and connect to "simple"
+        const buttons = [
+            { name: "File" },
+            { name: "Edit" },
+            { name: "New File", svg_file: "./assets/add-item.svg"},
+            { name: "New Folder", svg_file: "./assets/add-folder.svg"},
+        ].map(entry => {
+            const btn = $$(BUTTON, entry);
+            DOM.connect(btn, 'clicked', simple, 'timed', b=>b.get_name());
+            return btn;
+        });
+        box.addMany(buttons);
+
+        DOM.connect(svgview, 'text', simple, 'title', (args) => {
+            console.log(`${args}`);            
+        });
+
+        return $$(TBS)
+            .setTop(box)
+            .setBottom($$(TBS, {bottomHeight:32})
+                .setTop(svgview)
+                .setBottom(simple)
+            )
+    }    
 });
 
 // prepare all apps and put them into an 'OnlyOneBox'
@@ -294,14 +344,14 @@ if (1) {
     
     const views = [...apps.values().map(app => ({
         name: app.name,
-        root: app.root()
+        root: app.root // now with lazy creating of root
     }))];
     only_one_box.addMany([...views]);
 
     // sadly, this is ridiculous code!
     // 'only_one_box' wants a name string
     // 'box' wants IButton
-    const btn1 = buttons[9];
+    const btn1 = buttons[5];
     btn1.call('activated', btn1.get_name());
     btn1.call('activated2', btn1);
 

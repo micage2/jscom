@@ -39,6 +39,7 @@ document.adoptedStyleSheets.push(sheet)
  * @prop {'default' | '2-state' | 'toggle'} [args.mode]
  */
 function ctor(args, call) {
+    const svg_file = args.svg_file;
 
     const host = document.createElement('div');
     const shadow = host.attachShadow({ mode: 'closed' });
@@ -48,8 +49,8 @@ function ctor(args, call) {
     button.name = args.name || this.uid;
     button.classList.add('my-button');
 
-    if (args.svg_file) {
-        load_file(args.svg_file).then((str) => {
+    if (svg_file) {
+        load_file(svg_file).then((str) => {
             button.innerHTML = str;
         });
     }
@@ -57,7 +58,7 @@ function ctor(args, call) {
         button.textContent = button.name;
     }
     
-    const that = this;
+    const that = this; // otherwise <button> is 'this'
     button.onclick = function () {
         if (args.mode === '2-state') {
             if (!button.classList.contains('activated')) {
@@ -74,20 +75,22 @@ function ctor(args, call) {
         else {
             // TODO: data transformer
             call('clicked', that.as('Button'));
+            call('clicked2', that.as('Button'));
         }
     };
     shadow.appendChild(button);
 
     return {
-        getInstance: () => button,
+        getInstance: () => ({button, svg_file}),
         getHost: () => host,
     }
 }
 
 
-const IButtonFactory = function(button) {
+const IButtonFactory = function({button, svg_file}) {
     const IButton = {
-        get_name() { return button.textContent; },
+        get_name() { return button.name; },
+        get_svg_file() { return svg_file; },
         select(bool) {
             bool ? button.classList.add('activated')
                 : button.classList.remove('activated');
@@ -104,6 +107,7 @@ const clsid = DOM.register(ctor, function(role, action, reaction) {
     role('Button', (self) => IButtonFactory(self), true);
 
     action('clicked');
+    action('clicked2');
     action('activated');
     action('activated2');
     action('toggled');

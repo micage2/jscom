@@ -74,11 +74,13 @@ export const DomRegistry = {
                 return iface;
             },
 
-            call: function (functionName, args = {}, tranformer = null) {
+            call: function (functionName, args = {}) {
                 const key = `${this.uid}:${functionName}`;
                 const conn = connections.get(key);
                 if (!conn) { // inactive
-                    // console.info(`No connection for '${functionName}' on ${this.type} #${this.uid}`);
+                    const klass = klasses.get(this.type);
+                    const info = klass.info;
+                    console.info(`No connection for '${functionName}' on ${info.name || this.type} #${this.uid}`);
                     return null; // TODO: do we need a return value?
                 }
 
@@ -88,7 +90,10 @@ export const DomRegistry = {
                 const sink_ih = privateNodes.get(conn.sinkIface);
                 if (typeof sink_func !== 'function') return null; // TODO: see above
 
-                return sink_func.bind(conn.sinkIface)(args);
+                const transformed_args = typeof conn.transformer === 'function' 
+                    ? conn.transformer(args) : args;
+
+                return sink_func.bind(conn.sinkIface)(transformed_args);
             }
         };
 
@@ -114,7 +119,7 @@ export const DomRegistry = {
     _connect(action, reaction, config = { type: number, min: 0, max: 1 }) {
     },
 
-    connect(sourceIface, sourceFuncName, sinkIface, sinkFuncName) {
+    connect(sourceIface, sourceFuncName, sinkIface, sinkFuncName, transformer = null) {
         if (!sourceIface) {
             console.warn(`[DOM.connect] no source for ${sourceFuncName}`)
             return false;
@@ -133,7 +138,7 @@ export const DomRegistry = {
         if (connections.has(key))
             return false;
 
-        connections.set(key, { sinkIface, sinkFuncName });
+        connections.set(key, { sinkIface, sinkFuncName, transformer });
         return true;
     },
 

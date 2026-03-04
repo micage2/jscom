@@ -4,10 +4,10 @@ html {
     padding: 0;
     height: 100%;
     overflow: hidden;
-    font-family: sans-serif;
+    font-family: Verdana, sans-serif;
 }
 :root {
-    --fontsize: 1rem;
+    --fontsize: .8rem;
 
     --color-bg: #1d1c1a;
     --color-text: #ccc;

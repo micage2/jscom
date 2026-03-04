@@ -34,13 +34,19 @@ function ctor(args, call) {
 const IOnlyOneBoxFactory = function({ box, roots, active_root }) {
     const IOnlyOneBox = {
         add(name, elem) {
-            roots.set(name, elem);
+            if(typeof elem === 'function') {
+                roots.set(name, { root: null, ctor: elem });
+            }
+            else {
+                roots.set(name, { root: elem, ctor: null });
+            }
             return this;
         },
         addMany(elems) {
             if (Array.isArray(elems) && elems.length > 0) {
                 for (const elem of elems) {
-                    roots.set(elem.name, elem.root);
+                    // roots.set(elem.name, elem.root);
+                    this.add(elem.name, elem.root);
                 }
             }
             return this;
@@ -48,11 +54,12 @@ const IOnlyOneBoxFactory = function({ box, roots, active_root }) {
         select(name) {
             if (active_root === name) return;
             
-            const root_old = roots.get(active_root);
-            DOM.detach(root_old);
+            const entry_old = roots.get(active_root);
+            if (entry_old) DOM.detach(entry_old.root);
 
-            const root = roots.get(name);
-            DOM.attach(root, this, { slot: 'content'});
+            const entry = roots.get(name);
+            entry.root = typeof entry.ctor === 'function' ? entry.ctor() : entry.root;
+            DOM.attach(entry.root, this, { slot: 'content'});
             
             active_root = name;
         }

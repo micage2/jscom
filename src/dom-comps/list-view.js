@@ -50,7 +50,9 @@ class ListView {
         if (this.selectedItem && this.selectedItem !== item) {
             this.selectedItem.set_selected(false);
             this.selectedItem = item;
-            item.set_selected(true);                
+            item.set_selected(true);
+            
+            this.call('selected', item);
         }
     }
 
@@ -304,18 +306,6 @@ const IListViewFactory = (self) => {
         select(item_uid) {
             const item = self.items.get(item_uid);
             self.selectItem(item);
-
-            
-            // TODO:
-            // get view data and view's clsid
-            // create a view with view's data
-            let that = this;
-            setTimeout(() => {
-                that.call('selected', {
-                    title: item.get_title(),
-                    view: DOM.create(SVG, { title: item.get_title() })
-                });
-            });
         }
     };
 };

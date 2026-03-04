@@ -29,7 +29,7 @@ const ITopBottom = (self) => ({
 function ctor(args = {}, call) {
     const host = document.createElement('div');
     const shadow = host.attachShadow({ mode: 'closed' });
-    const total = host.offsetHeight;
+    // const total = host.offsetHeight;
 
     const clone = fragment.cloneNode(true);
     shadow.appendChild(clone);
@@ -38,7 +38,8 @@ function ctor(args = {}, call) {
     const divider = shadow.querySelector('.divider');
     const slot_bottom = shadow.querySelector('slot[name="bottom"]');
 
-    const topHeight = args.top || 32;
+    let topHeight, bottomHeight;
+
     const dividerHeight = args.divider || 1;
 
     const update = () => {
@@ -47,6 +48,7 @@ function ctor(args = {}, call) {
         const topChild = slot_top?.assignedElements?.()[0];
         const bottomChild = slot_bottom?.assignedElements?.()[0];
 
+        topHeight = args.bottomHeight ? total - args.bottomHeight : (args.topHeight || 32);
         if (topChild) topChild.style.height = topHeight + 'px';
         if (bottomChild) bottomChild.style.height = total - topHeight - divider.offsetHeight + 'px';
     };

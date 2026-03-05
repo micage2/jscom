@@ -7,7 +7,25 @@ const sheet = create_sheet(
     display: flex;
     flex-direction: row;
     height: 100%;
+    width: 100%;
     background: var(--color-bg);
+
+    scrollbar-height: thin;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-gutter: stable;
+
+}
+:host::-webkit-scrollbar {
+    height: 5px;
+}
+:host::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+}
+:host::-webkit-scrollbar-thumb {
+    background: #444;
+    opacity: 0 !important;
 }
 `);
 
@@ -23,35 +41,62 @@ function ctor(args, call) {
     slot.name = "content";
     shadow.appendChild(slot);
 
+    const members = [];
+
     return {
-        getInstance: () => ({shadow, radio_mode, selected}),
+        getInstance: () => ({slot, radio_mode, selected, members}),
         getHost: () => host,
     }
 }
 
-const IBoxFactory = function({shadow, radio_mode, selected}) {
+const max = (arr) => arr.reduce(function(prev, current) {
+    return (prev && prev.y > current.y) ? prev : current;
+});
+
+const IBoxFactory = function({slot, radio_mode, selected, members}) {
     const IBox = {
         add(elem) {
+            if (!elem) {
+                console.warn('[Box.add] element is null.');                
+                return this
+            };
+            if (members.includes(elem)) {
+                console.warn(`[Box.add] already has comp #${elem.uid}.`);                
+                return this;
+            }
+            if (typeof elem.select !== 'function') {
+                console.warn(`[Box.add] select function required on #${elem.uid}.`);
+                return this;
+            }
+
             DOM.attach(elem, this, { slot: 'content' });
+            members.push(elem);
+
             return this;
         },
         addMany(elems) {
             if (Array.isArray(elems)) {
                 for (const elem of elems) {
-                    DOM.attach(elem, this, { slot: 'content' });
+                    this.add(elem);
                 }
             }
             return this;
         },
-        select(btn) {
-            const _btn = btn.as('Button');
-            if (!DOM.equals(selected, _btn)) {
-                _btn.select(true);
-                if (selected) selected.select(false);
-
-                selected = _btn;
+        select(elem) {
+            if (!members.includes(elem)) {
+                console.warn(`[Box.add] not a member: #${elem.uid}.`);
             }
-        }
+            if (selected) selected.select(false);
+            selected = elem;
+            selected.select(true);
+
+            const idx = members.indexOf(elem);
+            const assignedNodes = slot.assignedNodes({ flatten: true });
+            assignedNodes[idx].scrollIntoView({
+                behavior: "smooth", block: "end", container: "nearest"
+            });
+        },
+        has(elem) { return members.includes(elem); },
     };
     return IBox;
 }

@@ -16,15 +16,16 @@ const sheet = create_sheet(
     align: center;
 }
 .my-button:hover {
-    color: var(--color-active);
+    color: var(--toolbar-btn-hover-color);
 }
 .my-button:hover .icon {
     stroke: #0af;
 }
-.my-button.activated,
-.my-button:active {
+.my-button.activated{
     color: var(--color-active);
-    font-size: 16px;
+}
+.my-button:active {
+    transform: scale(0.95);
 }
 .my-button:active .icon {
     transform: translate(-6px, -8px) scale(1.2);
@@ -59,21 +60,21 @@ function ctor(args, call) {
     }
     
     const that = this; // otherwise <button> is 'this'
-    button.onclick = function () {
+    button.onclick = function (e) {
         if (args.mode === '2-state') {
             if (!button.classList.contains('activated')) {
                 button.classList.add('activated');
-                call('activated', button.name);
-                call('activated2', that);
+                call('activated', that.as('Button'));
+                call('activated2', that.as('Button'));
             }
         }
         else if (args.mode === 'toggle') {
-            let state = button.classList.contains('activated') ? 'state1' : 'state2'
+            let state = button.classList
+                .contains('activated') ? 'state1' : 'state2'
             button.classList.toggle('activated');
-            call('toggled', that.as('Button'), state);
+            call('toggled', that.as('Button'));
         }
         else {
-            // TODO: data transformer
             call('clicked', that.as('Button'));
             call('clicked2', that.as('Button'));
         }
@@ -95,7 +96,7 @@ const IButtonFactory = function({button, svg_file}) {
             bool ? button.classList.add('activated')
                 : button.classList.remove('activated');
         },
-        is_selected() { return button.classList.contains('activated'); },
+        is_active() { return button.classList.contains('activated'); },
         reset() { button.classList.remove('activated'); },
     }
     return IButton;

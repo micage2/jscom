@@ -1,8 +1,8 @@
 // dom-registry.js
-
-// import { Mediator } from './shared/mediator.js';  // your existing Mediator class
+import { Mediator } from './shared/mediator.js';
 
 const klasses = new Map();           // clsid → { ctor, roleFactories: [{roleName, factory}] }
+const compounds = new Map();         // clsid → { ctor, roleFactories: [{roleName, factory}] }
 const privateNodes = new WeakMap();  // iface → { instance, host }
 const roleMaps = new WeakMap();      // iface → Map<roleName, roleImpl>
 const ifaceWiring = new WeakMap();   // iface → { _outputWires: Map<roleName, Set<Mediator>>, _inputWires: Map<roleName, Mediator> }
@@ -40,14 +40,66 @@ export const DomRegistry = {
             config(role, action, reaction);
         }
 
-        klasses.set(clsid, { ctor, roles, actions, reactions, default_role, info });
+        const mediator = new Mediator();
+
+        klasses.set(clsid, {
+            ctor, // create component function
+            roles, // name -> role ctor
+            default_role, // name
+            actions, // names[]
+            reactions, // name -> handler function
+            mediator, // name -> Set of handler functions
+            info
+        });
+
+        return clsid;
+    },
+
+    registerCompound(ctor, config, info = {}) {
+        const clsid = gen_id('CLSID_');
+        
+        // collect roles (supported interfaces)
+        const roles = new Map();
+        let default_role = null;
+        const role = (name, impl, _default) => {
+            roles.set(name, impl);
+            if (_default) default_role = name;
+        };
+        
+        // collect actions (message emitter)
+        const actions = new Map();
+        const action = (name) => {
+            actions.set(name);
+        };
+        
+        // collect reactions (message handler)
+        const reactions = new Map();
+        const reaction = (name, impl) => {
+            reactions.set(name, impl);
+        };
+
+        if (typeof config === 'function') {
+            config(role, action, reaction);
+        }
+
+        const mediator = new Mediator();
+
+        compounds.set(clsid, {
+            ctor, // create component function
+            roles, // name -> role ctor
+            default_role, // name
+            actions, // names[]
+            reactions, // name -> handler function
+            mediator, // name -> Set of handler functions
+            info
+        });
 
         return clsid;
     },
 
     getClassInfo(clsid) {
         const klass = klasses.get(clsid);
-        return klass ?? klass.info;
+        return klass ? klass.info : null;
     },
 
     create(compId, options = {}) {
@@ -56,20 +108,27 @@ export const DomRegistry = {
 
         // Create pure public interface object
         const iface = {
-            uid: crypto.randomUUID(),
+            // uid: crypto.randomUUID(),
+            uid: gen_id(),
             type: compId,
+            role: 'unknown',
 
             as(roleName) {
                 const ih = privateNodes.get(this);
-                const roleImpl = klass.roles.get(roleName);
-                if (!roleImpl) {
+                const role_ctor = klass.roles.get(roleName);
+                if (!role_ctor) {
                     console.warn(`No role '${roleName}' on ${compId} #${iface}`);
                     return null;
                 }
 
-                const iface = Object.assign({}, this, roleImpl(ih.instance))
-                // const iface = { ...roleImpl(ih.instance) };
+                // Note: careful! iface is accumulating all role methods
+                // ever used in the app. Maybe nice, maybe not.
+                // but this way iface can keep its identity for Set
+                const role = role_ctor(ih.instance);
+                const iface = Object.assign(this, role);
+
                 privateNodes.set(iface, ih);
+                iface.role = roleName;
 
                 return iface;
             },
@@ -78,22 +137,31 @@ export const DomRegistry = {
                 const key = `${this.uid}:${functionName}`;
                 const conn = connections.get(key);
                 if (!conn) { // inactive
-                    const klass = klasses.get(this.type);
                     const info = klass.info;
                     console.info(`No connection for '${functionName}' on ${info.name || this.type} #${this.uid}`);
-                    return null; // TODO: do we need a return value?
+                    return null;
                 }
 
                 const sink_klass = klasses.get(conn.sinkIface.type);
                 const sink_func = sink_klass.reactions.get(conn.sinkFuncName);
+                if (typeof sink_func !== 'function') {
+                    console.error('Sink is not a function: ' + sink_klass.info);                    
+                    return null;
+                }
 
-                const sink_ih = privateNodes.get(conn.sinkIface);
-                if (typeof sink_func !== 'function') return null; // TODO: see above
+                klass.mediator.emit(functionName, args);
 
                 const transformed_args = typeof conn.transformer === 'function' 
                     ? conn.transformer(args) : args;
 
                 return sink_func.bind(conn.sinkIface)(transformed_args);
+            },
+
+            // add reaction to klass
+            on(pin, cb) {
+                // klass: { ctor, roles, actions, reactions, default_role, info }
+                // source klass is our own (already in closure)
+                klass.mediator.on(pin, cb);
             }
         };
 
@@ -116,7 +184,10 @@ export const DomRegistry = {
         return klass.default_role ? iface.as(klass.default_role) : iface;
     },
 
-    _connect(action, reaction, config = { type: number, min: 0, max: 1 }) {
+    createCompound(compound_id, options = {}) {
+        const compound = compounds.get(compound_id);
+        if (compound) return compound.ctor(options);
+        return null;
     },
 
     connect(sourceIface, sourceFuncName, sinkIface, sinkFuncName, transformer = null) {

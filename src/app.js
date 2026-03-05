@@ -15,17 +15,21 @@ import BUTTON from './dom-comps/button.js'
 import BOX from './dom-comps/box.js'
 import ONLYONEBOX from './dom-comps/only-one-box.js'
 
+// compounds
+import LRTEST from './compounds/left-right-test.js';
+import APP31 from './compounds/app31.js';
+
+
 const $$ = DOM.create;
 const Simple = (str) => $$(SIMPLE, { title: str });
+const Button = (name, options) => $$(BUTTON, { name, ...options });
 
-const apps = new Map();
+const apps = new Map(); // name -> app root ctor()
 
 apps.set("1", {
     name: "1",
     title: "Test: LeftRight",
-    root: () => $$(LR)
-        .setLeft(Simple("Left"))
-        .setRight(Simple("Right"))
+    root: (args) => DOM.createCompound(LRTEST, args)
 });
 apps.set("1.1", {
     name: "1.1",
@@ -81,33 +85,7 @@ apps.set("3", {
 apps.set("3.1", {
     name: "3.1",
     title: "TreeView with Buttonbar",
-    root: () => {
-        const info = Simple('TreeView with button and status bar\n\n'
-            + 'Each section is its own component communicating via "connections".\n\n'
-            + 'Comparable to devices like amplifiers, speakers, phono, tape, ...'
-        );
-        const toolbar = $$(TOOLBAR);
-        const listview = $$(LISTVIEW, { itemClassId: LISTITEM }).init({ root: 'Scene'});
-        const status = Simple('no selection');
-
-        DOM.connect(toolbar, 'add-item', listview, 'add-item');
-        DOM.connect(toolbar, 'add-folder', listview, 'add-folder');
-        DOM.connect(toolbar, 'trash-bin', listview, 'remove-selected');
-
-        DOM.connect(listview, 'selected', status, 'title', item => `selected item: ${item.get_title()}`);
-        
-        const toolbar_with_controls = $$(TBS)
-            .setTop(toolbar)
-            .setBottom(listview)
-        ;
-        return $$(TB, { ratio: .12})
-            .setTop(info)
-            .setBottom($$(TBS, { bottomHeight: 32 })
-                .setTop(toolbar_with_controls)
-                .setBottom(status)
-            )
-        ;
-    }
+    root: (args) => DOM.createCompound(APP31, args)
 });
 apps.set("4", {
     name: "4",
@@ -246,9 +224,6 @@ apps.set("7", {
         buttons.forEach(b => {
             DOM.connect(b, 'clicked2', svgview, 'file', transform);
         });
-        // DOM.connect(buttons[1], 'clicked2', svgview, 'file', transform);
-        // DOM.connect(buttons[2], 'clicked2', svgview, 'file', transform);
-        // DOM.connect(buttons[3], 'clicked2', svgview, 'file', transform);
 
         box.addMany(buttons);
 
@@ -333,10 +308,18 @@ if (1) {
     // DOM.connectOneToMany()
     // DOM.connectManyToMany()
 
+    // connect button 'activate' with 'box' and 'only_one_box'
     const button_iter = apps.values().map(app => {
         const btn = $$(BUTTON, { name: app.name, mode: '2-state' });
-        DOM.connect(btn, 'activated', only_one_box, 'select');
+
+        DOM.connect(btn, 'activated', only_one_box, 'select', 
+            b=> {
+                return b.get_name();
+            }
+        );
+        
         DOM.connect(btn, 'activated2', box, 'button-select');
+        
         return btn;
     });
     const buttons = [...button_iter];
@@ -348,11 +331,13 @@ if (1) {
     }))];
     only_one_box.addMany([...views]);
 
+    // pre-activate app
     // sadly, this is ridiculous code!
-    // 'only_one_box' wants a name string
-    // 'box' wants IButton
+    // one pin only accepts one target
+    // so we give Button pin copies
+    // can we dynamically create actions after register()?
     const btn1 = buttons[5];
-    btn1.call('activated', btn1.get_name());
+    btn1.call('activated', btn1);
     btn1.call('activated2', btn1);
 
     DOM.mount($$(TBS)

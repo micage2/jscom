@@ -76,7 +76,7 @@ function ctor(args = {}, call) {
     const item = new ListItem(args);
 
     const click_handler = function(e) {
-        call("selected", this.uid);
+        call("selected", this);
     };
     item.content.onclick = click_handler.bind(this); // impportant!
 

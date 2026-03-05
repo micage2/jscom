@@ -62,7 +62,8 @@ const IOnlyOneBoxFactory = function({ box, roots, active_root }) {
             DOM.attach(entry.root, this, { slot: 'content'});
             
             active_root = name;
-        }
+        },
+        has(elem) { return roots.has(elem); },
     };
     return IOnlyOneBox;
 }
@@ -70,9 +71,9 @@ const IOnlyOneBoxFactory = function({ box, roots, active_root }) {
 const clsid = DOM.register(ctor, function(role, action, reaction) {
     role("Box", self => IOnlyOneBoxFactory(self), true);
 
-    reaction('select', function(payload) {
+    reaction('select', function(name) {
         // console.log(`${payload}`);
-        this.select(payload);
+        this.select(name);
     });
 }, {
     name: 'OnlyOneBox',

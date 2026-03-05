@@ -186,10 +186,12 @@ const IListViewFactory = (self) => {
         init(args = {}) {
             if (!self.items.size) {
                 const root = DOM.create(self.itemClassId, {
-                    title: args.root || "root", depth: 0, icon: self.folderIcons.open
+                    title: args.root || "root", 
+                    depth: 0, 
+                    icon: self.folderIcons.open
                 });
                 DOM.attach(root, this, {
-                    mode: 'parent',
+                    // mode: 'parent',
                     slot: 'content'
                 });
                 self.items.set(root.uid, root);
@@ -204,7 +206,7 @@ const IListViewFactory = (self) => {
 
                 DOM.connect(root, 'selected', this, 'select');
                 DOM.connect(root, 'icon-clicked', this, 'toggle');
-                self.call('item-selected', root);
+                self.call('selected', root);
             }
             return this;
         },
@@ -303,8 +305,8 @@ const IListViewFactory = (self) => {
             self.toggleFolder(item);
         },
 
-        select(item_uid) {
-            const item = self.items.get(item_uid);
+        select(item) {
+            // const item = self.items.get(item_uid);
             self.selectItem(item);
         }
     };
@@ -354,8 +356,8 @@ const clsid = DOM.register(ctor, (role, action, reaction) => {
         this.removeSelected();
     });
 
-    reaction('select', function(item_uid) {
-        this.select(item_uid)
+    reaction('select', function(item) {
+        this.select(item)
     });
 
     reaction('toggle', function(item_uid) {

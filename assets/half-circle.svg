@@ -14,21 +14,21 @@
         <path class="slim" d="
             M 0 0
             C 0 48 64 48 64 0
-            c 0 -20 12 -32 32 -32
+            c 0 -20 12 -32 32 -22
             " />
-        <path d="M 0 0 Z" stroke="red"/>
         <path class="slim dash" d="m 0 0 l 0 64"/>
         <path d="m 0 64 z" stroke="green"/>
 
-        <path d="m 64 0 z" stroke="red"/>
         <path class="slim dash" d="m 64 0 l 0 64"/>
         <path d="m 64 64 z" stroke="green"/>
 
         <path class="slim dash" d="M 64 0 v-20"/>
-        <path class="slim dash" d="M 96 -32 h -20"/>
+        <path class="slim dash" d="M 96 -22 L 76 -32"/>
         <path d="M 64 -20 z" stroke="green"/>
-        <path d="M 96 -32 z" stroke="red"/>
         <path d="M 76 -32 z" stroke="green"/>
+        <path d="M 0 0 Z" stroke="red"/>
+        <path d="m 64 0 z" stroke="red"/>
+        <path d="M 96 -22 z" stroke="red"/>
     </g>
 </svg>
 <!-- C 2  0  0  2  0  5 -->

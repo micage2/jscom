@@ -30,9 +30,6 @@ const ctor = (args = {}) => {
     DOM.connect(toolbar, 'add-folder', listview, 'add-folder');
     DOM.connect(toolbar, 'trash-bin', listview, 'remove-selected');
 
-    DOM.connect(listview, 'selected', status, 'title', 
-        item => `selected item: ${item.get_title()}`);
-    
     const toolbar_with_controls = $$(TBS)
         .setTop(toolbar)
         .setBottom(listview)
@@ -46,7 +43,7 @@ const ctor = (args = {}) => {
     // if yes: select it
     // if no: create one and select it
 
-    const links = new WeakMap(); // listitem -> button
+    const listitem2button = new WeakMap(); // listitem -> button
     const links_reverse = new WeakMap(); // button -> listitem
     const only1box = $$(ONLYONEBOX);
     const box = $$(BOX);
@@ -58,7 +55,7 @@ const ctor = (args = {}) => {
     listview.on('selected', (listitem) => {
         // console.log('[ListView.on()]: ' + listitem.get_title());
 
-        const button = links.get(listitem);
+        const button = listitem2button.get(listitem);
         if (!box.has(button)) {
             const button = Button(listitem.get_title());
             DOM.connect(button, 'clicked', box, 'button-select');
@@ -69,7 +66,7 @@ const ctor = (args = {}) => {
             });
             box.add(button);
             box.select(button);
-            links.set(listitem, button);
+            listitem2button.set(listitem, button);
             links_reverse.set(button, listitem);
         }
         else {

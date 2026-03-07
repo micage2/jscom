@@ -13,8 +13,6 @@ const sheet = create_sheet(
     scrollbar-height: thin;
     overflow-x: auto;
     overflow-y: hidden;
-    scrollbar-gutter: stable;
-
 }
 :host::-webkit-scrollbar {
     height: 5px;

@@ -19,7 +19,6 @@ import ONLYONEBOX from './dom-comps/only-one-box.js'
 import LRTEST from './compounds/left-right-test.js';
 import APP31 from './compounds/app31.js';
 
-
 const $$ = DOM.create;
 const Simple = (str) => $$(SIMPLE, { title: str });
 const Button = (name, options) => $$(BUTTON, { name, ...options });
@@ -254,7 +253,7 @@ apps.set("8", {
         return $$(TBS, { topHeight: 100 })
             .setTop(propview)
             .setBottom(svgview)
-            
+        ;            
     }        
 });
 apps.set("8.1", {
@@ -264,7 +263,8 @@ apps.set("8.1", {
         const box = $$(BOX);
         const simple = Simple('Early SVG editor for inspiration');
         // const svgview = $$(SVGVIEW2, { file: "./assets/half-circle.svg" });
-        const svgview = $$(SVGVIEW2).load("./assets/half-circle.svg");
+        // const svgview = $$(SVGVIEW2).load("./assets/half-circle.svg");
+        const svgview = $$(SVGVIEW2).load("./assets/data-science.svg");
 
         // create button and connect to "simple"
         const buttons = [

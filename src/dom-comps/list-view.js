@@ -16,6 +16,8 @@ class ListView {
         const shadow = this.host.attachShadow({ mode: 'closed' });
         shadow.appendChild(fragment.cloneNode(true));
 
+        this.slot = shadow.querySelector("slot[name='content']");
+
         this.itemClassId = options.itemClassId;
         this.items = new Map();
         this.list = [];
@@ -47,7 +49,7 @@ class ListView {
 
     selectItem(item) {
         // set select state of previously selected item
-        if (this.selectedItem && this.selectedItem !== item) {
+        if (this.selectedItem !== item) {
             this.selectedItem.set_selected(false);
             this.selectedItem = item;
             item.set_selected(true);
@@ -88,12 +90,14 @@ class ListView {
         return i;
     }
 
-    // find previous item with depth === item.depth - 1
+    // find previous item and index with depth === item.depth - 1
     parent(item) {
-        if (typeof item.get_depth !== 'function') return;
+        if (typeof item.get_depth !== 'function')
+            return { index: -1, item: null };
 
         const start = this.list.indexOf(item);
-        if (start === 0) return null; // item is root
+        if (start === 0)
+            return { index: -1, item: null };
 
         let i = start;
         while (i > 0) {
@@ -101,7 +105,8 @@ class ListView {
             if (this.list[i].get_depth() === item.get_depth() - 1)
                 return { index: i, item: this.list[i] };
         }
-        return null; // impossible
+
+        return { index: -1, item: null };
     }
     // find previous item with depth === item.depth
     previous(item) {
@@ -179,7 +184,6 @@ class ListView {
 
 
 const IListViewFactory = (self) => {
-    const selItem = self.selectedItem;
     return {
         // sadly we need this init step.
         // We need a registered role to call DOM.attach()
@@ -211,11 +215,17 @@ const IListViewFactory = (self) => {
             return this;
         },
 
+        // creates a listitem of classid = itemClassId from the given arguments
+        // Q: what does it need to know?
+        // A: args of listitem
+        //      title: {string}
+        //      type: {'folder' | 'item'} 
         add(args = {}) {
             let item = null;
             if (args.type === "folder") {
                 item = DOM.create(self.itemClassId, {
-                    icon: self.folderIcons.open
+                    icon: self.folderIcons.open,
+                    ...args
                 });
             }
             else {
@@ -227,12 +237,12 @@ const IListViewFactory = (self) => {
             let insertAt = -1;
             let target = null;
             if (!self.selectedItem) {
-                self.selectedItem = item;
-                target = this;
-
-                DOM.attach(item, target, { mode: 'parent', slot: "content" });
+                // self.selectedItem = item;
+                DOM.attach(item, this, { mode: 'parent', slot: "content" });
+                insertAt = self.list.length;
             }
             else {
+                // is folder
                 if (self.isFolder(self.selectedItem)) {
                     insertAt = self.endOfSubtree(self.selectedItem);
                     target = self.list[insertAt - 1];
@@ -242,10 +252,11 @@ const IListViewFactory = (self) => {
                         self.toggleFolder(self.selectedItem);
                     }
                 }
+                // is not a folder
                 else {
                     // find parent folder
                     const parent = self.parent(self.selectedItem);
-                    if (parent) {
+                    if (parent.item) {
                         insertAt = self.endOfSubtree(parent.item);
                         target = self.list[insertAt - 1];
                         item.set_depth(parent.item.get_depth() + 1);
@@ -263,7 +274,7 @@ const IListViewFactory = (self) => {
                 item.set_show(true);
             }
             else {
-                console.log(`IListItem needs at least set_show(). ${item.get_title()}`);                
+                console.log(`[IListViewFactory.add] IListItem needs at least set_show(). ${item.get_title()}`);                
             }
 
             self.items.set(item.uid, item);
@@ -300,14 +311,46 @@ const IListViewFactory = (self) => {
             DOM.detachMany(deletedItems);
         },
 
-        toggle(item_uid) {
-            const item = self.items.get(item_uid);
+        toggle(item) {
             self.toggleFolder(item);
         },
 
         select(item) {
-            // const item = self.items.get(item_uid);
-            self.selectItem(item);
+            if(!item) return;
+
+            if (self.selectedItem !== item) {
+                if (self.selectedItem)
+                    self.selectedItem.set_selected(false);
+
+                self.selectedItem = item;
+                item.set_selected(true);
+
+                let parents = [];
+                let parent = { item };
+                while (true) {
+                    parent = self.parent(parent.item);
+                    if (!parent.item) break;
+                    parents.push(parent);
+                }
+
+                // toggle parents in reverse order (like humans do)
+                while (parents.length) {
+                    const parent = parents.pop();
+                    if (!self.isFolderOpen(parent.item)) {
+                        self.toggleFolder(parent.item);
+                    }
+                }
+
+                // scroll into view
+                const idx = self.list.indexOf(item);
+                const assignedNodes = self.slot.assignedNodes({ flatten: true });
+                assignedNodes[idx].scrollIntoView({
+                    behavior: "smooth", block: "end", container: "nearest"
+                });
+    
+                // set selected state of listitem
+                self.call('selected', item);
+            }
         }
     };
 };

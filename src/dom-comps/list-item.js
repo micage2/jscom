@@ -81,7 +81,7 @@ function ctor(args = {}, call) {
     item.content.onclick = click_handler.bind(this); // impportant!
 
     const icon_click_handler = function() {
-        call("icon-clicked", this.uid);
+        call("icon-clicked", this);
     };
     item.icon.onclick = icon_click_handler.bind(this); // impportant!
 
@@ -95,6 +95,9 @@ const clsid = DOM.register(ctor, function(role, action, reaction) {
     action('selected');
     action('icon-clicked');
 }, {
-    name: 'ListItem'
+    name: 'ListItem',
+    description: 'ListItem for use in lists e.g. ListView.\n' +
+        'It has an icon and a label.\n' +
+        'It also has a select, hidden and depth state.'
 });
 export default clsid;

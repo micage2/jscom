@@ -206,8 +206,10 @@ export const DomRegistry = {
         const sinkFunc = sinkKlass.reactions.get(sinkFuncName);
 
         const key = `${sourceIface.uid}:${sourceFuncName}`;
-        if (connections.has(key))
+        if (connections.has(key)) {
+            console.log(`[DOM.connect] key already exists: ${key}.`);
             return false;
+        }
 
         connections.set(key, { sinkIface, sinkFuncName, transformer });
         return true;

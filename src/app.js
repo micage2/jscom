@@ -16,6 +16,7 @@ import BOX from './dom-comps/box.js'
 import ONLYONEBOX from './dom-comps/only-one-box.js'
 
 // compounds
+import APPROOT from './compounds/app-root.js';
 import LRTEST from './compounds/left-right-test.js';
 import APP31 from './compounds/app31.js';
 
@@ -213,15 +214,14 @@ apps.set("7", {
             { name: "New File", svg_file: "./assets/add-item.svg"},
             { name: "New Folder", svg_file: "./assets/add-folder.svg"},
         ];
+
         const buttons = buttons_info.map(entry => {
             const btn = $$(BUTTON, entry);
-            DOM.connect(btn, 'clicked', out, 'timed', b => b.get_name());
+            btn.on('clicked', (b) => {
+                out.set_timed(b.get_name());
+                svgview.load(b.get_svg_file())
+            });
             return btn;
-        });
-
-        const transform = (button) => button.get_svg_file();
-        buttons.forEach(b => {
-            DOM.connect(b, 'clicked2', svgview, 'file', transform);
         });
 
         box.addMany(buttons);
@@ -292,57 +292,5 @@ apps.set("8.1", {
     }    
 });
 
-// prepare all apps and put them into an 'OnlyOneBox'
-if (1) {
-    const btn_app = $$(BUTTON, { name: "1" });
-    const btn_file = $$(BUTTON, { name: "2" });
-    const btn_add_file = $$(BUTTON, { name: "New File", svg_file: "./assets/add-item.svg"});
-    const btn_add_folder = $$(BUTTON, { name: "New Folder", svg_file: "./assets/add-folder.svg"});
-    const simple = Simple('');
-
-    const box = $$(BOX, { mode: 'radio' });
-    const only_one_box = $$(ONLYONEBOX);
-
-    // TODO: idea, just for convenience
-    // DOM.connectManyToOne()
-    // DOM.connectOneToMany()
-    // DOM.connectManyToMany()
-
-    // connect button 'activate' with 'box' and 'only_one_box'
-    const button_iter = apps.values().map(app => {
-        const btn = $$(BUTTON, { name: app.name, mode: '2-state' });
-
-        DOM.connect(btn, 'activated', only_one_box, 'select', 
-            b=> {
-                return b.get_name();
-            }
-        );
-        
-        DOM.connect(btn, 'activated2', box, 'button-select');
-        
-        return btn;
-    });
-    const buttons = [...button_iter];
-    box.addMany(buttons);
-    
-    const views = [...apps.values().map(app => ({
-        name: app.name,
-        root: app.root // now with lazy creating of root
-    }))];
-    only_one_box.addMany([...views]);
-
-    // pre-activate app
-    // sadly, this is ridiculous code!
-    // one pin only accepts one target
-    // so we give Button pin copies
-    // can we dynamically create actions after register()?
-    const btn1 = buttons[5];
-    btn1.call('activated', btn1);
-    btn1.call('activated2', btn1);
-
-    DOM.mount($$(TBS)
-        .setTop(box)
-        .setBottom(only_one_box)
-    );
-}
-
+const app = DOM.createCompound(APPROOT, { apps, start: '3.1'});
+DOM.mount(app);

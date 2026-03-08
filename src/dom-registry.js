@@ -5,7 +5,6 @@ const klasses = new Map();           // clsid → { ctor, roleFactories: [{roleN
 const compounds = new Map();         // clsid → { ctor, roleFactories: [{roleName, factory}] }
 const privateNodes = new WeakMap();  // iface → { instance, host }
 const roleMaps = new WeakMap();      // iface → Map<roleName, roleImpl>
-const ifaceWiring = new WeakMap();   // iface → { _outputWires: Map<roleName, Set<Mediator>>, _inputWires: Map<roleName, Mediator> }
 const connections = new Map();       // key → { mediator }
 
 const gen_id = (prefix = "") => 
@@ -112,6 +111,7 @@ export const DomRegistry = {
             uid: gen_id(),
             type: compId,
             role: 'unknown',
+            mediator: new Mediator(),
 
             as(roleName) {
                 const ih = privateNodes.get(this);
@@ -149,7 +149,7 @@ export const DomRegistry = {
                     return null;
                 }
 
-                klass.mediator.emit(functionName, args);
+                // klass.mediator.emit(functionName, args);
 
                 const transformed_args = typeof conn.transformer === 'function' 
                     ? conn.transformer(args) : args;
@@ -157,11 +157,15 @@ export const DomRegistry = {
                 return sink_func.bind(conn.sinkIface)(transformed_args);
             },
 
+            emit(msg, payload = null) {
+                this.mediator.emit(msg, payload);
+            },
+
             // add reaction to klass
             on(pin, cb) {
                 // klass: { ctor, roles, actions, reactions, default_role, info }
                 // source klass is our own (already in closure)
-                klass.mediator.on(pin, cb);
+                this.mediator.on(pin, cb);
             }
         };
 

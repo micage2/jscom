@@ -3,12 +3,12 @@ import SIMPLE from '../dom-comps/simple-view.js'
 import LR from '../dom-comps/left-right.js'
 import TB from '../dom-comps/top-bottom.js'
 import TBS from '../dom-comps/top-bottom-static.js'
-import TOOLBAR from '../dom-comps/toolbar.js'
 import LISTVIEW from '../dom-comps/list-view.js'
 import LISTITEM from '../dom-comps/list-item.js'
 import BOX from '../dom-comps/box.js'
 import ONLYONEBOX from '../dom-comps/only-one-box.js'
 import BUTTON from '../dom-comps/button.js'
+import TAB from '../dom-comps/tab.js'
 
 const $$ = DOM.create;
 const Simple = (str) => $$(SIMPLE, { title: str });
@@ -20,15 +20,27 @@ const info = 'TreeView with button and status bar\n\n'
 ;
 
 const ctor = (args = {}) => {
-    const toolbar = $$(TOOLBAR);
     const status = Simple('no selection');
     const listview = $$(LISTVIEW, { itemClassId: LISTITEM });
-    DOM.connect(listview, 'selected', status, 'title', item => `selected item: ${item.get_title()}`);
+    // DOM.connect(listview, 'selected', status, 'title', item => `selected item: ${item.get_title()}`);
     // listview.init({ root: 'Scene'});
 
-    DOM.connect(toolbar, 'add-item', listview, 'add-item');
-    DOM.connect(toolbar, 'add-folder', listview, 'add-folder');
-    DOM.connect(toolbar, 'trash-bin', listview, 'remove-selected');
+    const toolbar = $$(BOX);
+    const add_item_button = Button('New Item', { svg_file: './assets/add-item.svg'});
+    const add_folder_button = Button('New Folder', { svg_file: './assets/add-folder.svg'});
+    const delete_button = Button('Delete Selected', { svg_file: './assets/half-circle.svg'});
+
+    toolbar.addMany([add_item_button, add_folder_button, delete_button]);
+    add_item_button.on('clicked', b=>{
+        listview.add();
+    });
+    add_folder_button.on('clicked', b => {
+        listview.add({ type: 'folder' });
+    });
+    delete_button.on('clicked', b => {
+        listview.removeSelected();
+    });
+
 
     const toolbar_with_controls = $$(TBS)
         .setTop(toolbar)
@@ -46,9 +58,9 @@ const ctor = (args = {}) => {
     const listitem2button = new WeakMap(); // listitem -> button
     const links_reverse = new WeakMap(); // button -> listitem
     const only1box = $$(ONLYONEBOX);
-    const box = $$(BOX);
+    const tabbar = $$(BOX);
     const tabview = $$(TBS)
-        .setTop(box)
+        .setTop(tabbar)
         .setBottom(only1box)
 
     // test the new mediator
@@ -56,22 +68,40 @@ const ctor = (args = {}) => {
         // console.log('[ListView.on()]: ' + listitem.get_title());
 
         const button = listitem2button.get(listitem);
-        if (!box.has(button)) {
-            const button = Button(listitem.get_title());
-            DOM.connect(button, 'clicked', box, 'button-select');
-            button.on('clicked', (button) => {
-                box.select(button);
+        if (!tabbar.has(button)) {
+            // const button = Button(listitem.get_title());
+            const tab = $$(TAB, { title: listitem.get_title() });
+
+            tab.on('clicked', (button) => {
+                tabbar.select(button);
                 const listitem = links_reverse.get(button);
                 listview.select(listitem);
             });
-            box.add(button);
-            box.select(button);
-            listitem2button.set(listitem, button);
-            links_reverse.set(button, listitem);
+
+            tab.on('closed', (tab) => {
+                tabbar.remove(tab.get_title());
+            });
+
+            tabbar.add(tab);
+            tabbar.select(tab);
+            listitem2button.set(listitem, tab);
+            links_reverse.set(tab, listitem);
         }
         else {
-            box.select(button);
+            tabbar.select(button);
         }  
+    });
+
+    listview.on('removed-items', (listitems) => {
+        // remove related buttons from tabbar
+        for (const li of listitems) {
+            tabbar.remove(li.get_title());
+            console.log('[app31.ctor] removed listitem: ', li.uid);
+        }
+    });
+
+    tabbar.on('removed-tab', (tab) => {
+        console.log(`[app31.ctor] removed tab: #${tab.uid}`);
     });
 
     return $$(TB, { ratio: .12})

@@ -280,14 +280,25 @@ const IListViewFactory = (self) => {
             self.items.set(item.uid, item);
             self.list.splice(insertAt, 0, item);
 
+            item.on('selected', (listitem) => {
+                // console.log('[ListView.ctor] listitem selected: #', listitem.uid);        
+                this.emit('selected', listitem);
+                this.select(item);
+            });
+
+            item.on('icon-clicked', (listitem) => {
+                // console.log('[ListView.ctor] listitem icon-clicked: #', listitem.uid);        
+                this.toggle(listitem);
+            });
+
             return item; // inserted item
         },
 
         removeSelected() {
-            // don't remove root
-            if (DOM.equals(self.selectedItem, self.list[0])) {
-                return;
-            }
+            // don't remove root, if its fixed TODO:
+            // if (DOM.equals(self.selectedItem, self.list[0])) {
+            //     return;
+            // }
 
             // select root
             // or should we select previous sibling
@@ -297,11 +308,15 @@ const IListViewFactory = (self) => {
 
             // self.selectItem(self.list[0]); // TODO: select previous sibling
             const previous = self.previous(self.selectedItem);
-            if (previous.item) {
-                self.selectItem(previous.item);
-            }
-            else {
-                self.selectItem(previous.parent);
+            if (previous) {
+                if (previous.item){
+                    // self.selectItem(previous.item);
+                    this.select(previous.item);
+                }
+                else{
+                    // self.selectItem(previous.parent);
+                    this.select(previous.parent);
+                }
             }
 
             const deletedItems = self.list.splice(start, end - start);
@@ -309,6 +324,8 @@ const IListViewFactory = (self) => {
                 self.items.delete(it.uid);
 
             DOM.detachMany(deletedItems);
+
+            this.emit('removed-items', deletedItems);
         },
 
         toggle(item) {
@@ -345,19 +362,23 @@ const IListViewFactory = (self) => {
                 const idx = self.list.indexOf(item);
                 const assignedNodes = self.slot.assignedNodes({ flatten: true });
                 assignedNodes[idx].scrollIntoView({
-                    behavior: "smooth", block: "end", container: "nearest"
+                    // behavior: "smooth", 
+                    block: "end", 
+                    container: "nearest"
                 });
     
                 // set selected state of listitem
-                self.call('selected', item);
+                // self.call('selected', item);
+                this.emit('selected', self.selectedItem);
             }
         }
     };
 };
 
 
-const ctor = (options, call) => {
+function ctor(options, call) {    
     const self = new ListView(options, call);
+
     return {
         getHost: () => self.host,
         getInstance: () => self

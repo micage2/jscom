@@ -76,12 +76,13 @@ function ctor(args = {}, call) {
     const item = new ListItem(args);
 
     const click_handler = function(e) {
-        call("selected", this);
+        this.emit("selected", this);
     };
     item.content.onclick = click_handler.bind(this); // impportant!
 
     const icon_click_handler = function() {
-        call("icon-clicked", this);
+        // call("icon-clicked", this);
+        this.emit("icon-clicked", this);
     };
     item.icon.onclick = icon_click_handler.bind(this); // impportant!
 

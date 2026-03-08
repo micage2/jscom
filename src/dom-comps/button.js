@@ -6,7 +6,7 @@ const sheet = create_sheet(
 .my-button {
     display: inline-block;
     height: 100%;
-    min-width: 36px;
+    min-width: 24px;
     border: 0;
     cursor: pointer;
     background: transparent;
@@ -31,7 +31,6 @@ const sheet = create_sheet(
     transform: translate(-6px, -8px) scale(1.2);
 }
 `);
-document.adoptedStyleSheets.push(sheet)
 
 /**
  * @param {Object} args
@@ -75,8 +74,8 @@ function ctor(args, call) {
             call('toggled', that.as('Button'));
         }
         else {
-            call('clicked', that.as('Button'));
-            call('clicked2', that.as('Button'));
+            // call('clicked', that.as('Button'));
+            that.emit('clicked', that);
         }
     };
     shadow.appendChild(button);
@@ -107,18 +106,17 @@ const clsid = DOM.register(ctor, function(role, action, reaction) {
 
     role('Button', (self) => IButtonFactory(self), true);
 
-    action('clicked');
-    action('clicked2');
-    action('activated');
-    action('activated2');
-    action('toggled');
+    // action('clicked');
+    // action('activated');
+    // action('activated2');
+    // action('toggled');
 
-    reaction('activate', function({name, state}) {
-        this.select(state);
-    });
-    reaction('reset', function() {
-        this.reset();
-    });
+    // reaction('activate', function({name, state}) {
+    //     this.select(state);
+    // });
+    // reaction('reset', function() {
+    //     this.reset();
+    // });
 }, {
     name: 'Button',
     description: 'button with svg icon, fallback is text'

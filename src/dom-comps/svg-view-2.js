@@ -208,7 +208,7 @@ const clsid = DOM.register(ctor, function (role, action, reaction) {
 
     role("SVGView", self => ISVGViewFactory(self), true);
 
-    reaction('file', function(myfile) { this.load(myfile) });
+    reaction('file', function(myfile) { this.load(myfile); });
 
 });
 export default clsid;

@@ -137,10 +137,10 @@ const ctor = (args = {}) => {
         console.log(`[app31.ctor] removed tab: #${tab.get_title()}`);
     });
 
-    return $$(TB, { ratio: .12})
+    return $$(TB, { ratio: 0})
         .setTop(Simple(info))
         .setBottom($$(TBS, { bottomHeight: 32 })
-            .setTop($$(LR, {minLeft: 140, ratio: 0})
+            .setTop($$(LR, {minLeft: 200, ratio: 0})
                 .setLeft(toolbar_with_controls)
                 .setRight(tabview)
             )

@@ -67,19 +67,34 @@ const ctor = (args = {}) => {
     const svgview = $$(SVGVIEW2);
     svgview.load('./assets/Eberswalder9_opt2.svg');
     only1box.add('view1', svgview).select('view1');
+
     const tabbar = $$(BOX);
     const tabview = $$(TBS)
         .setTop(tabbar)
         .setBottom(only1box)
+    ;
 
+    if (1) {
+    let parents = [];
     svgview.on('svg-node', (node) => {
-        if (node.type === 'g') {
-            listview.add({ type: "folder", title: node.name })
-        }
-        // console.log('svg: ', node);      
-    });
 
-    
+        const item = listview.add({
+            type: node.num_children ? 'folder' : 'item',
+            title: node.name,
+            // icon: node.num_children ? null : node.type[0]
+        });
+
+        if (node.num_children) {
+            listview.select(item);
+            parents.push({item, node});
+        }
+        else if (node.is_last) {
+            while (parents.length && parents.pop().is_last) {}
+            const last = parents.at(-1);    
+            listview.select(last.item);
+        }
+    });
+    }
 
     // test the new mediator
     listview.on('selected', (listitem) => {

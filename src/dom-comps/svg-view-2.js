@@ -161,17 +161,40 @@ function ready(svg) {
         svg.style.cursor = "grab";
     });
 
-    const stack = [svg];
+    const stack = [{
+        elem: svg, 
+        depth: 0,
+        num_children: svg.children.length,
+        is_last: true,
+    }];
+
     while (stack.length) {
+        
         const node = stack.pop();
-        for (const ch of node.children) {
-            if (node.tagName !== 'script')
-                stack.push(ch);
-        }
+
+        // pre-order visitor
         this.emit('svg-node', {
-            type: node.nodeName,
-            name: node.getAttribute('name'),
+            type: node.elem.nodeName,
+            name: node.elem.getAttribute('name'),
+            depth: node.depth,
+            num_children: node.num_children,
+            is_last: node.is_last,
         });        
+
+        const children = [...node.elem.children];
+        const index = children.findIndex(c => c.nodeName ==='script');
+        if (index !== -1) {
+            children.splice(index, 1);
+        }
+        for (let i = children.length - 1; i >= 0; i--) {
+            const child = children[i];
+            stack.push({
+                elem: child,
+                depth: node.depth + 1,
+                num_children: child.children.length,
+                is_last: i === children.length - 1
+            });
+        }
     }
 }
 

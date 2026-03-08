@@ -230,7 +230,7 @@ const IListViewFactory = (self) => {
             if (args.type === "folder") {
                 item = DOM.create(self.itemClassId, {
                     icon: self.folderIcons.open,
-                    ...args
+                    title: args.title
                 });
             }
             else {
@@ -401,7 +401,9 @@ const IListViewFactory = (self) => {
                     console.log('[IListView.select] Not in list: #', item.uid);                    
                 }
             }
-        }
+        },
+
+        get_selected() { return self.selectedItem; }
     };
 };
 

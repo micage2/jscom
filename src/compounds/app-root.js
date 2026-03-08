@@ -42,10 +42,6 @@ const ctor = (args = {}) => {
     only_one_box.addMany([...views]);
 
     // pre-activate app
-    // sadly, this is ridiculous code!
-    // one pin only accepts one target
-    // so we give Button pin copies
-    // can we dynamically create actions after register()?
     const button2select = args.start || "3.1";
     const btn1 = buttons.find(b => b.get_name() === button2select);
     btn1.emit('clicked', btn1);

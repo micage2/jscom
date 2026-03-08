@@ -100,8 +100,8 @@ const ctor = (args = {}) => {
         }
     });
 
-    tabbar.on('removed-tab', (tab) => {
-        console.log(`[app31.ctor] removed tab: #${tab.uid}`);
+    tabbar.on('removed', (tab) => {
+        console.log(`[app31.ctor] removed tab: #${tab.get_title()}`);
     });
 
     return $$(TB, { ratio: .12})

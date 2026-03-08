@@ -111,16 +111,20 @@ class ListView {
     // find previous item with depth === item.depth
     previous(item) {
         const start = this.list.indexOf(item);
-        if (start === 0) return null;
+        if (start === 0) return { index: -1, item: null, parent: null };
 
         let i = start;
         while (i > 0) {
             i--;
             if (this.list[i].get_depth() === item.get_depth())
-                return { index: i, item: this.list[i] };
+                return { index: i, item: this.list[i], parent: null };
             if (this.list[i].get_depth() === item.get_depth() - 1)
                 return { index: i, item: null, parent: this.list[i] };
         }
+
+        // return first item
+        console.warn('[ListView.previous] return list[0].');
+        
         return { index: i, item: null, parent: this.list[0] };
     }
     // find next item with depth === item.depth
@@ -295,6 +299,17 @@ const IListViewFactory = (self) => {
         },
 
         removeSelected() {
+            if (!self.list.length) {
+                console.log('[IListView.removeSelected] Nothing to remove, list is empty.');
+                self.selectedItem = null;
+                return;                
+            }
+
+            if (!self.selectedItem) {
+                console.log('[IListView.removeSelected] Nothing selected.');
+                return;                
+            }
+
             // don't remove root, if its fixed TODO:
             // if (DOM.equals(self.selectedItem, self.list[0])) {
             //     return;
@@ -306,22 +321,32 @@ const IListViewFactory = (self) => {
             const start = self.list.indexOf(self.selectedItem);
             const end = self.endOfSubtree(self.selectedItem);
 
-            // self.selectItem(self.list[0]); // TODO: select previous sibling
             const previous = self.previous(self.selectedItem);
-            if (previous) {
-                if (previous.item){
-                    // self.selectItem(previous.item);
-                    this.select(previous.item);
-                }
-                else{
-                    // self.selectItem(previous.parent);
+            if (previous.item){
+                // self.selectItem(previous.item);
+                this.select(previous.item);
+            }
+            else {
+                if (previous.parent) {
                     this.select(previous.parent);
+                }
+                else {
+                    // self.selectedItem = null;
+                    console.log('[IListView.removeSelected] No selection now!');                    
                 }
             }
 
             const deletedItems = self.list.splice(start, end - start);
-            for (const it of deletedItems)
+            for (const it of deletedItems) {
                 self.items.delete(it.uid);
+                if(self.selectedItem === it) {
+                    console.log('[IListView.removeSelected] deleted selected!');
+                    self.selectedItem = null;
+                    if (self.list[0]) {
+                        this.select(self.list[0]);
+                    }
+                }
+            }
 
             DOM.detachMany(deletedItems);
 
@@ -360,16 +385,21 @@ const IListViewFactory = (self) => {
 
                 // scroll into view
                 const idx = self.list.indexOf(item);
-                const assignedNodes = self.slot.assignedNodes({ flatten: true });
-                assignedNodes[idx].scrollIntoView({
-                    // behavior: "smooth", 
-                    block: "end", 
-                    container: "nearest"
-                });
-    
-                // set selected state of listitem
-                // self.call('selected', item);
-                this.emit('selected', self.selectedItem);
+                if (idx > -1) {
+                    const assignedNodes = self.slot.assignedNodes({ flatten: true });
+                    assignedNodes[idx].scrollIntoView({
+                        // behavior: "smooth", 
+                        block: "end", 
+                        container: "nearest"
+                    });
+        
+                    // set selected state of listitem
+                    // self.call('selected', item);
+                    this.emit('selected', self.selectedItem);
+                }
+                else {
+                    console.log('[IListView.select] Not in list: #', item.uid);                    
+                }
             }
         }
     };

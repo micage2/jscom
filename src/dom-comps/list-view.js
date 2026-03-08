@@ -223,7 +223,8 @@ const IListViewFactory = (self) => {
         // Q: what does it need to know?
         // A: args of listitem
         //      title: {string}
-        //      type: {'folder' | 'item'} 
+        //      type: {'folder' | 'item'}
+        //      icon: {string}, default: '□'
         add(args = {}) {
             let item = null;
             if (args.type === "folder") {
@@ -348,8 +349,7 @@ const IListViewFactory = (self) => {
                 }
             }
 
-            DOM.detachMany(deletedItems);
-
+            DOM.detachMany(deletedItems);            
             this.emit('removed-items', deletedItems);
         },
 

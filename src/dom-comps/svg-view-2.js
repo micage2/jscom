@@ -16,7 +16,8 @@ const makehtml = (args) => {
     :host {
         display: flex;
         flex-direction: column;
-        height: 100%;        
+        height: 100%;
+        width: 100%;
         gap: 16px;
         background: #1e1e1e;
         color: #ddd;
@@ -159,6 +160,19 @@ function ready(svg) {
         isPanning = false;
         svg.style.cursor = "grab";
     });
+
+    const stack = [svg];
+    while (stack.length) {
+        const node = stack.pop();
+        for (const ch of node.children) {
+            if (node.tagName !== 'script')
+                stack.push(ch);
+        }
+        this.emit('svg-node', {
+            type: node.nodeName,
+            name: node.getAttribute('name'),
+        });        
+    }
 }
 
 function ctor(args = {}, call) {
@@ -198,7 +212,8 @@ const ISVGViewFactory = ({ doc, svg, shadow }) => {
                 </svg>`;
                 svg = shadow.querySelector('svg');
                 ready.call(this, svg);
-        }
+            }
+
             return this;
         }
     };

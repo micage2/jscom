@@ -64,7 +64,7 @@ bkup{
 
 /* Custom proxy scrollbar style (thin, semi-transparent like VS Code) */
 .proxy::-webkit-scrollbar {
-    height: 8px;
+    height: 7px;
 }
 .proxy::-webkit-scrollbar-thumb {
     background: rgba(0, 150, 250, 0.3);

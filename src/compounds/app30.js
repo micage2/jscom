@@ -1,5 +1,8 @@
 import { DomRegistry as DOM } from '../dom-registry.js';
+import SIMPLE from '../dom-comps/simple-view.js'
+import TB from '../dom-comps/top-bottom.js'
 import TBS from '../dom-comps/top-bottom-static.js'
+import LR from '../dom-comps/left-right.js'
 import LISTVIEW from '../dom-comps/list-view.js'
 import LISTITEM from '../dom-comps/list-item.js'
 import BOX from '../dom-comps/box.js'
@@ -9,8 +12,8 @@ const $$ = DOM.create;
 const Simple = (str) => $$(SIMPLE, { title: str });
 const Button = (name, options) => $$(BUTTON, { name, ...options });
 
-const info = 'Dynamic left-right split.\n\n' 
-    + 'The layout always consumes the entire screen.'
+const info = 'The star in this layout is the\n\n' 
+    + 'list-/tree-view component in the middle.'
 ;
 
 const ctor = (args = {}) => {    
@@ -38,10 +41,28 @@ const ctor = (args = {}) => {
         listview.removeSelected();
     });
     toolbar.add(delete_button, { align: 'right'});
-    
-    return $$(TBS)
+
+    const out = Simple();
+    const treeview = $$(TBS)
         .setTop(toolbar)
-        .setBottom(listview)
+        .setBottom($$(TBS, { bottomHeight:32 })
+            .setTop(listview)
+            .setBottom(out)
+        )
+    ;
+    listview.on('selected', (item) => { out.set_timed('selected: ' + item.get_title())});
+
+    const lrlr = $$(LR, {ratio:.3})
+        .setLeft(Simple())
+        .setRight($$(LR, {ratio:.5})
+            .setLeft(treeview)
+            .setRight(Simple())
+        )
+    ;
+    
+    return $$(TB, { ratio: 0.1 })
+        .setTop(Simple(info))
+        .setBottom(lrlr)
     ;
 };
 

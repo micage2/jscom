@@ -52,7 +52,7 @@ bkup{
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 12px; /* Thin overlay; adjust for preference, no need for system sbHeight */
+    height: var(--sb-height); /* Thin overlay; adjust for preference, no need for system sbHeight */
     overflow-x: scroll;
     overflow-y: hidden;
     display: none;
@@ -64,7 +64,7 @@ bkup{
 
 /* Custom proxy scrollbar style (thin, semi-transparent like VS Code) */
 .proxy::-webkit-scrollbar {
-    height: 7px;
+    height: var(--sb-height);
 }
 .proxy::-webkit-scrollbar-thumb {
     background: rgba(0, 150, 250, 0.3);
@@ -98,7 +98,7 @@ const fragment = makeFragment(`
 </div>
 `);
 
-const sbHeight = 16;
+const sbHeight = 7;
 
 function ctor(args) {
 

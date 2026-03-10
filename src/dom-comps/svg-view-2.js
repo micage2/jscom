@@ -1,46 +1,36 @@
 // src/dom-comps/svg-view.js
 import { DomRegistry as DOM } from '../dom-registry.js';
-import { makeFragment, load_sheet, create_sheet, load_file } from '../shared/dom-helper.js';
+import {
+    makeFragment,
+    load_sheet,
+    create_sheet,
+    load_file
+} from '../shared/dom-helper.js';
 
-// f({...args,  height: 200, width: 300}
-// { height = 200, width = 300, ...(args ?? {}) }
 
-const makehtml = (args) => {
-    const {
-        width = 300,
-        height = 300,
-        ...otherArgs
-    } = { ...(args ?? {}) };
-    return `
-<style>
-    :host {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        width: 100%;
-        gap: 16px;
-        background: #1e1e1e;
-        color: #ddd;
-    }
-    .svg-view {
-        height: 100%;
-        width: 100%;
-    }
-    .svg-view svg {
-        height: 100%;
-        width: 100%;
-    }
-    .svg-view svg.selected {
-        border: 1px dashed #aaa;
-    }
-    path:hover {
-        stroke: #fa0;
-    }
-</style>
-<div class="svg-view"></div>
-`};
-const html = makehtml();
-const fragment = makeFragment(html);
+const sheet = create_sheet(`
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    gap: 16px;
+    background: #1e1e1e;
+    color: #ddd;
+}
+.svg-view {
+    height: 100%;
+    width: 100%;
+}
+.svg-view svg {
+    height: 100%;
+    width: 100%;
+}
+g.selected,
+svg.selected {
+    fill: #707077;
+}
+`);
 
 function getPos(pd, i) {
     const { type, values } = pd[i];
@@ -111,7 +101,7 @@ SVGPoint.prototype.toString = function () {
 function ready(svg) {
     const vb = svg.viewBox.baseVal;
     vb.x -= 96; vb.height *= 4;
-    vb.y -= 48; vb.width *= 4;
+    vb.y -= 64; vb.width *= 4;
 
     svg.onwheel = (e) => {
         const delta = e.deltaY > 0 ? 1.1 : 0.9;
@@ -203,9 +193,12 @@ function ctor(args = {}, call) {
 
     const host = document.createElement('div');
     const shadow = host.attachShadow({ mode: 'closed' });
-    shadow.appendChild(fragment.cloneNode(true));
+    shadow.adoptedStyleSheets.push(sheet);
 
-    const doc = shadow.querySelector('.svg-view');
+    window.MM = {};
+
+    shadow.innerHTML = '<div class="svg-view"></div>';
+    const doc = MM.svg = shadow.querySelector('.svg-view');
     let svg = null;
 
     return {
@@ -238,7 +231,9 @@ const ISVGViewFactory = ({ doc, svg, shadow }) => {
             }
 
             return this;
-        }
+        },
+
+        select(bool) {}
     };
 };
 

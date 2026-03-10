@@ -1,18 +1,22 @@
-<svg width="24" height="24" 
-    viewBox="0 0 72 36"
-    xmlns="http://www.w3.org/2000/svg"
+<svg xmlns="http://www.w3.org/2000/svg"
+    width="24" height="24" 
+    viewBox="0 0 64 64"    
     focusable="false"
-    >
+>
     <style>
         .heavy {
             font: 36px sans-serif;
         }
     </style>
-    <g class="icon" stroke-width="3" stroke="#ccc" fill="none"
-        stroke-linecap="round" stroke-miterlimit="0.5"
+    <g class="icon" fill="none"
+        stroke="#ccc" 
+        stroke-width="3"
+        stroke-linecap="round"
+        stroke-miterlimit=".5"
+        stroke-linejoin="round"
     >
         <path d="
-            m 22 16
+            m 14 23
             v 31
             h 32
             v -43
@@ -22,7 +26,7 @@
             l 12 -12
             " />
     </g>
-    <g stroke-width=".2" stroke="#68b" fill="none" display="none">
+    <g display="none" stroke-width=".2" stroke="#68b" fill="none">
         <path d="
             m 22 16
             v 31
@@ -34,7 +38,7 @@
             l 12 -12
             " />
     </g>
-    <text class="icon heavy" x="28" y="46" fill="#ccc">+</text>
+    <text class="icon heavy" x="20" y="50" fill="#ccc">+</text>
     <path name="dummy" d="M0 0 l10 -10 l-10 10 Z" stroke="none"/>
 </svg>
 <!-- C 2  0  0  2  0  5 -->

@@ -1,101 +1,77 @@
 import { DomRegistry as DOM } from '../dom-registry.js';
-import { create_sheet, makeFragment } from '../shared/dom-helper.js';
+import { create_sheet } from '../shared/dom-helper.js';
 
-const sheet = create_sheet(`
+const sheet = create_sheet(
+    `
 :host {
     display: flex;
     flex-direction: row;
     height: 100%;
     width: 100%;
 
+    position: relative;
+    overflow: hidden;
+
     background: var(--color-bg);
 }
 
-.container {
-    position: relative;
-    overflow: hidden;
-    height: 100%;
-    width: 100%;
+:host::-webkit-scrollbar {
+    height: 6px;
 }
-.container:hover .proxy,
-.container:focus-within .proxy {
-    opacity: 1; /* Show on hover/focus */
+:host::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+}
+:host::-webkit-scrollbar-thumb {
+    background: #444;
+    opacity: 0 !important;
 }
 
-bkup{
+::slotted([slot="right"]) {
+  margin-left: auto;
+}
+
+.bkup{
+    display: flex;
+    display: inline-block;
     flex-direction: row;
     flex-wrap: nowrap;
-    align-items: center;
-    justify-content: flex-start;
     white-space: nowrap;
+    align-items: center;
+    justify-content: flex-start; /* Or space-between if 'right' should be right-aligned */
 }
+
 .content {
     display: flex;
     box-sizing: border-box;
     height: 100%;
     width: 100%;
-    overflow-x: scroll; /* Scrollable, but bar hidden below */
-    overflow-y: hidden;
+    position: relative;
 }
-
-/* Hide native scrollbar on content (cross-browser overlay effect) */
-.content::-webkit-scrollbar {
-    display: none; /* Webkit/Chrome/Safari */
-}
-.content {
-    -ms-overflow-style: none; /* IE/Edge */
-    scrollbar-width: none; /* Firefox */
-}
-
 .proxy {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 12px; /* Thin overlay; adjust for preference, no need for system sbHeight */
+    height: var(--sb-height, 0px);
     overflow-x: scroll;
     overflow-y: hidden;
     display: none;
-    pointer-events: auto;
-    opacity: 0.0; /* Auto-hide */
-    transition: opacity 0.2s ease-in-out;
-    background: transparent; /* No cover */
+    pointer-events: auto; /* Ensure draggable */
 }
-
-/* Custom proxy scrollbar style (thin, semi-transparent like VS Code) */
 .proxy::-webkit-scrollbar {
-    height: 8px;
-}
-.proxy::-webkit-scrollbar-thumb {
-    background: rgba(0, 150, 250, 0.3);
-    border-radius: 0px;
-}
-.proxy::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 150, 250, 0.5);
-}
-.proxy::-webkit-scrollbar-track {
+    height: var(--sb-height, 0px);
+}.proxy::-webkit-scrollbar-thumb {
+    background: rgba(100, 0, 0, 0.5); /* Semi-transparent */
+    border-radius: 4px;
+}.proxy::-webkit-scrollbar-track {
     background: transparent;
 }
+
+
 .stretcher {
-    height: 1px;
+  height: 1px;
 }
-
-/* Slotted styles as before */
-::slotted([slot="right"]) {
-    margin-left: auto;
-}
-`);
-
-const fragment = makeFragment(`
-<div class="container">
-    <div class="content">
-        <slot name="left"></slot>
-        <slot name="right"></slot>
-    </div>
-    <div class="proxy">
-        <div class="stretcher"></div>
-    </div>
-</div>
 `);
 
 const sbHeight = 16;
@@ -103,17 +79,29 @@ const sbHeight = 16;
 function ctor(args) {
 
     const host = document.createElement('div');
-    host.style.setProperty('--sb-height', `${sbHeight}px`);
     const shadow = host.attachShadow({ mode: 'closed' });
     shadow.adoptedStyleSheets.push(sheet);
-    shadow.appendChild(fragment.cloneNode(true));
+    host.style.setProperty('--sb-height', `${ sbHeight }px`);
 
-    const container = shadow.querySelector('.container');
-    const content = shadow.querySelector('.content');
-    const proxy = shadow.querySelector('.proxy');
-    const stretcher = shadow.querySelector('.stretcher');
+    const content = document.createElement('div');
+    content.className = "content";
 
-    let isSyncing = false; // Prevent recursion in bi-sync
+    const slot_left = document.createElement('slot');
+    slot_left.name = "left";
+    content.appendChild(slot_left);
+
+    const slot_right = document.createElement('slot');
+    slot_right.name = "right";
+    content.appendChild(slot_right);
+
+    const proxy = document.createElement('div');
+    proxy.className = "proxy";
+    const stretcher = document.createElement('div');
+    stretcher.className = "stretcher";
+    proxy.appendChild(stretcher);
+
+    shadow.appendChild(content);
+    shadow.appendChild(proxy);
 
     function updateScroll() {
         requestAnimationFrame(() => {
@@ -121,49 +109,35 @@ function ctor(args) {
             updateVisibility();
         });
     }
-    
+
     function updateVisibility() {
-        if (content.scrollWidth > container.clientWidth) {
+        if (content.scrollWidth > host.clientWidth) {
             proxy.style.display = 'block';
         } else {
             proxy.style.display = 'none';
-            content.scrollLeft = 0;
             proxy.scrollLeft = 0;
         }
     }
-    
-    // Bi-directional sync
-    content.addEventListener('scroll', () => {
-        if (isSyncing) return;
-        isSyncing = true;
-        proxy.scrollLeft = content.scrollLeft;
-        isSyncing = false;
-    });
-
-    proxy.addEventListener('scroll', () => {
-        if (isSyncing) return;
-        isSyncing = true;
-        content.scrollLeft = proxy.scrollLeft;
-        isSyncing = false;
-    });
-
-    // Wheel on container routes to content
-    host.addEventListener('wheel', (e) => {
-        const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-        content.scrollLeft += delta;
-        e.preventDefault();
-    }, { passive: false });
-
-    // Slotchange and ResizeObserver
-    const slot_left = shadow.querySelector('slot[name="left"]');
-    const slot_right = shadow.querySelector('slot[name="right"]');
+        
     slot_left.addEventListener('slotchange', () => updateScroll());
-    slot_right.addEventListener('slotchange', () => updateScroll());
+    slot_right.addEventListener('slotchange', () =>updateScroll());
 
+    // ResizeObserver for content changes (e.g., tab width changes)
     const resizeObserver = new ResizeObserver(() => updateScroll());
     resizeObserver.observe(content);
 
-    updateScroll();
+    // Sync proxy scroll to content position
+    proxy.addEventListener('scroll', () => {
+        content.style.transform = `translateX(-${proxy.scrollLeft}px)`;
+    });
+
+    // Handle wheel events on container (horizontal or vertical delta)
+    shadow.addEventListener('wheel', (e) => {
+        const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+        proxy.scrollLeft += delta;
+        e.preventDefault();
+    }, { passive: false });
+
 
     // for what?
     host.onclick = (e) => {

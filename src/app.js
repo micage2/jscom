@@ -19,6 +19,8 @@ import ONLYONEBOX from './dom-comps/only-one-box.js'
 import APPROOT from './compounds/app-root.js';
 import LRTEST from './compounds/left-right-test.js';
 import APP31 from './compounds/app31.js';
+import APP30 from './compounds/app30.js';
+import APP70 from './compounds/app70.js';
 
 const $$ = DOM.create;
 const Simple = (str) => $$(SIMPLE, { title: str });
@@ -64,178 +66,20 @@ apps.set("2.1", {
             .setBottom(Simple("Bottom"))
         )
 });
-apps.set("3", {
-    name: "3",
+apps.set("3.0", {
+    name: "3.0",
     title: "TreeView with Buttonbar",
-    root: () => {
-        const toolbar = $$(TOOLBAR);
-        const listview = $$(LISTVIEW, { itemClassId: LISTITEM });
-        listview.init();
-
-        DOM.connect(toolbar, 'add-item', listview, 'add-item');
-        DOM.connect(toolbar, 'add-folder', listview, 'add-folder');
-        DOM.connect(toolbar, 'trash-bin', listview, 'remove-selected');
-        
-        return $$(TBS)
-            .setTop(toolbar)
-            .setBottom(listview)
-        ;
-    }
+    root: (args) => DOM.createCompound(APP30, args)
 });
 apps.set("3.1", {
     name: "3.1",
     title: "TreeView with Buttonbar",
     root: (args) => DOM.createCompound(APP31, args)
 });
-apps.set("4", {
-    name: "4",
-    title: "Experiments with List-/TreeView",
-    root: () => {
-        const toolbar1 = $$(TOOLBAR);
-        const listview1 = $$(LISTVIEW, { itemClassId: LISTITEM });
-        listview1.init({ root: 'items are root capable'});
-        DOM.connect(toolbar1, 'add-item', listview1, 'add-item');
-        DOM.connect(toolbar1, 'add-folder', listview1, 'add-folder');
-        DOM.connect(toolbar1, 'trash-bin', listview1, 'remove-selected');
-
-        const toolbar2 = $$(TOOLBAR);
-        const listview2 = $$(LISTVIEW, { itemClassId: SIMPLE });
-        listview2.init({ root: 'not root capable'});
-        DOM.connect(toolbar2, 'add-item', listview2, 'add-item');
-        DOM.connect(toolbar2, 'add-folder', listview2, 'add-folder');
-        DOM.connect(toolbar2, 'trash-bin', listview2, 'remove-selected');
-
-        const info1 = "This is experimental !!!";
-
-        const info2 = 
-        `The below component is not a TreeView.\n` +
-        `What makes a ListView a TreeView?`
-
-        // return $$(LR, { ratio: 0, minLeft: 200, minRight: 200 })
-        return $$(LR)
-        .setLeft($$(TB)
-            .setTop(Simple(info1))
-            .setBottom($$(TBS)
-                .setTop(toolbar1)
-                .setBottom(listview1)
-            )
-        )
-
-        // replacement for the below comp tree
-        // .setRight($$(TBS)
-        //     .setTop(toolbar2)
-        //     .setBottom(listview2)
-        // )
-
-        // TODO: strange things are happening with overflow
-        .setRight($$(TB)
-            .setTop(Simple(info2))
-            .setBottom($$(TBS)
-                .setTop(toolbar2)
-                .setBottom(listview2)
-            )
-        )
-    }
-});
-apps.set("5", {
-    name: "5",
-    title: "Testing complex layouts",
-    root: () => {
-        const toolbar = $$(TOOLBAR);
-        const listview = $$(LISTVIEW, { itemClassId: LISTITEM });
-        listview.init();
-
-        DOM.connect(toolbar, 'add-item', listview, 'add-item');
-        DOM.connect(toolbar, 'add-folder', listview, 'add-folder');
-        DOM.connect(toolbar, 'trash-bin', listview, 'remove-selected');
-
-        const toolbar2 = $$(TOOLBAR);
-        const listview2 = $$(LISTVIEW, { itemClassId: SIMPLE });
-        listview2.init({ root: 'no root'});
-        DOM.connect(toolbar2, 'add-item', listview2, 'add-item');
-
-        return $$(LR, { ratio: 0, minLeft: 200, minRight: 200 })
-            .setLeft($$(TBS)
-                .setTop(toolbar)
-                .setBottom($$(TB, { ratio: .6, minTop: 120, minBottom: 0 })
-                    .setTop(listview)
-                    .setBottom($$(TBS, { top: 60 })
-                        .setTop(Simple('fixed top'))
-                        .setBottom(Simple('fixed bottom overflow hidden -------->'))
-                    )
-                )
-            )
-            .setRight($$(LR)
-                .setLeft($$(TB)
-                    .setTop(Simple('dfgdgd'))
-                    .setBottom($$(TBS, { top: 30 })
-                        .setTop(toolbar2)
-                        .setBottom(listview2)
-                    )
-                )
-                .setRight(Simple('kjklj56'))
-            )
-    }        
-});
-apps.set("6", {
-    name: "6",
-    title: "Tabbar development, work in progress",
-    root: () => {
-        const tabbar = $$(TABBAR, { tab_clsid: LISTITEM });
-        const toolbar = $$(TOOLBAR);
-        const listview = $$(LISTVIEW, { itemClassId: LISTITEM });
-
-        DOM.connect(toolbar, 'add-item', listview, 'add-item');
-        DOM.connect(toolbar, 'trash-bin', listview, 'remove-selected');
-        DOM.connect(listview, 'selected', tabbar, 'add-tab');
-
-        return $$(LR, {ratio:.3})
-            .setLeft($$(TBS)
-                .setTop(toolbar)
-                .setBottom(listview)
-            )
-            .setRight(tabbar)
-    }
-});
-apps.set("7", {
-    name: "7",
+apps.set("7.0", {
+    name: "7.0",
     title: "Testing SVG- amd Text-Buttons. Click on each!",
-    root: () => {
-        const box = $$(BOX);
-        const info = Simple('\nSVG- and Text-Buttons. Click on each!\n\n'+
-            'Zoom (mouse wheel) and Pan (drag mouse) in lower view');
-        const svgview = $$(SVGVIEW2);
-        const out = Simple();
-
-        // create button and connect to "simple"
-        const buttons_info = [
-            { name: "File" },
-            { name: "Edit" },
-            { name: "New File", svg_file: "./assets/add-item.svg"},
-            { name: "New Folder", svg_file: "./assets/add-folder.svg"},
-        ];
-
-        const buttons = buttons_info.map(entry => {
-            const btn = $$(BUTTON, entry);
-            btn.on('clicked', (b) => {
-                out.set_timed(b.get_name());
-                svgview.load(b.get_svg_file())
-            });
-            return btn;
-        });
-
-        box.addMany(buttons);
-
-        return $$(TBS)
-            .setTop(box)
-            .setBottom($$(TB, { ratio: .2})
-                .setTop(info)
-                .setBottom($$(TBS)
-                    .setTop(out)
-                    .setBottom(svgview)
-                )
-            )
-    }    
+    root: (args) => DOM.createCompound(APP70, args)
 });
 apps.set("8", {
     name: "8",

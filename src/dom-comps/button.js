@@ -12,8 +12,9 @@ const sheet = create_sheet(
     background: transparent;
     color: var(--color-text);
 }
-.my-button img {
+.my-button svg {
     align: center;
+    vertical-align: middle;
 }
 .my-button:hover {
     color: var(--toolbar-btn-hover-color);
@@ -27,8 +28,8 @@ const sheet = create_sheet(
 .my-button:active {
     transform: scale(0.95);
 }
-.my-button:active .icon {
-    transform: translate(-6px, -8px) scale(1.2);
+.my-button:active svg {
+    transform: translate(0, 0) scale(0.95);
 }
 `);
 

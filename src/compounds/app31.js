@@ -20,10 +20,6 @@ const info = 'TreeView with button and status bar\n\n'
     + 'Comparable to devices like amplifiers, speakers, phono, tape, ...'
 ;
 
-
-function ready(svg) {
-}
-
 const ctor = (args = {}) => {
     const status = Simple('no selection');
     const listview = $$(LISTVIEW, { itemClassId: LISTITEM });
@@ -33,10 +29,11 @@ const ctor = (args = {}) => {
     const toolbar = $$(BOX);
     const add_item_button = Button('New Item', { svg_file: './assets/add-item.svg'});
     const add_folder_button = Button('New Folder', { svg_file: './assets/add-folder.svg'});
-    // const delete_button = Button('Delete Selected', { svg_file: './assets/trash-bin-1.svg'});
-    const delete_button = Button('Delete Selected', { svg_file: './assets/close.svg'});
+    const delete_button = Button('Delete Selected', { svg_file: './assets/trash-bin-1.svg'});
+    // const delete_button = Button('Delete Selected', { svg_file: './assets/close.svg'});
 
-    toolbar.addMany([add_item_button, add_folder_button, delete_button]);
+    toolbar.addMany([add_item_button, add_folder_button]);
+    toolbar.add(delete_button, { align: 'right' });
     add_item_button.on('clicked', b=>{
         listview.add();
     });
@@ -53,14 +50,6 @@ const ctor = (args = {}) => {
         .setBottom(listview)
     ;
 
-    // TabView is just a link collection for the ListView
-    // It does not manage the associated view. The ListView does.
-
-    // Q: What do I want to know from Box?
-    // A: Is there an entry for a given listitem?
-    // if yes: select it
-    // if no: create one and select it
-
     const listitem2button = new WeakMap(); // listitem -> button
     const links_reverse = new WeakMap(); // button -> listitem
     const only1box = $$(ONLYONEBOX);
@@ -74,18 +63,20 @@ const ctor = (args = {}) => {
         .setBottom(only1box)
     ;
 
-    if (1) {
     let parents = [];
     svgview.on('svg-node', (node) => {
 
+        // TODO: type mapping svg.nodeName -> { type, view }
+        const type = ['g', 'svg'].includes(node.type)
+                                    ? 'folder' : 'item';
         const item = listview.add({
-            type: node.num_children ? 'folder' : 'item',
+            type,
             title: node.name,
             // icon: node.num_children ? null : node.type[0]
         });
 
         if (node.num_children) {
-            listview.select(item);
+            listview.select(item); // mark item as insert target
             parents.push({item, node});
         }
         else if (node.is_last) {
@@ -94,9 +85,7 @@ const ctor = (args = {}) => {
             listview.select(last.item);
         }
     });
-    }
 
-    // test the new mediator
     listview.on('selected', (listitem) => {
         // console.log('[ListView.on()]: ' + listitem.get_title());
 

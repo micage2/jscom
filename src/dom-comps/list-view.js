@@ -47,6 +47,20 @@ class ListView {
             this.folderIcons.closed);
     }
 
+    fold(item, bool) {
+        if (!item || !this.isFolder(item)) return; // only folders can be folded
+        if(!bool && this.isFolderOpen(item)) return; // already open
+        if(bool && this.isFolderClosed(item)) return; // already closed
+        if (bool) {
+            this.toggleSubtreeOpen(item);
+            item.set_icon(this.folderIcons.open);
+        }
+        else {
+            this.toggleSubtreeOpen(item);
+            item.set_icon(this.folderIcons.open);
+        }
+    }
+
     selectItem(item) {
         // set select state of previously selected item
         if (this.selectedItem !== item) {
@@ -92,14 +106,13 @@ class ListView {
 
     // find previous item and index with depth === item.depth - 1
     parent(item) {
-        if (typeof item.get_depth !== 'function')
+        if (typeof item.get_depth !== 'function') {
+            console.log('[ListView.parent] We need at least a get_depth function on item.');            
             return { index: -1, item: null };
+        }
 
         const start = this.list.indexOf(item);
-        if (start === 0)
-            return { index: -1, item: null };
-
-        let i = start;
+        let i = this.list.indexOf(item);
         while (i > 0) {
             i--;
             if (this.list[i].get_depth() === item.get_depth() - 1)
@@ -108,8 +121,9 @@ class ListView {
 
         return { index: -1, item: null };
     }
+
     // find previous item with depth === item.depth
-    previous(item) {
+    previousSibling(item) {
         const start = this.list.indexOf(item);
         if (start === 0) return { index: -1, item: null, parent: null };
 
@@ -118,17 +132,30 @@ class ListView {
             i--;
             if (this.list[i].get_depth() === item.get_depth())
                 return { index: i, item: this.list[i], parent: null };
+
+            // item is first child
             if (this.list[i].get_depth() === item.get_depth() - 1)
                 return { index: i, item: null, parent: this.list[i] };
         }
 
         // return first item
-        console.warn('[ListView.previous] return list[0].');
-        
+        console.warn('[ListView.previous] return list[0].');        
         return { index: i, item: null, parent: this.list[0] };
     }
+
     // find next item with depth === item.depth
-    next(item) {
+    nextSibling(item) {
+        const start = this.list.indexOf(item);
+        while (i < self.list.length) {
+            if (this.list[i].get_depth() === item.get_depth()) {
+                return { index: i, item: this.list[i] };
+            }
+            if (this.list[i].get_depth() < item.get_depth()) {
+                return { index: i, item: null, parent: this.list[i] };
+            }
+        }
+
+        // item is last child
     }
 
     __addItem(item) {
@@ -225,11 +252,12 @@ const IListViewFactory = (self) => {
         //      title: {string}
         //      type: {'folder' | 'item'}
         //      icon: {string}, default: '□'
+        //      no_select: {boolean} - prevents e.g. opening tabs
         add(args = {}) {
             let item = null;
             if (args.type === "folder") {
                 item = DOM.create(self.itemClassId, {
-                    icon: self.folderIcons.open,
+                    icon: self.folderIcons.closed,
                     title: args.title
                 });
             }
@@ -241,25 +269,27 @@ const IListViewFactory = (self) => {
 
             let insertAt = -1;
             let target = null;
+
+            // no selectedItem, so push new items to the end of the list
             if (!self.selectedItem) {
-                // self.selectedItem = item;
                 DOM.attach(item, this, { mode: 'parent', slot: "content" });
                 insertAt = self.list.length;
             }
             else {
-                // is folder
+                // selectedItem is folder
                 if (self.isFolder(self.selectedItem)) {
                     insertAt = self.endOfSubtree(self.selectedItem);
                     target = self.list[insertAt - 1];
                     item.set_depth(self.selectedItem.get_depth() + 1);
 
                     if (self.isFolderClosed(self.selectedItem)) {
-                        self.toggleFolder(self.selectedItem);
+                        // self.toggleFolder(self.selectedItem);
+                        item.set_show(false);
                     }
                 }
-                // is not a folder
+
+                // selectedItem is not a folder, so find parent folder
                 else {
-                    // find parent folder
                     const parent = self.parent(self.selectedItem);
                     if (parent.item) {
                         insertAt = self.endOfSubtree(parent.item);
@@ -276,13 +306,13 @@ const IListViewFactory = (self) => {
             }
 
             if (typeof item.set_show === 'function') {
-                item.set_show(true);
+                // item.set_show(true);
             }
             else {
                 console.log(`[IListViewFactory.add] IListItem needs at least set_show(). ${item.get_title()}`);                
             }
 
-            self.items.set(item.uid, item);
+            // self.items.set(item.uid, item);
             self.list.splice(insertAt, 0, item);
 
             item.on('selected', (listitem) => {
@@ -322,7 +352,7 @@ const IListViewFactory = (self) => {
             const start = self.list.indexOf(self.selectedItem);
             const end = self.endOfSubtree(self.selectedItem);
 
-            const previous = self.previous(self.selectedItem);
+            const previous = self.previousSibling(self.selectedItem);
             if (previous.item){
                 // self.selectItem(previous.item);
                 this.select(previous.item);
@@ -355,6 +385,15 @@ const IListViewFactory = (self) => {
 
         toggle(item) {
             self.toggleFolder(item);
+        },
+
+        unfoldParent(item) {
+            const parent = self.parent(item);
+            if (parent.item) self.fold(parent.item)
+        },
+
+        foldLevel(depth) {
+
         },
 
         select(item) {
@@ -398,7 +437,7 @@ const IListViewFactory = (self) => {
                     this.emit('selected', self.selectedItem);
                 }
                 else {
-                    console.log('[IListView.select] Not in list: #', item.uid);                    
+                    console.error('[IListView.select] Not in list: #', item.uid);                    
                 }
             }
         },

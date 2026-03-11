@@ -116,10 +116,15 @@ function ctor(args) {
     let isSyncing = false; // Prevent recursion in bi-sync
 
     function updateScroll() {
-        requestAnimationFrame(() => {
-            stretcher.style.width = `${content.scrollWidth}px`;
-            updateVisibility();
-        });
+        // requestAnimationFrame(() => {
+        //     stretcher.style.width = `${content.scrollWidth}px`;
+        //     updateVisibility();
+        // });
+
+        // the asynchronous synchronization above was problematic:
+        // scroll into view happened before update
+        updateVisibility();
+        stretcher.style.width = `${content.scrollWidth}px`;
     }
     
     function updateVisibility() {
@@ -134,14 +139,16 @@ function ctor(args) {
     
     // Bi-directional sync
     content.addEventListener('scroll', () => {
-        if (isSyncing) return;
+        if (isSyncing)
+            return;
         isSyncing = true;
         proxy.scrollLeft = content.scrollLeft;
         isSyncing = false;
     });
 
     proxy.addEventListener('scroll', () => {
-        if (isSyncing) return;
+        if (isSyncing)
+            return;
         isSyncing = true;
         content.scrollLeft = proxy.scrollLeft;
         isSyncing = false;
@@ -174,7 +181,7 @@ function ctor(args) {
     const selected = null;
 
     return {
-        getInstance: () => ({ slot_left, selected, members }),
+        getInstance: () => ({ slot_left, selected, members, updateScroll }),
         getHost: () => host,
     }
 }
@@ -184,7 +191,7 @@ const max = (arr) => arr.reduce(function (prev, current) {
     return (prev && prev.y > current.y) ? prev : current;
 });
 
-const IBoxFactory = function ({ slot_left, selected, members }) {
+const IBoxFactory = function ({ slot_left, selected, members, updateScroll }) {
     const IBox = {
         add(elem, options = {}) {
             if (!elem) {
@@ -206,7 +213,7 @@ const IBoxFactory = function ({ slot_left, selected, members }) {
             else {
                 DOM.attach(elem, this, { slot: 'left' });
             }
-
+        
             members.push(elem);
 
             return this;
@@ -232,12 +239,18 @@ const IBoxFactory = function ({ slot_left, selected, members }) {
 
             const idx = members.indexOf(elem);
             const assignedNodes = slot_left.assignedNodes({ flatten: true });
-            assignedNodes[idx].scrollIntoView({
-                behavior: "instant", // "smooth", 
-                block: "nearest", //"end", 
-                inline: "nearest", //"center", "end", 
-                container: "nearest"
-            });
+            if (idx < assignedNodes.length) {
+                assignedNodes[idx].scrollIntoView({
+                    behavior: "instant", // "smooth", 
+                    block: "nearest", //"end", 
+                    inline: "nearest", //"center", "end", 
+                    container: "nearest"
+                });
+            }
+            else { // its in the right slot
+                console.warn('[IBox.select] trying to scroll slot[right] into view.');
+                
+            }
         },
 
         remove(elem_name) {
@@ -254,11 +267,6 @@ const IBoxFactory = function ({ slot_left, selected, members }) {
                 DOM.detach(elem);
                 members.splice(index, 1);
                 this.emit('removed', elem);
-                const predecessor = members[index - 1];
-                if (predecessor) {
-                    this.select(predecessor);
-                    predecessor.emit('clicked', predecessor);
-                }
             }
         },
 

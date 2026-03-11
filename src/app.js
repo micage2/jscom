@@ -17,7 +17,7 @@ import ONLYONEBOX from './dom-comps/only-one-box.js'
 
 // compounds
 import APPROOT from './compounds/app-root.js';
-import LRTEST from './compounds/left-right-test.js';
+import LRTEST from './compounds/app10.js';
 import APP31 from './compounds/app31.js';
 import APP30 from './compounds/app30.js';
 import APP70 from './compounds/app70.js';
@@ -28,8 +28,8 @@ const Button = (name, options) => $$(BUTTON, { name, ...options });
 
 const apps = new Map(); // name -> app root ctor()
 
-apps.set("1", {
-    name: "1",
+apps.set("1.0", {
+    name: "1.0",
     title: "Test: LeftRight",
     root: (args) => DOM.createCompound(LRTEST, args)
 });

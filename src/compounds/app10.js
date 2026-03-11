@@ -16,7 +16,7 @@ const ctor = (args = {}) => {
         .setRight(Simple("Right")
     );
 
-    return $$(TB, { ratio: 0.12 })
+    return $$(TB, { ratio: 0.0 })
         .setTop(Simple(info))
         .setBottom(main)
 };

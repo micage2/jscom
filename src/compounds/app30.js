@@ -51,6 +51,11 @@ const ctor = (args = {}) => {
         )
     ;
     listview.on('selected', (item) => { out.set_timed('selected: ' + item.get_title())});
+    listview.on('removed-items', (listitems) => {
+        for (const li of listitems) {
+            console.log('[app30.ctor] removed listitem: ', li.uid);
+        }     
+    });
 
     const lrlr = $$(LR, {ratio:.3})
         .setLeft(Simple())
@@ -60,7 +65,7 @@ const ctor = (args = {}) => {
         )
     ;
     
-    return $$(TB, { ratio: 0.1 })
+    return $$(TB, { ratio: 0.0 })
         .setTop(Simple(info))
         .setBottom(lrlr)
     ;

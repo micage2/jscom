@@ -146,16 +146,21 @@ class ListView {
     // find next item with depth === item.depth
     nextSibling(item) {
         const start = this.list.indexOf(item);
-        while (i < self.list.length) {
+        let i = start;
+        while (i < this.list.length - 1) {
+            i++;
             if (this.list[i].get_depth() === item.get_depth()) {
                 return { index: i, item: this.list[i] };
             }
+
+            // item is last child
             if (this.list[i].get_depth() < item.get_depth()) {
-                return { index: i, item: null, parent: this.list[i] };
+                return { index: i, item: null };
             }
         }
-
-        // item is last child
+        
+        // item is last subtree in list
+        return { index: -1, item: null }
     }
 
     __addItem(item) {
@@ -352,31 +357,13 @@ const IListViewFactory = (self) => {
             const start = self.list.indexOf(self.selectedItem);
             const end = self.endOfSubtree(self.selectedItem);
 
-            const previous = self.previousSibling(self.selectedItem);
-            if (previous.item){
-                // self.selectItem(previous.item);
-                this.select(previous.item);
-            }
-            else {
-                if (previous.parent) {
-                    this.select(previous.parent);
-                }
-                else {
-                    // self.selectedItem = null;
-                    console.log('[IListView.removeSelected] No selection now!');                    
-                }
+            if (!this.selectPrevious(self.selectedItem)) {
+                self.selectedItem = null;
             }
 
             const deletedItems = self.list.splice(start, end - start);
             for (const it of deletedItems) {
                 self.items.delete(it.uid);
-                if(self.selectedItem === it) {
-                    console.log('[IListView.removeSelected] deleted selected!');
-                    self.selectedItem = null;
-                    if (self.list[0]) {
-                        this.select(self.list[0]);
-                    }
-                }
             }
 
             DOM.detachMany(deletedItems);            
@@ -434,7 +421,7 @@ const IListViewFactory = (self) => {
         
                     // set selected state of listitem
                     // self.call('selected', item);
-                    this.emit('selected', self.selectedItem);
+        // this.emit('selected', self.selectedItem);
                 }
                 else {
                     console.error('[IListView.select] Not in list: #', item.uid);                    
@@ -442,6 +429,32 @@ const IListViewFactory = (self) => {
             }
         },
 
+        selectPrevious(item) {
+            const previous = self.previousSibling(item);
+            if (previous.item){
+                // self.selectItem(previous.item);
+                this.select(previous.item);
+            }
+            else {
+                const next = self.nextSibling(item);
+                if (next.item) {
+                    this.select(next.item);
+                }
+                else {
+                    const parent = self.parent(item);
+                    if (parent.item) {
+                        this.select(parent.item);
+                    }
+                    else {
+                        // no selection possible, list mus be empty
+                        return null;
+                    }
+                }
+            }
+    
+            return self.selectedItem;
+        },
+        
         get_selected() { return self.selectedItem; }
     };
 };

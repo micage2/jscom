@@ -19,7 +19,6 @@ class ListView {
         this.slot = shadow.querySelector("slot[name='content']");
 
         this.itemClassId = options.itemClassId;
-        this.items = new Map();
         this.list = [];
         this.selectedItem = null;
         this.folderIcons = {
@@ -162,60 +161,6 @@ class ListView {
         // item is last subtree in list
         return { index: -1, item: null }
     }
-
-    __addItem(item) {
-        console.log('ListView added:', item);
-        return 'added';
-    }
-
-    addFolder() {
-        return addItem({type: "folder"});
-    }
-
-    addItem(args = {}) {
-        debugger;
-        if (!this.selectedItem) return "not possible";
-
-        let item = null;
-        if (args.type === "folder") {
-            item = DOM.create(self.itemClassId, {
-                icon: this.folderIcons.open
-            });
-        }
-        else {
-            item = DOM.create(this.itemClassId, args);
-        }
-
-        let insertAt = -1;
-        let target = null;
-        if (this.isFolder(this.selectedItem)) {
-            insertAt = this.endOfSubtree(this.selectedItem);
-            target = this.list[insertAt - 1];
-            item.set_depth(this.selectedItem.get_depth() + 1);
-
-            if (this.isFolderClosed(this.selectedItem)) {
-                this.toggleFolder(this.selectedItem);
-            }
-        }
-        else { // find parent folder            
-            const parent = this.parent(this.selectedItem);
-            insertAt = this.endOfSubtree(parent.item);
-            target = this.list[insertAt - 1];
-            item.set_depth(parent.item.get_depth() + 1);
-        }
-
-        DOM.attach(item, target, { mode: 'after', slot: "content" });
-
-        item.set_show(true); // TODO:
-
-        this.items.set(item.uid, item);
-        this.list.splice(insertAt, 0, item);
-
-        // update selection listners
-        this.call('item-selected', { item: this.selectedItem });
-
-        return item; // inserted item
-    }
 }
 
 
@@ -259,18 +204,18 @@ const IListViewFactory = (self) => {
         //      icon: {string}, default: '□'
         //      no_select: {boolean} - prevents e.g. opening tabs
         add(args = {}) {
-            let item = null;
+            let item;
             if (args.type === "folder") {
                 item = DOM.create(self.itemClassId, {
+                    ...args,
                     icon: self.folderIcons.closed,
-                    title: args.title
                 });
             }
             else {
                 item = DOM.create(self.itemClassId, args);
             }
 
-            item.set_title(args.title || item.uid);
+            if (!args.title) item.set_title(item.uid);
 
             let insertAt = -1;
             let target = null;
@@ -362,9 +307,6 @@ const IListViewFactory = (self) => {
             }
 
             const deletedItems = self.list.splice(start, end - start);
-            for (const it of deletedItems) {
-                self.items.delete(it.uid);
-            }
 
             DOM.detachMany(deletedItems);            
             this.emit('removed-items', deletedItems);
@@ -383,7 +325,7 @@ const IListViewFactory = (self) => {
 
         },
 
-        select(item) {
+        select(item, options = { no_emit: false }) {
             if(!item) return;
 
             if (self.selectedItem !== item) {
@@ -415,17 +357,17 @@ const IListViewFactory = (self) => {
                     const assignedNodes = self.slot.assignedNodes({ flatten: true });
                     assignedNodes[idx].scrollIntoView({
                         // behavior: "smooth", 
-                        block: "end", 
+                        block: "nearest", 
                         container: "nearest"
                     });
-        
-                    // set selected state of listitem
-                    // self.call('selected', item);
-        // this.emit('selected', self.selectedItem);
                 }
                 else {
                     console.error('[IListView.select] Not in list: #', item.uid);                    
                 }
+            }
+
+            if (!options.no_emit) {
+                this.emit('selected', item);
             }
         },
 

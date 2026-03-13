@@ -1,6 +1,6 @@
 import { DomRegistry as DOM } from '../dom-registry.js';
-
 import { create_sheet, load_file } from '../shared/dom-helper.js';
+import BUTTON from './button.js';
 
 const sheet = create_sheet(
 `
@@ -16,6 +16,7 @@ const sheet = create_sheet(
     box-sizing: border-box;
     align-items: center;
     padding-left: 8px;
+    padding-bottom: 2px;
     cursor: default;
     color: #ddd;
     border-right: 1px solid #444;
@@ -34,17 +35,9 @@ const sheet = create_sheet(
     opacity: 1;
     transition: opacity 0.2s;
 }
-.tab-button:hover {
-    background: #f66;
-    border: 1px solid #777;
-    border-radius: 4px;
-}
-.tab-button {
-    display: inline-block;
-    height: 100%;
-    min-width: 24px;
-    margin-left: 4px;
-    opacity: 0.01;
+
+.tab-icon {
+    margin-right: 8px;
 }
 
 .tab-label {
@@ -53,25 +46,29 @@ const sheet = create_sheet(
     text-overflow: ellipsis;
     font-size: .75rem;
 }
-.tab-button img {
-    align: center;
+
+.tab-button {
+    display: inline-block;
+    height: 100%;
+    min-width: 24px;
+    margin-left: 4px;
+    opacity: 0.01;
 }
 .tab-button:hover {
+    background: #f66;
+    border: 1px solid #777;
+    border-radius: 4px;
     color: var(--toolbar-btn-hover-color);
 }
 .tab-button:hover .icon {
     stroke: #0af;
 }
-.tab-button.activated{
+.tab-button.activated {
     color: var(--color-active);
 }
 .tab-button:active {
     transform: scale(0.95);
 }
-.tab-button:active .icon {
-    transform: translate(-6px, -8px) scale(1.2);
-}
-
 `);
 
 function ctor(args = {}) {
@@ -85,6 +82,7 @@ function ctor(args = {}) {
 
     const icon = document.createElement('span');
     icon.className = "tab-icon";
+    icon.innerText = args.icon || '🖵';
     tab.appendChild(icon);
     
     const label = document.createElement('span');
@@ -101,11 +99,9 @@ function ctor(args = {}) {
         e.stopPropagation();
         this.emit('closed', this);
     };
-
     tab.appendChild(close);
 
     shadow.appendChild(tab);
-
 
     return {
         getInstance: () => ({ host, tab, icon, label, close }),

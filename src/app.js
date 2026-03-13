@@ -18,8 +18,10 @@ import ONLYONEBOX from './dom-comps/only-one-box.js'
 // compounds
 import APPROOT from './compounds/app-root.js';
 import LRTEST from './compounds/app10.js';
-import APP31 from './compounds/app31.js';
 import APP30 from './compounds/app30.js';
+import APP31 from './compounds/app31.js';
+import APP32 from './compounds/app32.js';
+import APP33 from './compounds/app33.js';
 import APP70 from './compounds/app70.js';
 
 const $$ = DOM.create;
@@ -75,6 +77,16 @@ apps.set("3.1", {
     name: "3.1",
     title: "TreeView with Buttonbar",
     root: (args) => DOM.createCompound(APP31, args)
+});
+apps.set("3.2", {
+    name: "3.2",
+    title: "SVGView 2",
+    root: (args) => DOM.createCompound(APP32, args)
+});
+apps.set("3.3", {
+    name: "3.3",
+    title: "SVGView 2",
+    root: (args) => DOM.createCompound(APP33, args)
 });
 apps.set("7.0", {
     name: "7.0",
@@ -136,5 +148,5 @@ apps.set("8.1", {
     }    
 });
 
-const app = DOM.createCompound(APPROOT, { apps, start: '3.1'});
+const app = DOM.createCompound(APPROOT, { apps, start: '3.2'});
 DOM.mount(app);

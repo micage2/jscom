@@ -6,6 +6,12 @@ import {
     create_sheet,
     load_file
 } from '../shared/dom-helper.js';
+import {
+    ISVGBase,
+    ISVGGroup,
+    ISVGDocument,
+    ISVGPath
+} from '../shared/svg.js'
 
 
 const sheet = create_sheet(`
@@ -22,13 +28,65 @@ const sheet = create_sheet(`
     height: 100%;
     width: 100%;
 }
+
 .svg-view svg {
     height: 100%;
     width: 100%;
 }
-g.selected,
-svg.selected {
-    fill: #707077;
+
+// svg * {
+//     display: none;
+//     visibility: hidden;
+//     opacity: .2;
+//     fill: transparent;
+//     stroke: #777;
+//     stroke-width: .2;
+// }
+
+// svg *.selected {
+//     display: block;
+//     opacity: 1;
+//     stroke: #ff0;
+//     stroke-dasharray: 1 4;
+// }
+
+// svg g:hover {
+//     stroke: #bb8;
+// }
+// svg g:active {
+//     stroke: #dd8;
+// }
+
+/* 1. Base "isolate mode" - everything dimmed or hidden */
+svg.isolate-mode * {
+    opacity: 0.5;                  /* Soft fade (recommended for preview) */
+    /* OR: visibility: hidden;      uncomment if you want strict hide instead of fade */
+}
+
+svg.isolate-mode .isolate-selected {
+    opacity: 1;
+}
+
+/* 2. Selected node + all its descendants = fully visible */
+svg.isolate-mode .selected,
+svg.isolate-mode .selected * {
+    opacity: 1;
+    /* OR: visibility: visible; */
+}
+
+/* Optional extras for polish */
+svg.isolate-mode .selected {
+    stroke: #00ffcc;                    /* optional highlight stroke for paths/groups */
+}
+
+/* If we prefer strict "only this node" without seeing context at all */
+svg.isolate-mode.strict * {
+    visibility: hidden;
+}
+
+svg.isolate-mode.strict .selected,
+svg.isolate-mode.strict .selected * {
+    visibility: visible;
 }
 `);
 
@@ -98,10 +156,97 @@ SVGPoint.prototype.toString = function () {
     return `(${this.x.toFixed(2)}, ${this.y.toFixed(2)})`;
 }
 
-function ready(svg) {
+// TODO: WeakMap?
+function createInterface(elem) {
+    let iface;
+    switch (elem.nodeName) {
+        case 'svg': iface = ISVGDocument(elem); break;
+        case 'g': iface = ISVGGroup(elem); break;
+        case 'path': iface = ISVGPath(elem); break;
+        default: iface = ISVGBase(elem); break;
+    }
+
+    return iface;
+}
+
+function ready({ svg, iface2elem, elem2iface, selected }) {
+    if (!svg) return;
+
+    svg.classList.add('isolate-mode'); // or 'strict' if we want zero context
+    const MOVE_THRESHOLD = 5;
+    let hasMoved = false; 
+
+    // adjust viewBox
     const vb = svg.viewBox.baseVal;
-    vb.x -= 96; vb.height *= 4;
-    vb.y -= 64; vb.width *= 4;
+    if (!vb.width || !vb.height) {
+        vb.x = 0;
+        vb.y = 0;
+        vb.height = 100;
+        vb.width = 100;
+    }
+    else {
+        vb.height = svg.height.baseVal.value;
+        vb.width = svg.width.baseVal.value;
+    }
+    // vb.x -= 96; vb.height *= 4;
+    // vb.y -= 64; vb.width *= 4;
+
+    let isPanning = false;
+    let startX, startY;
+    let realTarget = null;
+
+    svg.addEventListener("pointerdown", (e) => {
+        isPanning = true;
+        hasMoved = false;
+        startX = e.clientX;
+        startY = e.clientY;
+        // svg.style.cursor = "grabbing";
+        e.preventDefault();
+        e.stopPropagation();
+
+        realTarget = e.target;
+
+        console.log('pointer down', e.target);
+    });
+
+    document.addEventListener("pointermove", (e) => {
+        if (!isPanning) return;
+
+        const ctm = svg.getScreenCTM();
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        
+        if (dx > MOVE_THRESHOLD || dy > MOVE_THRESHOLD) {
+            hasMoved = true;               // ← this was a real pan, not a click
+        }
+
+        if (!hasMoved) return; // still waiting to decide if it's a click or pan
+
+        const vb = svg.viewBox.baseVal;
+        vb.x -= (dx / ctm.a);
+        vb.y -= (dy / ctm.d);
+
+        startX = e.clientX;
+        startY = e.clientY;
+    });
+
+    document.addEventListener("pointerup", (e) => {
+        if (!isPanning) return;
+        isPanning = false;
+        // svg.style.cursor = "grab";
+
+        if (!hasMoved) {
+            let target = e.target;
+
+            const composedPath = e.composedPath();
+
+            const iface = elem2iface.get(realTarget);
+            console.log('pointerup', e.target, realTarget);
+            if (iface)
+                this.emit('selected', iface);
+        }
+
+    });
 
     svg.onwheel = (e) => {
         const delta = e.deltaY > 0 ? 1.1 : 0.9;
@@ -120,47 +265,33 @@ function ready(svg) {
         e.preventDefault();
     };
 
-    let isPanning = false;
-    let startX, startY;
-
-    svg.addEventListener("pointerdown", (e) => {
-        isPanning = true;
-        startX = e.clientX;
-        startY = e.clientY;
-        svg.style.cursor = "grabbing";
-
-        e.preventDefault();
-    });
-
-    document.addEventListener("pointermove", (e) => {
-        if (!isPanning) return;
-        const ctm = svg.getScreenCTM();
-        const dx = (e.clientX - startX) / ctm.a;
-        const dy = (e.clientY - startY) / ctm.d;
-
-        const vb = svg.viewBox.baseVal;
-        vb.x -= dx;
-        vb.y -= dy;
-
-        startX = e.clientX;
-        startY = e.clientY;
-    });
-
-    document.addEventListener("pointerup", () => {
-        isPanning = false;
-        svg.style.cursor = "grab";
-    });
-
     const stack = [{
-        elem: svg, 
+        elem: svg,
         depth: 0,
         num_children: svg.children.length,
         is_last: true,
     }];
 
     while (stack.length) {
-        
         const node = stack.pop();
+
+        // TODO: give the user an interfave to access the data
+        const iface = createInterface(node.elem);
+
+        // node.elem.addEventListener('click', (e) => {
+        //     // this.isolateSelect2(iface);
+        //     e.stopPropagation();
+        //     if (isPanning) {
+        //         e.preventDefault();
+        //         return;
+        //     }
+
+        //     this.emit('selected', iface);
+        // });
+        node.elem.onclick = () => {};
+
+        iface2elem.set(iface, node.elem);
+        elem2iface.set(node.elem, iface);
 
         // pre-order visitor
         this.emit('svg-node', {
@@ -169,10 +300,11 @@ function ready(svg) {
             depth: node.depth,
             num_children: node.num_children,
             is_last: node.is_last,
-        });        
+            iface,
+        });
 
         const children = [...node.elem.children];
-        const index = children.findIndex(c => c.nodeName ==='script');
+        const index = children.findIndex(c => c.nodeName === 'script');
         if (index !== -1) {
             children.splice(index, 1);
         }
@@ -188,29 +320,34 @@ function ready(svg) {
     }
 }
 
-function ctor(args = {}, call) {
+function ctor(args = {}) {
     const that = this; // maybe needed
 
     const host = document.createElement('div');
     const shadow = host.attachShadow({ mode: 'closed' });
     shadow.adoptedStyleSheets.push(sheet);
 
-    window.MM = {};
-
     shadow.innerHTML = '<div class="svg-view"></div>';
-    const doc = MM.svg = shadow.querySelector('.svg-view');
-    let svg = null;
+    const doc = shadow.querySelector('.svg-view');
+
+    const svg = null;
+
+    const selected = null;
+
+    // bi-directional look-up
+    const iface2elem = new WeakMap();
+    const elem2iface = new WeakMap();
 
     return {
         getHost: () => host,
         getInstance: () => ({
-            doc, svg, shadow
+            shadow, doc, svg, iface2elem, elem2iface, selected
         }),
     };
 }
 
 // creates ISVGView interface objects
-const ISVGViewFactory = ({ doc, svg, shadow }) => {
+const ISVGViewFactory = ({ shadow, doc, svg, iface2elem, elem2iface, selected }) => {
     return {
         load(myfile) {
             if (typeof myfile === 'string') {
@@ -218,7 +355,8 @@ const ISVGViewFactory = ({ doc, svg, shadow }) => {
                     doc.innerHTML = str;
                     svg = shadow.querySelector('svg');
 
-                    ready.call(this, svg);
+                    ready.call(this, { svg, iface2elem, elem2iface, selected });
+                    this.emit('svg-loaded');
                 });
             }
             else {
@@ -226,14 +364,68 @@ const ISVGViewFactory = ({ doc, svg, shadow }) => {
                 <path d="m -4 6 h-10 v10 h10 z" stroke="red" fill="none" />
                 <text y="16" fill="#ddd">no svg file</Text>
                 </svg>`;
-                svg = shadow.querySelector('svg');
-                ready.call(this, svg);
+                const svg = shadow.querySelector('svg');
+                ready.call(this, { svg, iface2elem, elem2iface });
             }
 
             return this;
         },
 
-        select(bool) {}
+        _isolateSelect2(iface) {
+            if (!iface) return;
+            if (!svg) return;
+
+            const elem = iface2elem.get(iface);
+
+            // Remove old highlight from anywhere
+            svg.querySelectorAll('.selected').forEach(el => {
+                el.classList.remove('selected');
+            });
+
+            if (!elem) return;               // nothing selected → everything dimmed (intended)
+
+            elem.classList.add('selected');  // only this node + children lights up
+        },
+
+        deselect(iface) {
+            if (!iface) return;
+
+            const elem = iface2elem.get(iface);
+
+            if (selected === elem) {
+                selected.classList.remove('selected');
+                selected = null;
+            }
+        },
+
+        isolateSelect2(iface) {
+            if (!iface) return;
+            if (!svg) return;
+
+
+            const elem = iface2elem.get(iface);
+            // Remove old highlight from anywhere
+            svg.querySelectorAll('.selected').forEach(el => {
+                el.classList.remove('selected');
+                el.classList.remove('isolate-selected');
+            });
+
+            svg.classList.add('isolate-mode');
+            if (elem === svg) {
+                elem.classList.toggle('isolate-mode', false);
+                return;
+            }
+
+            if (!elem) return;               // nothing selected → everything dimmed (intended)
+
+            elem.classList.add('selected');  // only this node + children lights up
+            let parent = elem.parentElement;
+            while (parent && parent !== svg) {
+                parent.classList.add('isolate-selected');
+                parent = parent.parentElement;
+            }
+
+        },
     };
 };
 
@@ -241,7 +433,7 @@ const clsid = DOM.register(ctor, function (role, action, reaction) {
 
     role("SVGView", self => ISVGViewFactory(self), true);
 
-    reaction('file', function(myfile) { this.load(myfile); });
+    reaction('file', function (myfile) { this.load(myfile); });
 
 });
 export default clsid;

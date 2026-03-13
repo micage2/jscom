@@ -12,7 +12,7 @@ import TAB from '../dom-comps/tab.js'
 import SVGVIEW2 from '../dom-comps/svg-view-2.js'
 
 // const SVG_PATH = './assets/worldUltra.svg';
-const SVG_PATH = './assets/Eberswalder9_opt2.svg';
+const SVG_PATH = './assets/world.svg';
 
 const $$ = DOM.create;
 const Simple = (str) => $$(SIMPLE, { title: str });

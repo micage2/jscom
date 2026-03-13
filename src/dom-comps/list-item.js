@@ -8,86 +8,81 @@ import { loadFragment } from '../shared/dom-helper.js';
  *      "icon-clicked"
  */
 
-
 const html_file = "./src/dom-comps/list-item.html";
 
 /** @type {DocumentFragment} */
 const fragment = await loadFragment(html_file);
 
-/** @implements {IDomNode} */
-class ListItem {
-    constructor(args = {}) {
+function ctor(args = {}) {
 
-        this.host = document.createElement('div');
-        const shadow = this.host.attachShadow({ mode: 'closed' });
-        shadow.appendChild(fragment.cloneNode(true));
-    
-        this.content = shadow.querySelector('.list-item');
-        this.icon = shadow.querySelector('.expander');
-        this.icon.textContent = args.icon || '□';
-        this.label = shadow.querySelector('.label');
-        this.label.textContent = args.title;
-        this.depth = args.depth || 0;
-    }
+    const host = document.createElement('div');
+    const shadow = host.attachShadow({ mode: 'closed' });
+    shadow.appendChild(fragment.cloneNode(true));
 
-    // IDomNode impl
-    getHost() { return this.host; }
-    getInstance() { return this; }
-}
-
-/** 
- * @param {ListItem}
- * @returns {IListItem}
- */
-const IListItemFactory = (item) => ({
-    // determines indentation of item content
-    get_depth() { return item.depth; },
-    set_depth(d) {
-        item.icon.style.marginLeft = `${d * 14}px`;
-        item.depth = d;
-    },
-
-    // show/hide item
-    get_show() { return !item.content.classList.contains('hidden'); },
-    set_show(state) {
-        state ? item.content.classList.remove('hidden')
-                : item.content.classList.add('hidden');
-    },
-
-    // icon
-    get_icon() { return item.icon.textContent; },
-    set_icon(code) { item.icon.textContent = code; },
-    
-    // label text
-    get_title() { return item.label.textContent; },
-    set_title(str) { item.label.textContent = str; },
-
-    // select/deselect state
-    get_selected() { item.content.classList.contains("selected"); },
-    set_selected(state) {
-        state ? item.content.classList.add("selected")
-                : item.content.classList.remove("selected");
-    },
-
-});
-
-function ctor(args = {}, call) {
-
-    const item = new ListItem(args);
+    const content = shadow.querySelector('.list-item');
+    const icon = shadow.querySelector('.expander');
+    icon.textContent = args.icon || '□';
+    const label = shadow.querySelector('.label');
+    label.textContent = args.title;
+    const depth = args.depth || 0;
 
     const click_handler = function(e) {
         this.emit("selected", this);
     };
-    item.content.onclick = click_handler.bind(this); // impportant!
+    content.onclick = click_handler.bind(this);
 
     const icon_click_handler = function() {
-        // call("icon-clicked", this);
         this.emit("icon-clicked", this);
     };
-    item.icon.onclick = icon_click_handler.bind(this); // impportant!
+    icon.onclick = icon_click_handler.bind(this);
 
-    return item;
+    const label_dblclick_handler = function() {
+        this.emit("double-clicked", this);
+    };
+    label.ondblclick = label_dblclick_handler.bind(this);
+
+    const iface = args.iface;
+    if (!args.iface) {
+        console.log('[ListItem.ctor] No interface for: ', this.uid);        
+    }
+
+    return {
+        getInstance: () => ({content, icon, label, depth, iface}),
+        getHost: () => host,
+    }
 }
+
+const IListItemFactory = ({content, icon, label, depth, iface}) => ({
+    // determines indentation of item content
+    get_depth() { return depth; },
+    set_depth(d) {
+        icon.style.marginLeft = `${d * 14}px`;
+        depth = d;
+    },
+
+    // show/hide item
+    get_show() { return !content.classList.contains('hidden'); },
+    set_show(state) {
+        state ? content.classList.remove('hidden')
+                : content.classList.add('hidden');
+    },
+
+    // icon
+    get_icon() { return icon.textContent; },
+    set_icon(code) { icon.textContent = code; },
+    
+    // label text
+    get_title() { return label.textContent; },
+    set_title(str) { label.textContent = str; },
+
+    // select/deselect state
+    get_selected() { content.classList.contains("selected"); },
+    set_selected(state) {
+        state ? content.classList.add("selected")
+                : content.classList.remove("selected");
+    },
+    iface,
+});
 
 const clsid = DOM.register(ctor, function(role, action, reaction) {
     

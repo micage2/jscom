@@ -178,18 +178,11 @@ function ready({ svg, iface2elem, elem2iface, selected }) {
 
     // adjust viewBox
     const vb = svg.viewBox.baseVal;
-    if (!vb.width || !vb.height) {
-        vb.x = 0;
-        vb.y = 0;
-        vb.height = 100;
-        vb.width = 100;
-    }
-    else {
-        vb.height = svg.height.baseVal.value;
-        vb.width = svg.width.baseVal.value;
-    }
-    // vb.x -= 96; vb.height *= 4;
-    // vb.y -= 64; vb.width *= 4;
+    const bb = svg.getBBox();
+    vb.x = bb.x - (bb.width-vb.x) * .05;
+    vb.y = bb.y - (bb.height-vb.y) * .05;
+    vb.height = bb.height + (bb.height-vb.y) * .1;
+    vb.width = bb.width + (bb.width-vb.x) * .1;
 
     let isPanning = false;
     let startX, startY;

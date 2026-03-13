@@ -120,7 +120,7 @@ apps.set("8.1", {
         const simple = Simple('Early SVG editor for inspiration');
         // const svgview = $$(SVGVIEW2, { file: "./assets/half-circle.svg" });
         // const svgview = $$(SVGVIEW2).load("./assets/half-circle.svg");
-        const svgview = $$(SVGVIEW2).load("./assets/data-science.svg");
+        const svgview = $$(SVGVIEW2).load("./assets/wave_packet.svg");
 
         // create button and connect to "simple"
         const buttons = [

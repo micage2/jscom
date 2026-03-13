@@ -148,5 +148,5 @@ apps.set("8.1", {
     }    
 });
 
-const app = DOM.createCompound(APPROOT, { apps, start: '3.2'});
+const app = DOM.createCompound(APPROOT, { apps, start: '3.1'});
 DOM.mount(app);

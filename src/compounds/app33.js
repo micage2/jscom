@@ -159,8 +159,6 @@ const ctor = (args = {}) => {
 
     tabbar.on('removed', (tab) => {
         console.log(`[app31.ctor] removed tab: #${tab.get_title()}`);
-        const item = links_reverse.get(tab);
-        listview.selectPrevious(item);
     });
     tabbar.on('clicked', (tab) => {
         console.log('tab selected', tab);

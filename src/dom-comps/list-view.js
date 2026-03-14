@@ -8,9 +8,7 @@ const html_file = "./src/dom-comps/list-view.html";
 const fragment = await loadFragment(html_file);
 
 class ListView {
-    constructor(options, call) {
-        this.call = call;
-        
+    constructor(options) {
         this.host = document.createElement('div');
         // this.host.style.class = "list-view"
         const shadow = this.host.attachShadow({ mode: 'closed' });
@@ -30,7 +28,7 @@ class ListView {
 
     isFolder(item) {
         if (typeof item.get_icon !== 'function') {
-            console.log(`[ListView.isFolder()] item needs at least a get_icon() function ${item.uid}`);            
+            console.log(`[ListView.isFolder()] item needs at least a get_icon() function ${item.uid}`);
             return false;
         }
         return this.folderIcons.open === item.get_icon() || this.folderIcons.closed === item.get_icon();
@@ -48,8 +46,8 @@ class ListView {
 
     fold(item, bool) {
         if (!item || !this.isFolder(item)) return; // only folders can be folded
-        if(!bool && this.isFolderOpen(item)) return; // already open
-        if(bool && this.isFolderClosed(item)) return; // already closed
+        if (!bool && this.isFolderOpen(item)) return; // already open
+        if (bool && this.isFolderClosed(item)) return; // already closed
         if (bool) {
             this.toggleSubtreeOpen(item);
             item.set_icon(this.folderIcons.open);
@@ -66,7 +64,7 @@ class ListView {
             this.selectedItem.set_selected(false);
             this.selectedItem = item;
             item.set_selected(true);
-            
+
             this.call('selected', item);
         }
     }
@@ -106,7 +104,7 @@ class ListView {
     // find previous item and index with depth === item.depth - 1
     parent(item) {
         if (typeof item.get_depth !== 'function') {
-            console.log('[ListView.parent] We need at least a get_depth function on item.');            
+            console.log('[ListView.parent] We need at least a get_depth function on item.');
             return { index: -1, item: null };
         }
 
@@ -138,7 +136,7 @@ class ListView {
         }
 
         // return first item
-        console.warn('[ListView.previous] return list[0].');        
+        console.warn('[ListView.previous] return list[0].');
         return { index: i, item: null, parent: this.list[0] };
     }
 
@@ -157,11 +155,12 @@ class ListView {
                 return { index: i, item: null };
             }
         }
-        
+
         // item is last subtree in list
         return { index: -1, item: null }
     }
 }
+
 
 
 const IListViewFactory = (self) => {
@@ -171,8 +170,8 @@ const IListViewFactory = (self) => {
         init(args = {}) {
             if (!self.items.size) {
                 const root = DOM.create(self.itemClassId, {
-                    title: args.root || "root", 
-                    depth: 0, 
+                    title: args.root || "root",
+                    depth: 0,
                     icon: self.folderIcons.open
                 });
                 DOM.attach(root, this, {
@@ -185,7 +184,7 @@ const IListViewFactory = (self) => {
                     root.set_selected(true);
                 }
                 else {
-                    console.log(`IListItem need at least a set_selected() function. ${root.get_title()}`);                    
+                    console.log(`IListItem need at least a set_selected() function. ${root.get_title()}`);
                 }
                 self.selectedItem = root;
 
@@ -259,7 +258,7 @@ const IListViewFactory = (self) => {
                 // item.set_show(true);
             }
             else {
-                console.log(`[IListViewFactory.add] IListItem needs at least set_show(). ${item.get_title()}`);                
+                console.log(`[IListViewFactory.add] IListItem needs at least set_show(). ${item.get_title()}`);
             }
 
             // self.items.set(item.uid, item);
@@ -276,6 +275,10 @@ const IListViewFactory = (self) => {
                 this.toggle(listitem);
             });
 
+            item.on('label-changed', listitem => {
+                console.log('[ListView.ctor] label-changed', listitem.get_title());
+            });
+
             return item; // inserted item
         },
 
@@ -283,12 +286,12 @@ const IListViewFactory = (self) => {
             if (!self.list.length) {
                 console.log('[IListView.removeSelected] Nothing to remove, list is empty.');
                 self.selectedItem = null;
-                return;                
+                return;
             }
 
             if (!self.selectedItem) {
                 console.log('[IListView.removeSelected] Nothing selected.');
-                return;                
+                return;
             }
 
             // don't remove root, if its fixed TODO:
@@ -308,7 +311,7 @@ const IListViewFactory = (self) => {
 
             const deletedItems = self.list.splice(start, end - start);
 
-            DOM.detachMany(deletedItems);            
+            DOM.detachMany(deletedItems);
             this.emit('removed-items', deletedItems);
         },
 
@@ -326,7 +329,7 @@ const IListViewFactory = (self) => {
         },
 
         select(item, options = { no_emit: false }) {
-            if(!item) return;
+            if (!item) return;
 
             if (self.selectedItem !== item) {
                 if (self.selectedItem)
@@ -357,12 +360,12 @@ const IListViewFactory = (self) => {
                     const assignedNodes = self.slot.assignedNodes({ flatten: true });
                     assignedNodes[idx].scrollIntoView({
                         // behavior: "smooth", 
-                        block: "nearest", 
+                        block: "nearest",
                         container: "nearest"
                     });
                 }
                 else {
-                    console.error('[IListView.select] Not in list: #', item.uid);                    
+                    console.error('[IListView.select] Not in list: #', item.uid);
                 }
             }
 
@@ -373,7 +376,7 @@ const IListViewFactory = (self) => {
 
         selectPrevious(item) {
             const previous = self.previousSibling(item);
-            if (previous.item){
+            if (previous.item) {
                 // self.selectItem(previous.item);
                 this.select(previous.item);
             }
@@ -393,17 +396,18 @@ const IListViewFactory = (self) => {
                     }
                 }
             }
-    
+
             return self.selectedItem;
         },
-        
-        get_selected() { return self.selectedItem; }
+
+        get_selected() { return self.selectedItem; },
+        get_first() { return self.list[0]; },
     };
 };
 
 
-function ctor(options, call) {    
-    const self = new ListView(options, call);
+function ctor(options) {
+    const self = new ListView(options);
 
     return {
         getHost: () => self.host,
@@ -413,44 +417,44 @@ function ctor(options, call) {
 
 // 'this' in 'reaction()' is IListView object
 const clsid = DOM.register(ctor, (role, action, reaction) => {
-    
+
     role('ListView', (self) => IListViewFactory(self), true); // true = default role
 
-    action('selected');    
+    action('selected');
 
-    reaction('add-item', function(args) {
+    reaction('add-item', function (args) {
         const item = this.add(args);
         if (!item) {
             console.log(`[ListView DOM:reaction('add-item')] No item added.`);
-            return false;            
+            return false;
         }
         if (!DOM.connect(item, 'selected', this, 'select')) {
             console.log(`[ListView DOM:reaction('add-item')] 
                 Could not connect item ${item.uid} with action 'selected'.`);
-            return false;            
+            return false;
         }
         if (!DOM.connect(item, 'icon-clicked', this, 'toggle')) {
             console.log(`[ListView DOM:reaction('add-item')] Could not connect item ${item.uid}.`);
-            return false;            
+            return false;
         }
-        
+
     });
 
-    reaction('add-folder', function(args = {}) {
-        const item = this.add({...args, type: 'folder'});
+    reaction('add-folder', function (args = {}) {
+        const item = this.add({ ...args, type: 'folder' });
         DOM.connect(item, 'selected', this, 'select');
         DOM.connect(item, 'icon-clicked', this, 'toggle');
     });
 
-    reaction('remove-selected', function() {
+    reaction('remove-selected', function () {
         this.removeSelected();
     });
 
-    reaction('select', function(item) {
+    reaction('select', function (item) {
         this.select(item)
     });
 
-    reaction('toggle', function(item_uid) {
+    reaction('toggle', function (item_uid) {
         this.toggle(item_uid)
     });
 }, {

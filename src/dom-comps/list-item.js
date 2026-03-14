@@ -26,33 +26,67 @@ function ctor(args = {}) {
     label.textContent = args.title;
     const depth = args.depth || 0;
 
-    const click_handler = function(e) {
+    const click_handler = function (e) {
         this.emit("selected", this);
     };
     content.onclick = click_handler.bind(this);
 
-    const icon_click_handler = function() {
+    const icon_click_handler = function () {
         this.emit("icon-clicked", this);
     };
     icon.onclick = icon_click_handler.bind(this);
 
-    const label_dblclick_handler = function() {
-        this.emit("double-clicked", this);
-    };
-    label.ondblclick = label_dblclick_handler.bind(this);
+    // const label_dblclick_handler = function () {
+    //     this.emit("double-clicked", this);
+    // };
+    // label.ondblclick = label_dblclick_handler.bind(this);
 
+    const that = this;
+    shadow.querySelectorAll('.list-item .label').forEach((span) => {
+        span.addEventListener('dblclick', () => makeEditable(that, span));
+    });
+    
     const iface = args.iface;
     if (!args.iface) {
-        console.log('[ListItem.ctor] No interface for: ', this.uid);        
+        console.log('[ListItem.ctor] No interface for: ', this.uid);
     }
 
     return {
-        getInstance: () => ({content, icon, label, depth, iface}),
+        getInstance: () => ({ content, icon, label, depth, iface }),
         getHost: () => host,
     }
 }
 
-const IListItemFactory = ({content, icon, label, depth, iface}) => ({
+function makeEditable(that, span) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = span.textContent;
+
+    // Optional: match span styling
+    input.style.width = span.offsetWidth + 'px';
+
+    span.replaceWith(input);
+    input.focus();
+    input.select();
+
+    function saveEdit() {
+        span.textContent = input.value;
+        input.replaceWith(span);
+        that.emit('label-changed', that);
+    }
+
+    input.addEventListener('blur', saveEdit);
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') input.blur(); // triggers saveEdit via blur
+        if (e.key === 'Escape') {
+            input.removeEventListener('blur', saveEdit); // cancel save
+            input.replaceWith(span); // restore original span
+        }
+    });
+}
+
+
+const IListItemFactory = ({ content, icon, label, depth, iface }) => ({
     // determines indentation of item content
     get_depth() { return depth; },
     set_depth(d) {
@@ -64,13 +98,13 @@ const IListItemFactory = ({content, icon, label, depth, iface}) => ({
     get_show() { return !content.classList.contains('hidden'); },
     set_show(state) {
         state ? content.classList.remove('hidden')
-                : content.classList.add('hidden');
+            : content.classList.add('hidden');
     },
 
     // icon
     get_icon() { return icon.textContent; },
     set_icon(code) { icon.textContent = code; },
-    
+
     // label text
     get_title() { return label.textContent; },
     set_title(str) { label.textContent = str; },
@@ -79,13 +113,13 @@ const IListItemFactory = ({content, icon, label, depth, iface}) => ({
     get_selected() { content.classList.contains("selected"); },
     set_selected(state) {
         state ? content.classList.add("selected")
-                : content.classList.remove("selected");
+            : content.classList.remove("selected");
     },
     iface,
 });
 
-const clsid = DOM.register(ctor, function(role, action, reaction) {
-    
+const clsid = DOM.register(ctor, function (role, action, reaction) {
+
     role("ListItem", self => IListItemFactory(self), true);
 
     action('selected');

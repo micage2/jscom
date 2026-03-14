@@ -23,6 +23,7 @@ import APP31 from './compounds/app31.js';
 import APP32 from './compounds/app32.js';
 import APP33 from './compounds/app33.js';
 import APP70 from './compounds/app70.js';
+import APP81 from './compounds/app81.js';
 
 const $$ = DOM.create;
 const Simple = (str) => $$(SIMPLE, { title: str });
@@ -115,37 +116,7 @@ apps.set("8", {
 apps.set("8.1", {
     name: "8.1",
     title: "SVG-View (new version).",
-    root: () => {
-        const box = $$(BOX);
-        const simple = Simple('Early SVG editor for inspiration');
-        // const svgview = $$(SVGVIEW2, { file: "./assets/half-circle.svg" });
-        // const svgview = $$(SVGVIEW2).load("./assets/half-circle.svg");
-        const svgview = $$(SVGVIEW2).load("./assets/wave_packet.svg");
-
-        // create button and connect to "simple"
-        const buttons = [
-            { name: "File" },
-            { name: "Edit" },
-            { name: "New File", svg_file: "./assets/add-item.svg"},
-            { name: "New Folder", svg_file: "./assets/add-folder.svg"},
-        ].map(entry => {
-            const btn = $$(BUTTON, entry);
-            DOM.connect(btn, 'clicked', simple, 'timed', b=>b.get_name());
-            return btn;
-        });
-        box.addMany(buttons);
-
-        DOM.connect(svgview, 'text', simple, 'title', (args) => {
-            console.log(`${args}`);            
-        });
-
-        return $$(TBS)
-            .setTop(box)
-            .setBottom($$(TBS, {bottomHeight:32})
-                .setTop(svgview)
-                .setBottom(simple)
-            )
-    }    
+    root: (args) => DOM.createCompound(APP81, args)
 });
 
 const app = DOM.createCompound(APPROOT, { apps, start: '3.1'});

@@ -32,35 +32,12 @@ const sheet = create_sheet(`
 .svg-view svg {
     height: 100%;
     width: 100%;
+    cursor: default;
 }
 
-// svg * {
-//     display: none;
-//     visibility: hidden;
-//     opacity: .2;
-//     fill: transparent;
-//     stroke: #777;
-//     stroke-width: .2;
-// }
-
-// svg *.selected {
-//     display: block;
-//     opacity: 1;
-//     stroke: #ff0;
-//     stroke-dasharray: 1 4;
-// }
-
-// svg g:hover {
-//     stroke: #bb8;
-// }
-// svg g:active {
-//     stroke: #dd8;
-// }
-
-/* 1. Base "isolate mode" - everything dimmed or hidden */
+/* 1. Base "isolate mode" - everything dimmed */
 svg.isolate-mode * {
     opacity: 0.5;                  /* Soft fade (recommended for preview) */
-    /* OR: visibility: hidden;      uncomment if you want strict hide instead of fade */
 }
 
 svg.isolate-mode .isolate-selected {
@@ -71,12 +48,11 @@ svg.isolate-mode .isolate-selected {
 svg.isolate-mode .selected,
 svg.isolate-mode .selected * {
     opacity: 1;
-    /* OR: visibility: visible; */
 }
 
 /* Optional extras for polish */
 svg.isolate-mode .selected {
-    stroke: #00ffcc;                    /* optional highlight stroke for paths/groups */
+    stroke: #00ffcc;
 }
 
 /* If we prefer strict "only this node" without seeing context at all */
@@ -182,7 +158,7 @@ function ready({ svg, iface2elem, elem2iface, selected }) {
     vb.x = bb.x - (bb.width-vb.x) * .05;
     vb.y = bb.y - (bb.height-vb.y) * .05;
     vb.height = bb.height + (bb.height-vb.y) * .1;
-    vb.width = bb.width + (bb.width-vb.x) * .1;
+    vb.width = bb.width + (bb.width-vb.x) * .2;
 
     let isPanning = false;
     let startX, startY;
@@ -209,7 +185,7 @@ function ready({ svg, iface2elem, elem2iface, selected }) {
         const dx = e.clientX - startX;
         const dy = e.clientY - startY;
         
-        if (dx > MOVE_THRESHOLD || dy > MOVE_THRESHOLD) {
+        if (Math.abs(dx) > MOVE_THRESHOLD || Math.abs(dy) > MOVE_THRESHOLD) {
             hasMoved = true;               // ← this was a real pan, not a click
         }
 
@@ -268,20 +244,7 @@ function ready({ svg, iface2elem, elem2iface, selected }) {
     while (stack.length) {
         const node = stack.pop();
 
-        // TODO: give the user an interfave to access the data
         const iface = createInterface(node.elem);
-
-        // node.elem.addEventListener('click', (e) => {
-        //     // this.isolateSelect2(iface);
-        //     e.stopPropagation();
-        //     if (isPanning) {
-        //         e.preventDefault();
-        //         return;
-        //     }
-
-        //     this.emit('selected', iface);
-        // });
-        node.elem.onclick = () => {};
 
         iface2elem.set(iface, node.elem);
         elem2iface.set(node.elem, iface);
@@ -364,22 +327,6 @@ const ISVGViewFactory = ({ shadow, doc, svg, iface2elem, elem2iface, selected })
             return this;
         },
 
-        _isolateSelect2(iface) {
-            if (!iface) return;
-            if (!svg) return;
-
-            const elem = iface2elem.get(iface);
-
-            // Remove old highlight from anywhere
-            svg.querySelectorAll('.selected').forEach(el => {
-                el.classList.remove('selected');
-            });
-
-            if (!elem) return;               // nothing selected → everything dimmed (intended)
-
-            elem.classList.add('selected');  // only this node + children lights up
-        },
-
         deselect(iface) {
             if (!iface) return;
 
@@ -395,7 +342,6 @@ const ISVGViewFactory = ({ shadow, doc, svg, iface2elem, elem2iface, selected })
             if (!iface) return;
             if (!svg) return;
 
-
             const elem = iface2elem.get(iface);
             // Remove old highlight from anywhere
             svg.querySelectorAll('.selected').forEach(el => {
@@ -409,7 +355,7 @@ const ISVGViewFactory = ({ shadow, doc, svg, iface2elem, elem2iface, selected })
                 return;
             }
 
-            if (!elem) return;               // nothing selected → everything dimmed (intended)
+            if (!elem) return;
 
             elem.classList.add('selected');  // only this node + children lights up
             let parent = elem.parentElement;

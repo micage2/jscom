@@ -105,7 +105,7 @@ const ctor = (args = {}) => {
     svgview.on('svg-loaded', () => {
         console.log('[app33.ctor] on svg-loaded');
         
-        // listview.select();
+        listview.select(listview.get_first());
     });
 
     svgview.on('selected', (iface) => {

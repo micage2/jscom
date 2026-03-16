@@ -3,7 +3,7 @@ class Tree {
     constructor(payload) {
         this.payload = payload;           // completely opaque — can be anything
         this.children = [];
-        this.parent = null;
+        this._parent = null;
 
         // Optional callbacks — can be set per instance
         this.onAddChild = null;           // (childTree) => {}
@@ -11,7 +11,11 @@ class Tree {
     }
 
     get parent() {
-        return this.parent;
+        return this._parent;
+    }
+
+    set parent(tree) {
+        this._parent = tree;
     }
 
     addChild(child) {

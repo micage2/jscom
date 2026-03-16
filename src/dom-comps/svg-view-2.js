@@ -145,10 +145,13 @@ function createInterface(elem) {
     return iface;
 }
 
-function ready({ svg, iface2elem, elem2iface, selected }) {
+function ready({ svg, iface2elem, elem2iface, selected, options }) {
     if (!svg) return;
 
-    svg.classList.add('isolate-mode'); // or 'strict' if we want zero context
+    if (options.mode === 'isolate') {
+        svg.classList.add('isolate-mode');
+    }
+
     const MOVE_THRESHOLD = 5;
     let hasMoved = false; 
 
@@ -305,13 +308,13 @@ function ctor(args = {}) {
 // creates ISVGView interface objects
 const ISVGViewFactory = ({ shadow, doc, svg, iface2elem, elem2iface, selected }) => {
     return {
-        load(myfile) {
+        load(myfile, options = { mode: 'default' }) {
             if (typeof myfile === 'string') {
                 load_file(myfile).then((str) => {
                     doc.innerHTML = str;
                     svg = shadow.querySelector('svg');
 
-                    ready.call(this, { svg, iface2elem, elem2iface, selected });
+                    ready.call(this, { svg, iface2elem, elem2iface, selected, options });
                     this.emit('svg-loaded');
                 });
             }
@@ -321,7 +324,7 @@ const ISVGViewFactory = ({ shadow, doc, svg, iface2elem, elem2iface, selected })
                 <text y="16" fill="#ddd">no svg file</Text>
                 </svg>`;
                 const svg = shadow.querySelector('svg');
-                ready.call(this, { svg, iface2elem, elem2iface });
+                ready.call(this, { svg, iface2elem, elem2iface, selected, options });
             }
 
             return this;

@@ -6,7 +6,8 @@ import { Tree } from "./Tree.js"
 // Build test tree
 const root = new Tree({ name: 'Root', value: 1 });
 const a = new Tree({ name: 'A', value: 2 });
-const a1 = new Tree({ name: 'A1', value: 3 });
+const a1 = new Tree({ name: 'A1', value: 3.1 });
+const a2 = new Tree({ name: 'A2', value: 3.2 });
 const b = new Tree({ name: 'B', value: 4 });
 
 root.addChild(a);

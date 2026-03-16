@@ -24,6 +24,7 @@ import APP32 from './compounds/app32.js';
 import APP33 from './compounds/app33.js';
 import APP70 from './compounds/app70.js';
 import APP81 from './compounds/app81.js';
+import APP101 from './compounds/app101.js';
 
 const $$ = DOM.create;
 const Simple = (str) => $$(SIMPLE, { title: str });
@@ -119,5 +120,11 @@ apps.set("8.1", {
     root: (args) => DOM.createCompound(APP81, args)
 });
 
-const app = DOM.createCompound(APPROOT, { apps, start: '3.1'});
+apps.set("10.1", {
+    name: "10.1",
+    title: "App with store",
+    root: (args) => DOM.createCompound(APP101, args)
+});
+
+const app = DOM.createCompound(APPROOT, { apps, start: '3.2'});
 DOM.mount(app);

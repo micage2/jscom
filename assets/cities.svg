@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" 
+    height="256px" width="256px"
+    viewBox="0 0 256 256"
+    fill="#5643"
+    stroke="#777"
+>
+<g name="cities">
+    <g name="Rome" transform="matrix(1,0,0,1, 100, 140)">
+        <circle cx="0" cy="0" r="140" />
+    </g>
+    <g name="Paris" transform="matrix(1,0,0,1, -100, 300)">
+        <circle cx="0" cy="0" r="200" />
+    </g>
+</g>
+</svg>

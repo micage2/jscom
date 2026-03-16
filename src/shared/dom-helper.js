@@ -67,7 +67,7 @@ export async function loadFragment(file) {
     const resp = await fetch(file);
     if (!resp.ok)
         throw new Error(`Failed to load template: ${file}`);
-  
+
     const html = await resp.text();
 
     return makeFragment(html);
@@ -76,14 +76,37 @@ export async function loadFragment(file) {
 export function makeFragment(str) {
     const div = document.createElement('div');
     const fragment = document.createDocumentFragment();
-    
+
     div.innerHTML = str;
-    
+
     while (div.firstChild) {
         fragment.appendChild(div.firstChild);
     }
 
     return fragment;
+}
+
+export function getDimensions(N) {
+    // Check if a number is prime
+    const isPrime = (num) => {
+        if (num < 2) return false;
+        if (num === 2) return true;
+        if (num % 2 === 0) return false;
+        for (let i = 3; i <= Math.sqrt(num); i += 2) {
+            if (num % i === 0) return false;
+        }
+        return true;
+    };
+
+    // Use N+1 if N is prime
+    let M = isPrime(N) ? N + 1 : N;
+
+    // Find the largest factor pair
+    for (let i = Math.floor(Math.sqrt(M)); i >= 1; i--) {
+        if (M % i === 0) {
+            return [i, M / i]; // [width, height]
+        }
+    }
 }
 
 export {

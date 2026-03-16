@@ -1,4 +1,5 @@
 import { DomRegistry as DOM } from '../dom-registry.js';
+import APP from '../dom-comps/app_with_store.js'
 import SIMPLE from '../dom-comps/simple-view.js'
 import LR from '../dom-comps/left-right.js'
 import TB from '../dom-comps/top-bottom.js'
@@ -12,7 +13,7 @@ import TAB from '../dom-comps/tab.js'
 import SVGVIEW2 from '../dom-comps/svg-view-2.js'
 
 // const SVG_PATH = './assets/worldUltra.svg';
-const SVG_PATH = './assets/scheme_01.svg';
+const SVG_PATH = './assets/cities.svg';
 
 const $$ = DOM.create;
 const Simple = (str) => $$(SIMPLE, { title: str });
@@ -54,7 +55,7 @@ const ctor = (args = {}) => {
     const only1box = $$(ONLYONEBOX);
 
     const svgview = $$(SVGVIEW2);
-    svgview.load(SVG_PATH);
+    svgview.load(SVG_PATH, { mode: 'isolate'});
     const iface2item = new WeakMap();
     
     only1box.add('view1', svgview).select('view1');
@@ -164,8 +165,8 @@ const ctor = (args = {}) => {
         console.log('tab selected', tab);
     });
     
-
-    return $$(TB, { ratio: 0 })
+    return $$(APP).set(
+        $$(TB, { ratio: 0 })
         .setTop(Simple(info))
         .setBottom($$(TBS, { bottomHeight: 32 })
             .setTop($$(LR, {minLeft: 0, ratio: 0.3})
@@ -173,8 +174,18 @@ const ctor = (args = {}) => {
                 .setRight(tabview)
             )
             .setBottom(status)
-        )
-    ;
+        )        
+    );
+    // return $$(TB, { ratio: 0 })
+    //     .setTop(Simple(info))
+    //     .setBottom($$(TBS, { bottomHeight: 32 })
+    //         .setTop($$(LR, {minLeft: 0, ratio: 0.3})
+    //             .setLeft(toolbar_with_controls)
+    //             .setRight(tabview)
+    //         )
+    //         .setBottom(status)
+    //     )
+    // ;
 };
 
 const clsid = DOM.registerCompound(ctor);

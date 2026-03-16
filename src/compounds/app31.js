@@ -54,7 +54,7 @@ const ctor = (args = {}) => {
     const only1box = $$(ONLYONEBOX);
 
     const svgview = $$(SVGVIEW2);
-    svgview.load(SVG_PATH);
+    svgview.load(SVG_PATH, { mode: 'isolate'});
     const iface2item = new WeakMap();
     
     only1box.add('view1', svgview).select('view1');

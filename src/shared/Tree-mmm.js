@@ -12,7 +12,7 @@ const INode = function(inst) {
             children.push(child);
             return INode(child);
         },
-        up() {
+        up() { // for convenience, not to be used for iteration
             return inst.parent ? INode(inst.parent) : null;
         },
         next() { // for convenience, not to be used for iteration

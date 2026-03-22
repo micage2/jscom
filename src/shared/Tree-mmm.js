@@ -104,7 +104,7 @@ const IAppNode = function(node) {
             else return null;
         },
         forChildren(cb) {
-            for(const i = 0; i < node.children.length; i++) {
+            for(let i = 0; i < node.children.length; i++) {
                 cb(node.children[i].P);
             }
         },

@@ -36,7 +36,9 @@ const fragment = makeFragment(`
 function ctor(props) {
     const self = {};
     self.props = props;
-    const x = self.props.get('x');
+    const x = self.props.getChild('x');
+    const y = self.props.getChild('y');
+    const r = self.props.getChild('r');
 
 
     props.on('child-added', (name) => {

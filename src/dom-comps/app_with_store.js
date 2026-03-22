@@ -101,19 +101,17 @@ function obj2ctx(obj) {
 function obj2tree(tree, obj) {
     const stack = [{
         key: 'root',
-        value: obj,
+        val: obj,
         tree,
     }];
 
     while (stack.length) {
         const entry = stack.pop();
-
-        if (typeof entry.value !== 'object') continue;
-        if (entry.value === null) continue;
+        const obj = entry.val;
 
         // Infer type if not provided
-        let type;
-        if (type === null) {
+        let type = obj.__type;
+        if (!type) {
             if (typeof obj === 'object' && obj !== null && !Array.isArray(obj)) {
                 type = 'group';
                 console.warn(`⚠️  Type not specified for node "${name}". Assuming "group". Consider adding explicit type.`);
@@ -122,27 +120,24 @@ function obj2tree(tree, obj) {
             }
         }
 
-        if (!entry.tree.P.type) entry.tree.P.type = type;
-
-        const entries = Object.entries(entry.value); // children
-
+        // add child payload, skip root obj
+        if (entry.key !== 'root') {
+            tree = entry.tree.add({
+                name: entry.key,
+                type,
+                value: obj,
+                data: { value: obj },
+                config: obj,
+            });
+        }
+        
         // iterate children
+        const entries = Object.entries(entry.val);
         // for(let i = entries.length - 1; i >= 0; i--) {
         for (let i = 0; i < entries.length; i++) {
-            const [key, value] = entries[i];
+            const [key, val] = entries[i];
 
-            // add child payload
-            const tree = entry.tree.add({
-                name: key,
-                value,
-                data: value
-            });
-
-            stack.push({
-                key,
-                value,
-                tree
-            });
+            stack.push({ key, val, tree });
         }
     }
 }

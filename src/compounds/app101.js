@@ -13,7 +13,7 @@ const data = {
     circles: {
         'circle1': { x: 0, y: 0, r: 10 },
         'circle2': { x: 0, y: 0, r: 20 },
-        'circle3': { x: 0, y: 0, r: 30 },
+        // 'circle3': { x: 0, y: 0, r: 30 },
     }
 }
 
@@ -23,7 +23,7 @@ const ctor = (args = {}) => {
     const circles = root_props.getChild('circles');
     const circle1 = circles.getChild('circle1');
 
-    // app.tree.traverse((P, info) => console.log(P, info));
+    app.tree.traverse((P, info) => console.log(P, info));
 
 
     const propsview = $$(PROPSVIEW, circle1);

@@ -8,28 +8,33 @@ import BOX from '../dom-comps/box.js'
 import BUTTON from '../dom-comps/button.js'
 import SVGVIEW2 from '../dom-comps/svg-view-2.js'
 
+const ICON_PATH = './assets/icons/';
+
 const $$ = DOM.create;
 const Simple = (str) => $$(SIMPLE, { title: str });
 const Button = (name, options) => $$(BUTTON, { name, ...options });
 
-const info = 'Dynamic left-right split.\n\n' 
-    + 'The layout always consumes the entire screen.'
+const info_text = 'This demo features:\n\n' 
+    + '- static top-bottom-splitter\n'
+    + '- dynamic top-bottom-splitter\n'
+    + '- toolbar with text or icon buttons, left and right aligned\n'
+    + '- simple view (this text)\n'
+    + '- svg view that display the clicked icon or a placeholder\n'
 ;
 
 const ctor = (args = {}) => {    
     const box = $$(BOX);
-    const info = Simple('\nSVG- and Text-Buttons. Click on each!\n\n'+
-        'Zoom (mouse wheel) and Pan (drag mouse) in lower view');
+    const info = Simple(info_text);
     const svgview = $$(SVGVIEW2);
     const out = Simple();
 
     const buttons_info = [
         { name: "File" },
         { name: "Edit" },
-        { name: "New File", svg_file: "./assets/add-item.svg"},
-        { name: "New Folder", svg_file: "./assets/add-folder.svg"},
-        // { name: "Delete", svg_file: "./assets/close.svg"},
-        { name: "Delete", svg_file: "./assets/trash-bin-1.svg"},
+        { name: "New File", svg_file: ICON_PATH + "add-item.svg"},
+        { name: "New Folder", svg_file: ICON_PATH + "add-folder.svg"},
+        // { name: "Delete", svg_file: ICON_PATH + "close.svg"},
+        { name: "Delete", svg_file: ICON_PATH + "trash-bin-1.svg"},
     ];
 
     const buttons = buttons_info.map(entry => {

@@ -1,10 +1,61 @@
+
+//==========================================================
+//
+//      Mediator
+
+export class Mediator {
+    constructor() {
+        this.listeners = new Map();  // eventName → Set<callback>
+    }
+
+    on(event, callback) {
+        if (!this.listeners.has(event)) {
+            this.listeners.set(event, new Set());
+        }
+        this.listeners.get(event).add(callback);
+        return () => this.off(event, callback);  // auto-unsubscribe helper
+    }
+
+    off(event, callback) {
+        const cbs = this.listeners.get(event);
+        if (cbs) {
+            cbs.delete(callback);
+            if (cbs.size === 0) this.listeners.delete(event);
+        }
+    }
+
+    emit(event, payload = null) {
+        const cbs = this.listeners.get(event);
+        if (cbs) {
+            // Copy to avoid mutation-while-iterating issues
+            [...cbs].forEach(cb => cb(payload));
+        }
+    }
+
+    // Optional: once (fire once then off)
+    once(event, callback) {
+        const wrapped = (payload) => {
+            callback(payload);
+            this.off(event, wrapped);
+        };
+        return this.on(event, wrapped);
+    }
+
+    // Clear all (useful for tests/hot-reload)
+    clear() {
+        this.listeners.clear();
+    }
+}
+
+
 //==========================================================
 //
 //      Node
 
-export class Node {
+class Node {
     #parent = null;
     #children = [];
+    #mediator = new Mediator();
 
     constructor(P) {
         this.P = P;
@@ -14,6 +65,7 @@ export class Node {
         const child = new Node(P);
         child.#parent = this;
         this.#children.push(child);
+        this.#mediator.emit('child-added', { child, index: this.#children.length - 1 });
 
         return child;
     }
@@ -23,6 +75,7 @@ export class Node {
         if (index !== -1) {
             this.#children.splice(index, 1);
             child.#parent = null;
+            this.#mediator.emit('child-removed', { child, index });
         }
     }
 
@@ -36,6 +89,14 @@ export class Node {
 
     getChildren() {
         return [...this.#children];
+    }
+
+    on(event, callback) {
+        return this.#mediator.on(event, callback);
+    }
+
+    off(event, callback) {
+        this.#mediator.off(event, callback);
     }
 
     traverse(cb) {
@@ -148,7 +209,7 @@ Node.from_obj = function(obj) {
     return root_node;
 }
 
-Node.from_obj_2 = function(obj, name = 'root', type = null, config = {}) {
+function obj2node(obj, name = 'root', type = null, config = {}) {
     // Infer type if not provided
     if (type === null) {
         if (typeof obj === 'object' && obj !== null && !Array.isArray(obj)) {
@@ -191,58 +252,34 @@ Node.from_obj_2 = function(obj, name = 'root', type = null, config = {}) {
 }
 
 
-export class Mediator {
-    constructor() {
-        this.listeners = new Map();  // eventName → Set<callback>
-    }
+//==========================================================
+//
+//      Property classes
 
-    on(event, callback) {
-        if (!this.listeners.has(event)) {
-            this.listeners.set(event, new Set());
-        }
-        this.listeners.get(event).add(callback);
-        return () => this.off(event, callback);  // auto-unsubscribe helper
-    }
-
-    off(event, callback) {
-        const cbs = this.listeners.get(event);
-        if (cbs) {
-            cbs.delete(callback);
-            if (cbs.size === 0) this.listeners.delete(event);
-        }
-    }
-
-    emit(event, payload = null) {
-        const cbs = this.listeners.get(event);
-        if (cbs) {
-            // Copy to avoid mutation-while-iterating issues
-            [...cbs].forEach(cb => cb(payload));
-        }
-    }
-
-    // Optional: once (fire once then off)
-    once(event, callback) {
-        const wrapped = (payload) => {
-            callback(payload);
-            this.off(event, wrapped);
-        };
-        return this.on(event, wrapped);
-    }
-
-    // Clear all (useful for tests/hot-reload)
-    clear() {
-        this.listeners.clear();
-    }
-}
-
-
-// watches node structur, insertion and deletion
-export class IPropertyGroup extends Mediator {
+class IPropertyGroup extends Mediator {
     #node;
+    #childProperties = new Map();
+    #unsubscribers = [];
 
     constructor(node) {
         super();
         this.#node = node;
+        this.#setupNodeListeners();
+    }
+
+    #setupNodeListeners() {
+        // Watch for structural changes
+        const unsubChild = this.#node.on('child-added', ({ child }) => {
+            this.emit('child-added', { name: child.P.name, child });
+        });
+
+        const unsubRemove = this.#node.on('child-removed', ({ child }) => {
+            const name = child.P.name;
+            this.#childProperties.delete(name);
+            this.emit('child-removed', { name });
+        });
+
+        this.#unsubscribers.push(unsubChild, unsubRemove);
     }
 
     getName() {
@@ -255,6 +292,10 @@ export class IPropertyGroup extends Mediator {
 
     // Spawn child Property or PropertyGroup on demand
     getChild(childName) {
+        if (this.#childProperties.has(childName)) {
+            return this.#childProperties.get(childName);
+        }
+    
         const childNode = this.#node.getChild(childName);
         if (!childNode) return null;
     
@@ -263,19 +304,13 @@ export class IPropertyGroup extends Mediator {
             ? new IPropertyGroup(childNode)
             : new IProperty(childNode);
     
+        this.#childProperties.set(childName, childProp);
         return childProp;
     }
     
+    // Optional: get all children as Properties
     getChildren() {
         return this.#node.getChildren().map(child => this.getChild(child.P.name));
-    }
-
-    get_children(cb) {
-        const children = [];
-        this.#node.forChildren((P) => {
-            children.push(this.getChild(P.name));
-        });
-        return children;
     }
 
     addChild(name, type, data = {}, config = {}) {
@@ -286,8 +321,6 @@ export class IPropertyGroup extends Mediator {
             config
         });
         this.#node.add(childNode);
-        this.emit('child-added', { name, child });
-
         return this.getChild(name); // Return the Property wrapper
     }
 
@@ -295,22 +328,27 @@ export class IPropertyGroup extends Mediator {
         const childNode = this.#node.getChild(name);
         if (childNode) {
             this.#node.remove(childNode);
-            this.emit('child-removed', { name });
-
+            this.#childProperties.delete(name);
             return true;
         }
         return false;
     }
 
+    // Optional: get all children as Properties
+    getChildren() {
+        return this.#node.getChildren().map(child => this.getChild(child.P.name));
+    }
+
     // Cleanup
     destroy() {
+        this.#unsubscribers.forEach(unsub => unsub());
+        this.#childProperties.forEach(prop => prop.destroy?.());
         this.clear();
     }
 }
 
 
-// watches value changes
-export class IProperty extends Mediator {
+class IProperty extends Mediator {
     #node;
     #validator;
 
@@ -363,3 +401,46 @@ export class IProperty extends Mediator {
         this.clear();
     }
 }
+
+
+//==========================================================
+//
+//      main
+
+const solar_system = {
+    Earth: {
+        Antarctica: {},
+        Australia: {},
+        Europe: {
+            France: {},
+            Italy: {},
+        },
+        North_America: {
+            Canada: {},
+            USA: {}
+        },
+        South_America: {
+            Peru: {}
+        },
+    },
+    Moon: {},
+    Mars: {},
+};
+
+const root = Node.from_obj(solar_system);
+root.traverse((payload, info) => {
+    const indent = '  '.repeat(info.depth);
+    console.log(indent, payload, info);
+});
+
+const recovered = root.to_obj();
+console.log(JSON.stringify(recovered, null, 2));
+console.log('\n');
+
+const recovered2 = root.to_obj_stack_based();
+console.log(JSON.stringify(recovered2, null, 2));
+console.log('\n');
+
+const recovered3 = root.to_obj_using_traverse();
+console.log(JSON.stringify(recovered3, null, 2));
+console.log('\n');

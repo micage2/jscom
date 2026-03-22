@@ -133,12 +133,12 @@ export const DomRegistry = {
                 return iface;
             },
 
-            call: function (functionName, args = {}) {
+            _call: function (functionName, args = {}) {
                 const key = `${this.uid}:${functionName}`;
                 const conn = connections.get(key);
                 if (!conn) { // inactive
                     const info = klass.info;
-                    console.info(`No connection for '${functionName}' on ${info.name || this.type} #${this.uid}`);
+                    // console.info(`No connection for '${functionName}' on ${info.name || this.type} #${this.uid}`);
                     return null;
                 }
 
@@ -170,7 +170,8 @@ export const DomRegistry = {
         };
 
         // Call ctor — returns IDomNode interface object
-        const nodeInterface = klass.ctor.bind(iface)(options, iface.call.bind(iface));
+        // const nodeInterface = klass.ctor.bind(iface)(options, iface.call.bind(iface));
+        const nodeInterface = klass.ctor.bind(iface)(options);
 
         // Validate protocol
         if (!nodeInterface ||

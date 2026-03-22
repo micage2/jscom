@@ -14,15 +14,16 @@ const info = 'Early SVG viewer for inspiration.\n\n'
 ;
 
 // svg files to load
-const SVGFILE = "./assets/wave_packet.svg";
-const SVGBUTTON_NEWFILE = "./assets/add-item.svg";
-const SVGBUTTON_NEWFOLDER = "./assets/add-folder.svg";
+const SVG_FILE = "./assets/svg/wave_packet.svg";
+const ICON_PATH = './assets/icons/';
+const SVGBUTTON_NEWFILE = ICON_PATH + "add-item.svg";
+const SVGBUTTON_NEWFOLDER = ICON_PATH + "add-folder.svg";
 
 const ctor = (args = {}) => {    
     const box = $$(BOX);
     const simple = Simple('Early SVG viewer for inspiration. ' 
             + 'Demonstrates Pan & Zoom.');
-    const svgview = $$(SVGVIEW2).load(SVGFILE);
+    const svgview = $$(SVGVIEW2).load(SVG_FILE);
 
     // create button and connect to "simple"
     const buttons = [

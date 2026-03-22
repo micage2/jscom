@@ -17,7 +17,7 @@ function createRegistryInterface(state) {
     const { klasses } = state;
 
     return {
-        create(clsid, args = {}, role) {
+        create(clsid, role, args = {}) {
             const entry = klasses.get(clsid);
             if (!entry) {
                 console.warn(`No component registered for ${clsid}`);
@@ -31,7 +31,7 @@ function createRegistryInterface(state) {
             const as = (r) => {
                 const factory = entry.role_ctor(r);
                 if (!factory) return null;
-                const iface = factory({data: instance.getData()});
+                const iface = factory(instance.getData());
                 iface.as = as;  // allow chaining
                 return iface;
             };
@@ -40,6 +40,9 @@ function createRegistryInterface(state) {
         },
 
         register(ctor, role_ctor) {
+            if (typeof ctor !== "function") {
+                throw new Error("role_ctor must be a function(role) => interface factory");
+            }
             if (typeof role_ctor !== "function") {
                 throw new Error("role_ctor must be a function(role) => interface factory");
             }
@@ -73,5 +76,5 @@ const REGISTRY_CLSID = root.register(
     { defaultRole: "IRegistry" }
 );
 
-export const Registry = root;
+export const { create: Create, register: Register } = root;
 export default REGISTRY_CLSID;

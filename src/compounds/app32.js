@@ -13,7 +13,8 @@ import TAB from '../dom-comps/tab.js'
 import SVGVIEW2 from '../dom-comps/svg-view-2.js'
 
 // const SVG_PATH = './assets/worldUltra.svg';
-const SVG_PATH = './assets/cities.svg';
+const SVG_PATH = './assets/svg/cities.svg';
+const ICON_PATH = './assets/icons/';
 
 const $$ = DOM.create;
 const Simple = (str) => $$(SIMPLE, { title: str });
@@ -29,9 +30,9 @@ const ctor = (args = {}) => {
     const listview = $$(LISTVIEW, { itemClassId: LISTITEM });
 
     const lv_toolbar = $$(BOX);
-    const lv_add_item_button = Button('New Item', { svg_file: './assets/add-item.svg'});
-    const lv_add_folder_button = Button('New Folder', { svg_file: './assets/add-folder.svg'});
-    const lv_delete_button = Button('Delete Selected', { svg_file: './assets/trash-bin-1.svg'});
+    const lv_add_item_button = Button('New Item', { svg_file: ICON_PATH + 'add-item.svg'});
+    const lv_add_folder_button = Button('New Folder', { svg_file: ICON_PATH + 'add-folder.svg'});
+    const lv_delete_button = Button('Delete Selected', { svg_file: ICON_PATH + 'trash-bin-1.svg'});
 
     lv_toolbar.addMany([lv_add_item_button, lv_add_folder_button]);
     lv_toolbar.add(lv_delete_button, { align: 'right' });
@@ -167,15 +168,16 @@ const ctor = (args = {}) => {
     
     return $$(APP).set(
         $$(TB, { ratio: 0 })
-        .setTop(Simple(info))
-        .setBottom($$(TBS, { bottomHeight: 32 })
-            .setTop($$(LR, {minLeft: 0, ratio: 0.3})
-                .setLeft(toolbar_with_controls)
-                .setRight(tabview)
-            )
-            .setBottom(status)
-        )        
-    );
+            .setTop(Simple(info))
+            .setBottom($$(TBS, { bottomHeight: 32 })
+                .setTop($$(LR, {minLeft: 0, ratio: 0.3})
+                    .setLeft(toolbar_with_controls)
+                    .setRight(tabview)
+                )
+                .setBottom(status)
+            )        
+        )
+    ;
     // return $$(TB, { ratio: 0 })
     //     .setTop(Simple(info))
     //     .setBottom($$(TBS, { bottomHeight: 32 })

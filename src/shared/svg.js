@@ -1,49 +1,15 @@
-function getCursorPosition(pathData) {
-    if (!pathData.length) {
-        return { x: 0, y: 0 };
-    }
-
-    let cursorX = 0, cursorY = 0;
-    let subpathStartX = 0, subpathStartY = 0;
-
-    for (const seg of pathData) {
-        const vals = seg.values;
-        switch (seg.type) {
-            case 'M':
-                cursorX = vals[0];
-                cursorY = vals[1];
-                subpathStartX = cursorX;
-                subpathStartY = cursorY;
-                break;
-            case 'L':
-                cursorX = vals[0];
-                cursorY = vals[1];
-                break;
-            case 'C':
-                cursorX = vals[4];
-                cursorY = vals[5];
-                break;
-            case 'Q':
-                cursorX = vals[2];
-                cursorY = vals[3];
-                break;
-            case 'A':
-                cursorX = vals[5];
-                cursorY = vals[6];
-                break;
-            case 'Z':
-                cursorX = subpathStartX;
-                cursorY = subpathStartY;
-                break;
-            // S/T: Handle reflected controls, but for now assume normalize expands them to C/Q
-        }
-    }
-    return { x: cursorX, y: cursorY };
-}
 
 
 function createInterface(elem) {
+    let iface;
+    switch (elem.nodeName) {
+        case 'svg': iface = ISVGDocument(elem); break;
+        case 'g': iface = ISVGGroup(elem); break;
+        case 'path': iface = ISVGPath(elem); break;
+        default: iface = ISVGBase(elem); break;
+    }
 
+    return iface;
 }
 
 const ISVGBase = (elem) => ({

@@ -23,6 +23,7 @@ import APP31 from './compounds/app31.js';
 import APP32 from './compounds/app32.js';
 import APP33 from './compounds/app33.js';
 import APP70 from './compounds/app70.js';
+import APP80 from './compounds/app80.js';
 import APP81 from './compounds/app81.js';
 import APP101 from './compounds/app101.js';
 
@@ -98,21 +99,7 @@ apps.set("7.0", {
 apps.set("8", {
     name: "8",
     title: "SVGView with PropView",
-    root: () => {
-        const toolbar = $$(TOOLBAR);
-        const svgview = $$(SVGVIEW);
-        const propview = $$(PROPVIEW);
-
-        DOM.connect(propview, 'value.1', svgview, 'set-point-x');
-        DOM.connect(propview, 'value.2', svgview, 'set-point-y');
-        DOM.connect(svgview, 'point-x', propview, 'value.1');
-        DOM.connect(svgview, 'point-y', propview, 'value.2');
-
-        return $$(TBS, { topHeight: 100 })
-            .setTop(propview)
-            .setBottom(svgview)
-        ;            
-    }        
+    root: (args) => DOM.createCompound(APP80, args)
 });
 apps.set("8.1", {
     name: "8.1",
@@ -126,5 +113,5 @@ apps.set("10.1", {
     root: (args) => DOM.createCompound(APP101, args)
 });
 
-const app = DOM.createCompound(APPROOT, { apps, start: '3.2'});
+const app = DOM.createCompound(APPROOT, { apps, start: '10.1'});
 DOM.mount(app);

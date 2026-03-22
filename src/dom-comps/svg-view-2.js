@@ -132,7 +132,6 @@ SVGPoint.prototype.toString = function () {
     return `(${this.x.toFixed(2)}, ${this.y.toFixed(2)})`;
 }
 
-// TODO: WeakMap?
 function createInterface(elem) {
     let iface;
     switch (elem.nodeName) {
@@ -280,8 +279,6 @@ function ready({ svg, iface2elem, elem2iface, selected, options }) {
 }
 
 function ctor(args = {}) {
-    const that = this; // maybe needed
-
     const host = document.createElement('div');
     const shadow = host.attachShadow({ mode: 'closed' });
     shadow.adoptedStyleSheets.push(sheet);
@@ -319,7 +316,7 @@ const ISVGViewFactory = ({ shadow, doc, svg, iface2elem, elem2iface, selected })
                 });
             }
             else {
-                doc.innerHTML = `<svg viewBox="0 0 64 32">
+                doc.innerHTML = `<svg viewBox="0 0 64 64">
                 <path d="m -4 6 h-10 v10 h10 z" stroke="red" fill="none" />
                 <text y="16" fill="#ddd">no svg file</Text>
                 </svg>`;
@@ -372,10 +369,6 @@ const ISVGViewFactory = ({ shadow, doc, svg, iface2elem, elem2iface, selected })
 };
 
 const clsid = DOM.register(ctor, function (role, action, reaction) {
-
     role("SVGView", self => ISVGViewFactory(self), true);
-
-    reaction('file', function (myfile) { this.load(myfile); });
-
 });
 export default clsid;

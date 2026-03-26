@@ -20,11 +20,11 @@ const ctor = (args = {}) => {
     const svgview = $$(SVGVIEW2);
     const propview = $$(PROPVIEW);
     
-    box.add(propview);
+    // box.add(propview);
 
     return $$(APP).set(
         $$(TBS, { topHeight: 100 })
-            .setTop(box)
+            .setTop(propview)
             .setBottom(svgview)
         )
     ;

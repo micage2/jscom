@@ -17,20 +17,16 @@ const fragment = makeFragment(`
             padding: 12px 22px;
         }
         .slider label {
-            width: 20%;
+            width: 80px;
             text-overflow: ellipsis;
             user-select: none;
         }
-        .slider input { width: 65%; }
-        .slider input {}
-        .slider output {
-            width: 15%;
-            text-align: end;
-        }
+        .slider input { width: 60%; }
+        .slider output {width: 40px;}
     </style>
-    <div class="slider">
+    <div class="float">
         <label>val</label>
-        <input type="range" min="0" max="1" step="0.01" value="0">
+        <input type="number" value="0">
         <output>0</output>
     </div>        
 `);
@@ -67,13 +63,13 @@ function setup_slider(sldr, options) {
 }
 
 // name, prop
-function ctor({ prop, config={} }) {
+function ctor(prop) {
     const self = {};
     self.prop = prop;
-    
     const name = prop.getName();
+    const config = prop.getConfig();
     const prop_value = prop.getValue();
-    const { min = 0, max = 1, step = .01 } = config;
+    const { min, max } = config;
 
     self.host = document.createElement('div');
     self.shadow = self.host.attachShadow({ mode: 'closed' });
@@ -84,9 +80,8 @@ function ctor({ prop, config={} }) {
     self.label.textContent = name || 'value';
     
     self.input = self.shadow.querySelector('.slider input');
-    self.input.min = min;
-    self.input.max = max;
-    self.input.step = step;
+    self.input.min = min || 0;
+    self.input.max = max || 1;
     self.input.value = prop_value || 0;
     
     self.output = self.shadow.querySelector('.slider output');

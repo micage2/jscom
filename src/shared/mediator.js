@@ -239,6 +239,7 @@ export class Mediator {
 // watches node structur, insertion and deletion
 export class IPropertyGroup extends Mediator {
     #node;
+    #childProperties = new Map();
 
     constructor(node) {
         super();
@@ -250,11 +251,15 @@ export class IPropertyGroup extends Mediator {
     }
 
     getConfig() {
-        return this.#node.P.data?.config || {};
+        return this.#node.P.config || {};
     }
 
     // Spawn child Property or PropertyGroup on demand
     getChild(childName) {
+        if (this.#childProperties.has(childName)) {
+            return this.#childProperties.get(childName);
+        }
+
         const childNode = this.#node.getChild(childName);
         if (!childNode) return null;
     
@@ -263,6 +268,7 @@ export class IPropertyGroup extends Mediator {
             ? new IPropertyGroup(childNode)
             : new IProperty(childNode);
     
+        this.#childProperties.set(childName, childProp);
         return childProp;
     }
     
@@ -278,6 +284,24 @@ export class IPropertyGroup extends Mediator {
         return children;
     }
 
+    getByPath(path) {
+        const parts = path.split('.');
+        let current = this;
+        
+        for (const part of parts) {
+            current = current.getChild(part);
+            if (!current) return null;
+        }
+        
+        return current;
+    }
+
+    for_each(cb) {
+        this.#node.forChildren(node => cb(
+            this.getChild(node.P.name)
+        ));
+    }
+
     addChild(name, type, data = {}, config = {}) {
         const childNode = new Node({
             name,
@@ -285,25 +309,35 @@ export class IPropertyGroup extends Mediator {
             data: type === 'group' ? {} : { value: data },
             config
         });
-        this.#node.add(childNode);
-        this.emit('child-added', { name, child });
 
-        return this.getChild(name); // Return the Property wrapper
+        this.#node.add(childNode);
+        const childProp = this.getChild(name);
+        this.emit('prop-added', childProp);
+
+        return childProp;
     }
 
     removeChild(name) {
         const childNode = this.#node.getChild(name);
         if (childNode) {
             this.#node.remove(childNode);
-            this.emit('child-removed', { name });
-
+            
+            const childProp = this.#childProperties.get(name);
+            if (childProp) {
+                childProp.#destroy();
+            }
+            
+            this.#childProperties.delete(name);
+            this.emit('prop-removed', { name });
             return true;
         }
         return false;
     }
 
     // Cleanup
-    destroy() {
+    #destroy() {
+        this.#childProperties.forEach(prop => prop.#destroy?.());
+        this.#childProperties.clear();
         this.clear();
     }
 }
@@ -325,11 +359,11 @@ export class IProperty extends Mediator {
     }
 
     getValue() {
-        return this.#node.P.data?.value;
+        return this.#node.P.value;
     }
 
     getConfig() {
-        return this.#node.P.data?.config || {};
+        return this.#node.P.config || {};
     }
 
     setValue(newValue) {
@@ -342,7 +376,7 @@ export class IProperty extends Mediator {
             return { success: true };
         }
 
-        this.#node.P.data.value = newValue;
+        this.#node.P.value = newValue;
         this.emit('value-changed', { oldValue, newValue });
         return { success: true };
     }
@@ -359,7 +393,7 @@ export class IProperty extends Mediator {
     }
 
     // Cleanup
-    destroy() {
+    #destroy() {
         this.clear();
     }
 }

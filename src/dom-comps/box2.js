@@ -1,114 +1,97 @@
 import { DomRegistry as DOM } from '../dom-registry.js';
 import { create_sheet, makeFragment } from '../shared/dom-helper.js';
 
-const sheet = create_sheet(`
+const fragment = makeFragment(`
+<style>
 :host {
-    display: flex;
-    flex-direction: row;
     height: 100%;
     width: 100%;
-
     background: var(--color-bg);
-}
-
-.container {
+    display: block;
     position: relative;
-    overflow: hidden;
-    height: 100%;
-    width: 100%;
 }
-.container:hover .proxy,
-.container:focus-within .proxy {
-    opacity: 1; /* Show on hover/focus */
+:host(:hover) .proxy,
+:host(:focus-within) .proxy {
+    opacity: 1;
 }
 
-bkup{
-    flex-direction: row;
-    flex-wrap: nowrap;
-    align-items: center;
-    justify-content: flex-start;
-    white-space: nowrap;
-}
-.content {
-    display: flex;
-    box-sizing: border-box;
+.box2 {
+    position: relative;
     height: 100%;
     width: 100%;
-    overflow-x: scroll; /* Scrollable, but bar hidden below */
-    overflow-y: hidden;
-}
-
-/* Hide native scrollbar on content (cross-browser overlay effect) */
-.content::-webkit-scrollbar {
-    display: none; /* Webkit/Chrome/Safari */
-}
-.content {
+    overflow-x: hidden;
+    overflow-y: scroll;
     -ms-overflow-style: none; /* IE/Edge */
     scrollbar-width: none; /* Firefox */
 }
 
+.box2::-webkit-scrollbar {
+    display: none; /* Webkit/Chrome/Safari */
+}
+
+
+.content {
+    box-sizing: border-box;
+}
+
 .proxy {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: var(--sb-height);
-    overflow-x: scroll;
-    overflow-y: hidden;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: var(--sb-width);
+    overflow-x: hidden;
+    overflow-y: scroll;
     display: none;
     pointer-events: auto;
-    opacity: 0.0; /* Auto-hide */
+    opacity: 0; /* Auto-hide */
     transition: opacity 0.2s ease-in-out;
     background: transparent; /* No cover */
 }
 
 /* Custom proxy scrollbar style (thin, semi-transparent) */
 .proxy::-webkit-scrollbar {
-    height: var(--sb-height);
+    width: 16px;
 }
+
 .proxy::-webkit-scrollbar-thumb {
-    background: rgba(0, 150, 250, 0.3);
+    background: rgba(0, 150, 250, 0.2);
     border-radius: 0px;
 }
+
 .proxy::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 150, 250, 0.5);
 }
+
 .proxy::-webkit-scrollbar-track {
     background: transparent;
 }
+
 .stretcher {
     height: 1px;
 }
+</style>
 
-/* Slotted styles as before */
-::slotted([slot="right"]) {
-    margin-left: auto;
-}
-`);
-
-const fragment = makeFragment(`
-<div class="container">
+<div class="box2">
     <div class="content">
-        <slot name="left"></slot>
-        <slot name="right"></slot>
+        <slot name="content"></slot>
     </div>
-    <div class="proxy">
-        <div class="stretcher"></div>
-    </div>
+</div>
+<div class="proxy">
+    <div class="stretcher"></div>
 </div>
 `);
 
-const sbHeight = 7;
+const sb_width = 17;
 
 function ctor(args) {
 
     const host = document.createElement('div');
-    host.style.setProperty('--sb-height', `${sbHeight}px`);
+    host.style.setProperty('--sb-width', `${sb_width}px`);
     const shadow = host.attachShadow({ mode: 'closed' });
-    shadow.adoptedStyleSheets.push(sheet);
     shadow.appendChild(fragment.cloneNode(true));
 
-    const container = shadow.querySelector('.container');
+    const box2 = shadow.querySelector('.box2');
     const content = shadow.querySelector('.content');
     const proxy = shadow.querySelector('.proxy');
     const stretcher = shadow.querySelector('.stretcher');
@@ -117,48 +100,48 @@ function ctor(args) {
 
     function updateScroll() {
         updateVisibility();
-        stretcher.style.width = `${content.scrollWidth}px`;
+        stretcher.style.height = `${box2.scrollHeight}px`;
+        void stretcher.offsetHeight;
     }
     
     function updateVisibility() {
-        if (content.scrollWidth > container.clientWidth) {
+        if (box2.scrollHeight > box2.clientHeight) {
             proxy.style.display = 'block';
         } else {
             proxy.style.display = 'none';
-            content.scrollLeft = 0;
-            proxy.scrollLeft = 0;
+            box2.scrollTop = 0;
+            proxy.scrollTop = 0;
         }
     }
     
     // Bi-directional sync
-    content.addEventListener('scroll', () => {
+    box2.addEventListener('scroll', () => {
         if (isSyncing)
             return;
         isSyncing = true;
-        proxy.scrollLeft = content.scrollLeft;
+        proxy.scrollTop = box2.scrollTop;
         isSyncing = false;
     });
 
-    proxy.addEventListener('scroll', () => {
+    proxy.addEventListener('scroll', (e) => {
         if (isSyncing)
             return;
         isSyncing = true;
-        content.scrollLeft = proxy.scrollLeft;
+        box2.scrollTop = proxy.scrollTop;
+        console.log('Proxy scrolled to:', proxy.scrollTop); // ← debug
         isSyncing = false;
     });
 
     // Wheel on container routes to content
     host.addEventListener('wheel', (e) => {
         const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-        content.scrollLeft += delta;
+        box2.scrollTop += delta;
         e.preventDefault();
     }, { passive: false });
 
     // Slotchange and ResizeObserver
-    const slot_left = shadow.querySelector('slot[name="left"]');
-    const slot_right = shadow.querySelector('slot[name="right"]');
-    slot_left.addEventListener('slotchange', () => updateScroll());
-    slot_right.addEventListener('slotchange', () => updateScroll());
+    const slot = shadow.querySelector('slot[name="content"]');
+    slot.addEventListener('slotchange', () => updateScroll());
 
     const resizeObserver = new ResizeObserver(() => updateScroll());
     resizeObserver.observe(content);
@@ -174,7 +157,7 @@ function ctor(args) {
     const selected = null;
 
     return {
-        getInstance: () => ({ slot_left, selected, members, updateScroll }),
+        getInstance: () => ({ slot, selected, members, updateScroll }),
         getHost: () => host,
     }
 }
@@ -191,22 +174,18 @@ const IBoxFactory = function ({ slot_left, selected, members, updateScroll }) {
                 console.warn('[Box.add] element is null.');
                 return this
             };
+
             if (members.includes(elem)) {
                 console.warn(`[Box.add] already has comp #${elem.uid}.`);
                 return this;
             }
+
             // if (typeof elem.select !== 'function') {
             //     console.warn(`[Box.add] select function required on #${elem.uid}.`);
             //     return this;
             // }
 
-            if (options.align === 'right') {
-                DOM.attach(elem, this, { slot: 'right' });
-            }
-            else {
-                DOM.attach(elem, this, { slot: 'left' });
-            }
-        
+            DOM.attach(elem, this, { slot: 'content' });
             members.push(elem);
 
             return this;
@@ -274,16 +253,8 @@ const clsid = DOM.register(ctor, function (role, action, reaction) {
 
     role("Box", self => IBoxFactory(self), true);
 
-    // action('button-state');
-
-    // reaction('button-select', function (btn) {
-    //     this.select(btn);
-    // });
-
-
-
 }, {
-    name: 'Box',
+    name: 'Box2',
     description: 'Container for Buttons and more ...'
 });
 export default clsid;

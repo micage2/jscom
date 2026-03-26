@@ -124,7 +124,7 @@ export const DomRegistry = {
                 // Note: careful! iface is accumulating all role methods
                 // ever used in the app. Maybe nice, maybe not.
                 // but this way iface can keep its identity for Set
-                const role = role_ctor(ih.instance);
+                const role = role_ctor.bind(this)(ih.instance);
                 const iface = Object.assign(this, role);
 
                 privateNodes.set(iface, ih);
@@ -171,17 +171,17 @@ export const DomRegistry = {
 
         // Call ctor — returns IDomNode interface object
         // const nodeInterface = klass.ctor.bind(iface)(options, iface.call.bind(iface));
-        const nodeInterface = klass.ctor.bind(iface)(options);
+        const icomp = klass.ctor.bind(iface)(options);
 
         // Validate protocol
-        if (!nodeInterface ||
-            typeof nodeInterface.getHost !== 'function' ||
-            typeof nodeInterface.getInstance !== 'function') {
+        if (!icomp ||
+            typeof icomp.getHost !== 'function' ||
+            typeof icomp.getInstance !== 'function') {
             throw new Error(`ctor for ${compId} did not return valid IDomNode interface`);
         }
 
-        const instance = nodeInterface.getInstance();
-        const host = nodeInterface.getHost();
+        const instance = icomp.getInstance();
+        const host = icomp.getHost();
 
         // Store unpacked instance + host
         privateNodes.set(iface, { instance, host });

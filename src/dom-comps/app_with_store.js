@@ -114,28 +114,32 @@ function obj2tree(tree, obj) {
         if (!type) {
             if (typeof obj === 'object' && obj !== null && !Array.isArray(obj)) {
                 type = 'group';
-                console.warn(`⚠️  Type not specified for node "${name}". Assuming "group". Consider adding explicit type.`);
             } else {
                 type = 'property';
             }
         }
 
-        // add child payload, skip root obj
+        // add child payload, skip root obj but iterate its children
         if (entry.key !== 'root') {
             tree = entry.tree.add({
                 name: entry.key,
                 type,
                 value: obj,
-                data: { value: obj },
-                config: obj,
+                data: obj.__data,
+                config: obj.__config,
             });
         }
         
-        // iterate children
+        // iterate children, exclude non-parents
+        if (type !== 'group') continue;
+
         const entries = Object.entries(entry.val);
         // for(let i = entries.length - 1; i >= 0; i--) {
         for (let i = 0; i < entries.length; i++) {
             const [key, val] = entries[i];
+
+            // skip metadata
+            if (key.startsWith('__')) continue;
 
             stack.push({ key, val, tree });
         }
@@ -193,12 +197,12 @@ function tree2obj(self) {
 function ctor(args) {
     const self = {};
     self.host = document.createElement('div'),
-        self.shadow = self.host.attachShadow({ mode: 'closed' });
+    self.shadow = self.host.attachShadow({ mode: 'closed' });
     self.shadow.appendChild(fragment.cloneNode(true));
-    self.upload = self.shadow.querySelector('.store input'),
-        self.button = self.shadow.querySelector('.store button'),
+    self.upload = self.shadow.querySelector('.store input');
+    self.button = self.shadow.querySelector('.store button');
 
-        self.project_name = args.name ?? 'no-name'
+    self.project_name = args.name ?? 'no-name'
 
     self.tree = Create(TREE, 'AppNode', { name: self.project_name });
     self.prop = new IPropertyGroup(self.tree);

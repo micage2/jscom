@@ -151,7 +151,7 @@ function obj2node(obj, name = 'root', type = null, config = {}) {
     if (type === null) {
         if (typeof obj === 'object' && obj !== null && !Array.isArray(obj)) {
             type = 'group';
-            console.warn(`⚠️  Type not specified for node "${name}". Assuming "group". Consider adding explicit type.`);
+            console.warn(`Type not specified for node "${name}". Assuming "group". Consider adding explicit type.`);
         } else {
             type = 'property';
         }
@@ -159,7 +159,7 @@ function obj2node(obj, name = 'root', type = null, config = {}) {
 
     // Reject arrays
     if (Array.isArray(obj)) {
-        console.error(`❌ Arrays not supported: "${name}". Use objects instead.`);
+        console.error(`Arrays not supported: "${name}". Use objects instead.`);
         return null;
     }
 
@@ -271,7 +271,13 @@ const IApp = (self) => ({
     },
 
     prop: self.prop,
-    tree: self.tree,
+    // tree: self.tree,
+    log() {
+        self.tree.traverse((P, info) => {
+            const indent = '  '.repeat(info?.depth);
+            console.log(indent, P, info);
+        });
+    }
 });
 
 

@@ -13,6 +13,13 @@ import {
     ISVGPath
 } from '../shared/svg.js'
 
+/*
+    emits:
+        'svg-node', // depth first traversal of svg hierarchy
+        'svg-loaded', // after last node has been read
+        'selected',
+*/
+
 
 const sheet = create_sheet(`
 :host {
@@ -122,7 +129,6 @@ function screenToSVG(svg, x, y) {
     pt.y = y;
     return pt.matrixTransform(svg.getScreenCTM().inverse());
 }
-screenToSVG;
 
 SVGMatrix.prototype.toString = function () {
     return `a: ${this.a.toFixed(2)} b: ${this.b} c: ${this.c} d: ${this.d.toFixed(2)} e: ${this.e} f: ${this.f}`;
@@ -246,10 +252,13 @@ function ready({ svg, iface2elem, elem2iface, selected, options }) {
     while (stack.length) {
         const node = stack.pop();
 
-        const iface = createInterface(node.elem);
+        // create an interface depending on svg nodeName
+        // currently supported: svg, g, path
+        // everything else gets a base interface
+        const svg_iface = createInterface(node.elem);
 
-        iface2elem.set(iface, node.elem);
-        elem2iface.set(node.elem, iface);
+        iface2elem.set(svg_iface, node.elem);
+        elem2iface.set(node.elem, svg_iface);
 
         // pre-order visitor
         this.emit('svg-node', {
@@ -258,7 +267,7 @@ function ready({ svg, iface2elem, elem2iface, selected, options }) {
             depth: node.depth,
             num_children: node.num_children,
             is_last: node.is_last,
-            iface,
+            iface: svg_iface,
         });
 
         const children = [...node.elem.children];
@@ -325,6 +334,10 @@ const ISVGViewFactory = ({ shadow, doc, svg, iface2elem, elem2iface, selected })
             }
 
             return this;
+        },
+
+        save() {
+            // TODO:
         },
 
         deselect(iface) {

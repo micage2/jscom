@@ -254,6 +254,12 @@ export class IPropertyGroup extends Mediator {
         return this.#node.P.config || {};
     }
 
+    isConfigEmpty() {
+        return this.#node.P.config 
+            ? !Object.entries(this.#node.P.config).length
+            : true;
+    }
+
     // Spawn child Property or PropertyGroup on demand
     getChild(childName) {
         if (this.#childProperties.has(childName)) {

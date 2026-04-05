@@ -14,8 +14,11 @@ const fragment = makeFragment(`
 :host(:focus-within) .proxy {
     opacity: 1;
 }
+:host .proxy {
+    opacity: 0;
+}
 
-.box2 {
+.dialog-box {
     position: relative;
     height: 100%;
     width: 100%;
@@ -24,11 +27,14 @@ const fragment = makeFragment(`
     -ms-overflow-style: none; /* IE/Edge */
     scrollbar-width: none; /* Firefox */
 }
-
-.box2::-webkit-scrollbar {
-    display: none; /* Webkit/Chrome/Safari */
+.dialog-box:hover .proxy,
+.dialog-box:focus-within .proxy {
+    opacity: 1;
 }
 
+.dialog-box::-webkit-scrollbar {
+    display: none; /* Webkit/Chrome/Safari */
+}
 
 .content {
     box-sizing: border-box;
@@ -53,16 +59,13 @@ const fragment = makeFragment(`
 .proxy::-webkit-scrollbar {
     width: 16px;
 }
-
 .proxy::-webkit-scrollbar-thumb {
     background: rgba(0, 150, 250, 0.2);
     border-radius: 0px;
 }
-
 .proxy::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 150, 250, 0.5);
 }
-
 .proxy::-webkit-scrollbar-track {
     background: transparent;
 }
@@ -72,7 +75,7 @@ const fragment = makeFragment(`
 }
 </style>
 
-<div class="box2">
+<div class="dialog-box">
     <div class="content">
         <slot name="content"></slot>
     </div>
@@ -91,7 +94,7 @@ function ctor(args) {
     const shadow = host.attachShadow({ mode: 'closed' });
     shadow.appendChild(fragment.cloneNode(true));
 
-    const box2 = shadow.querySelector('.box2');
+    const dialog_box = shadow.querySelector('.dialog-box');
     const content = shadow.querySelector('.content');
     const proxy = shadow.querySelector('.proxy');
     const stretcher = shadow.querySelector('.stretcher');
@@ -100,26 +103,26 @@ function ctor(args) {
 
     function updateScroll() {
         updateVisibility();
-        stretcher.style.height = `${box2.scrollHeight}px`;
+        stretcher.style.height = `${dialog_box.scrollHeight}px`;
         void stretcher.offsetHeight;
     }
     
     function updateVisibility() {
-        if (box2.scrollHeight > box2.clientHeight) {
+        if (dialog_box.scrollHeight > dialog_box.clientHeight) {
             proxy.style.display = 'block';
         } else {
             proxy.style.display = 'none';
-            box2.scrollTop = 0;
+            dialog_box.scrollTop = 0;
             proxy.scrollTop = 0;
         }
     }
     
     // Bi-directional sync
-    box2.addEventListener('scroll', () => {
+    dialog_box.addEventListener('scroll', () => {
         if (isSyncing)
             return;
         isSyncing = true;
-        proxy.scrollTop = box2.scrollTop;
+        proxy.scrollTop = dialog_box.scrollTop;
         isSyncing = false;
     });
 
@@ -127,15 +130,14 @@ function ctor(args) {
         if (isSyncing)
             return;
         isSyncing = true;
-        box2.scrollTop = proxy.scrollTop;
-        console.log('Proxy scrolled to:', proxy.scrollTop); // ← debug
+        dialog_box.scrollTop = proxy.scrollTop;
         isSyncing = false;
     });
 
     // Wheel on container routes to content
     host.addEventListener('wheel', (e) => {
         const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-        box2.scrollTop += delta;
+        dialog_box.scrollTop += delta;
         e.preventDefault();
     }, { passive: false });
 
@@ -167,8 +169,8 @@ const max = (arr) => arr.reduce(function (prev, current) {
     return (prev && prev.y > current.y) ? prev : current;
 });
 
-const IBoxFactory = function ({ slot_left, selected, members, updateScroll }) {
-    const IBox = {
+const IDialogBoxCtor = function ({ slot_left, selected, members, updateScroll }) {
+    const IDialogBox = {
         add(elem, options = {}) {
             if (!elem) {
                 console.warn('[Box.add] element is null.');
@@ -246,15 +248,15 @@ const IBoxFactory = function ({ slot_left, selected, members, updateScroll }) {
 
         has(elem) { return members.includes(elem); },
     };
-    return IBox;
+    return IDialogBox;
 }
 
-const clsid = DOM.register(ctor, function (role, action, reaction) {
+const clsid = DOM.register(ctor, function (role) {
 
-    role("Box", self => IBoxFactory(self), true);
+    role("DialogBox", self => IDialogBoxCtor(self), true);
 
 }, {
-    name: 'Box2',
+    name: 'DialogBox',
     description: 'Container for Buttons and more ...'
 });
 export default clsid;

@@ -1,4 +1,4 @@
-// src/dom-comps/test-view.js
+// src/dom-comps/prop-float.js
 import { DomRegistry as DOM } from '../dom-registry.js';
 import { makeFragment } from '../shared/dom-helper.js';
 
@@ -7,112 +7,79 @@ const fragment = makeFragment(`
         :host {
             display: flex;
             flex-direction: column;
-            width: 100%;    
+            width: 100%;
             background: var(--color-bg);
-            color:  var(--color-text);
+            color: var(--color-text);
         }
-        .slider {
+        .float-edit {
             display: flex;
             justify-content: space-between;
-            padding: 12px 22px;
+            align-items: center;
+            padding: 6px 22px;
         }
-        .slider label {
+        .float-edit label {
             width: 80px;
             text-overflow: ellipsis;
+            overflow: hidden;
             user-select: none;
         }
-        .slider input { width: 60%; }
-        .slider output {width: 40px;}
+        .float-edit input {
+            width: 60%;
+        }
+        .float-edit output {
+            width: 40px;
+            text-align: end;
+        }
     </style>
-    <div class="float">
-        <label>val</label>
-        <input type="number" value="0">
-        <output>0</output>
-    </div>        
+    <div class="float-edit">
+        <label></label>
+        <input type="number">
+        <output></output>
+    </div>
 `);
-    
-/*  slider marks
-    const input = document.getElementById('myRange');
-    const datalist = document.createElement('datalist');
-    // Add options to datalist...
 
-    // Direct assignment without using ID
-    input.list = datalist;
-
-    // Append datalist to DOM (still required)
-    document.body.appendChild(datalist);   
-*/
-            
-function setup_slider(sldr, options) {
-    const {
-        title = "value", value = 0, min = -1, max = 1,
-        ...otherArgs
-    } = { ...(options ?? {}) };
-
-    const [label, slider, output] = [...sldr.children];
-    label.textContent = title;
-    // slider.value = value;
-    // slider.min = min;
-    // slider.max = max;
-    slider.oninput = (e) => {
-        output.textContent = +slider.value;
-        // the plus converts value to number
-        this.emit('changed', +slider.value);
-    }
-    output.textContent = slider.value;
-}
-
-// name, prop
-function ctor(prop) {
+function ctor({ prop, config = {} }) {
     const self = {};
     self.prop = prop;
-    const name = prop.getName();
-    const config = prop.getConfig();
-    const prop_value = prop.getValue();
-    const { min, max } = config;
 
-    self.host = document.createElement('div');
+    const name      = prop.getName();
+    const value     = prop.getValue();
+    const { step = 0.01 } = config;
+
+    self.host   = document.createElement('div');
     self.shadow = self.host.attachShadow({ mode: 'closed' });
     self.shadow.appendChild(fragment.cloneNode(true));
 
-    self.slider = self.shadow.querySelector('.slider');
-    self.label = self.shadow.querySelector('.slider label');
-    self.label.textContent = name || 'value';
-    
-    self.input = self.shadow.querySelector('.slider input');
-    self.input.min = min || 0;
-    self.input.max = max || 1;
-    self.input.value = prop_value || 0;
-    
-    self.output = self.shadow.querySelector('.slider output');
-    self.output.value = prop_value;
-    
-    self.input.oninput = (e) => {
-        // the plus converts value to number
-        // self.output.value = +self.input.value;
-        // self.prop.setValue(+self.input.value);
-        self.output.value = +e.target.value;
-        self.prop.setValue(+e.target.value);
-    }
+    self.label  = self.shadow.querySelector('label');
+    self.input  = self.shadow.querySelector('input');
+    self.output = self.shadow.querySelector('output');
 
-    self.prop.on('value-changed', ({newValue, oldValue}) => {
-        self.input.value = newValue;
+    self.label.textContent  = name;
+    self.input.value        = value ?? 0;
+    self.input.step         = step;
+    self.output.value       = value ?? 0;
+
+    self.input.oninput = (e) => {
+        const v = parseFloat(e.target.value);
+        self.output.value = v;
+        self.prop.setValue(v);
+    };
+
+    self.prop.on('value-changed', ({ newValue }) => {
+        self.input.value  = newValue;
         self.output.value = newValue;
     });
 
     return {
-        getHost: () => self.host,
+        getHost:     () => self.host,
         getInstance: () => self,
     };
 }
 
-const IPropSlider = (self) => ({
-});
+const IFloatEdit = (self) => ({});
 
-const clsid = DOM.register(ctor, function(role, action, reaction) {
-    
-    role("PropSlider", self => IPropSlider(self), true);
-    
+const clsid = DOM.register(ctor, function (role) {
+    role('FloatEdit', self => IFloatEdit(self), true);
 });
 
 export default clsid;

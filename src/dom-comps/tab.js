@@ -44,7 +44,7 @@ const sheet = create_sheet(
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-size: .75rem;
+    // font-size: .75rem;
 }
 
 .tab-button {

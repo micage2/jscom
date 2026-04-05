@@ -46,13 +46,13 @@ const ctor = (args = {}) => {
         listview.removeSelected();
     });
 
-    const toolbar_with_controls = $$(TBS)
+    const listview_with_toolbar = $$(TBS)
         .setTop(lv_toolbar)
         .setBottom(listview)
     ;
 
     const listitem2button = new WeakMap(); // listitem -> button
-    const links_reverse = new WeakMap(); // button -> listitem
+    const button2listitem = new WeakMap(); // button -> listitem
     const only1box = $$(ONLYONEBOX);
 
     const svgview = $$(SVGVIEW2);
@@ -109,11 +109,9 @@ const ctor = (args = {}) => {
         
         listview.select(listview.get_first());
     });
-
     svgview.on('selected', (iface) => {
         console.log('svgview.on("selected")', iface.getName(), iface.getType());
 
-        // TODO: iface2item needed
         const item = iface2item.get(iface);
         listview.select(item);
     });
@@ -130,7 +128,7 @@ const ctor = (args = {}) => {
 
             tab.on('clicked', (button) => {
                 tabbar.select(button);
-                const listitem = links_reverse.get(button);
+                const listitem = button2listitem.get(button);
                 listview.select(listitem);
                 svgview.isolateSelect2(listitem.iface);
             });
@@ -142,7 +140,7 @@ const ctor = (args = {}) => {
             tabbar.add(tab);
             tabbar.select(tab);
             listitem2button.set(listitem, tab);
-            links_reverse.set(tab, listitem);
+            button2listitem.set(tab, listitem);
         }
         else {
             tabbar.select(button);
@@ -171,23 +169,13 @@ const ctor = (args = {}) => {
             .setTop(Simple(info))
             .setBottom($$(TBS, { bottomHeight: 32 })
                 .setTop($$(LR, {minLeft: 0, ratio: 0.3})
-                    .setLeft(toolbar_with_controls)
+                    .setLeft(listview_with_toolbar)
                     .setRight(tabview)
                 )
                 .setBottom(status)
             )        
         )
     ;
-    // return $$(TB, { ratio: 0 })
-    //     .setTop(Simple(info))
-    //     .setBottom($$(TBS, { bottomHeight: 32 })
-    //         .setTop($$(LR, {minLeft: 0, ratio: 0.3})
-    //             .setLeft(toolbar_with_controls)
-    //             .setRight(tabview)
-    //         )
-    //         .setBottom(status)
-    //     )
-    // ;
 };
 
 const clsid = DOM.registerCompound(ctor);

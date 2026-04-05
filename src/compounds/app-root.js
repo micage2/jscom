@@ -1,12 +1,10 @@
 import { DomRegistry as DOM } from '../dom-registry.js';
 import BUTTON from '../dom-comps/button.js'
-// import SIMPLE from '../dom-comps/simple-view.js'
 import BOX from '../dom-comps/box.js'
 import ONLYONEBOX from '../dom-comps/only-one-box.js'
 import TBS from '../dom-comps/top-bottom-static.js'
 
 const $$ = DOM.create;
-const Simple = (str) => $$(SIMPLE, { title: str });
 const Button = (name, options) => $$(BUTTON, { name, ...options });
 
 // { apps, start }

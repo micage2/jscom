@@ -1,28 +1,21 @@
+// src/dom-comps/props-view.js
 import { DomRegistry as DOM } from '../dom-registry.js';
+import { TypeRegistry } from '../shared/type-registry.js';
 import { makeFragment } from '../shared/dom-helper.js';
-import SLIDERVIEW from '../dom-comps/prop-slider.js';
-import TEXTEDITVIEW from '../dom-comps/prop-string.js';
-const $$ = DOM.create;
 
 const fragment = makeFragment(`
 <style>
     :host {
-        // display: flex;
-        // flex-direction: column;
-        // height: 100%;    
-        width: 100%;    
+        width: 100%;
         background: var(--color-bg);
-        color:  var(--color-text);
+        color: var(--color-text);
     }
     .props-view {
-        // height: 100%;
         overflow: hidden auto;
     }
     fieldset {
         border: 1px solid #777;
         border-radius: 8px;
-        // padding: 16px;
-        // background-color: #f9f9f9;
         max-width: 500px;
         margin: 12px;
     }
@@ -30,12 +23,9 @@ const fragment = makeFragment(`
         padding: 5px 10px;
         border-radius: 4px;
         margin-left: 10px;
-    }
-
-    legend {
+        display: flex;
         align-items: center;
     }
-        
     legend button {
         color: var(--color-text);
         cursor: pointer;
@@ -44,12 +34,11 @@ const fragment = makeFragment(`
         border: none;
         font-size: 1.2em;
     }
-
 </style>
 <fieldset>
     <legend>
         <button type="button">▽</button>
-        <span class="legend-text">Section Title</span>
+        <span class="legend-text"></span>
     </legend>
     <div class="props-view">
         <slot name="content"></slot>
@@ -57,84 +46,82 @@ const fragment = makeFragment(`
 </fieldset>
 `);
 
-
-function ctor({props, config}) {
+function ctor({ props, config = {} }) {
     const self = {};
-    self.props = props;
+    self.props  = props;
     self.config = config;
 
-    // console.log(props.getName(), props.getConfig());
-
-    self.host = document.createElement('div');
+    self.host   = document.createElement('div');
     self.shadow = self.host.attachShadow({ mode: 'closed' });
     self.shadow.appendChild(fragment.cloneNode(true));
-    self.propsview = self.shadow.querySelector('.props-view');
-    self.legend = self.shadow.querySelector('.legend-text');
-    self.legend.textContent = "Circle: " + props.getName();
+
+    self.propsview    = self.shadow.querySelector('.props-view');
+    self.legend       = self.shadow.querySelector('.legend-text');
+    self.legend.textContent = props.getName();
+
     self.legend_toggle = self.shadow.querySelector('legend button');
-    self.legend_toggle.onclick = function toggleContent(e) {
-        self.propsview.style.display = self.propsview.style.display === 'none' ? 'block' : 'none';
-        self.legend_toggle.textContent = self.propsview.style.display === 'none' ? '▷' : '▽';
+    self.legend_toggle.onclick = () => {
+        const collapsed = self.propsview.style.display === 'none';
+        self.propsview.style.display = collapsed ? 'block' : 'none';
+        self.legend_toggle.textContent = collapsed ? '▽' : '▷';
         self.legend_toggle.blur();
-    }
+    };
 
     return {
-        getHost: () => self.host,
+        getHost:     () => self.host,
         getInstance: () => self,
     };
 }
 
-// we can't attach() child comps in ctor, because the instance 
-// is only registered after ctor is finished. Instead we do it
-// when the default interface is created. -> role('PropsView').
-// Alternatively we could provide a post create callback. -> TODO
-
 function init(self) {
-    const { props } = self;
+    const { props, config } = self;
 
-    const add = (prop) => {
-        // console.log('[PropsView.ctor] prop-added', prop.getName());
+    const addChild = (prop) => {
+        // Resolve typeId → clsid via TypeRegistry.
+        // Layout config can carry per-child overrides under the child's name.
+        const childConfig  = config[prop.getName()] ?? {};
+        const layoutHint   = childConfig.view ?? null;
+        const typeId       = prop.getTypeId ? prop.getTypeId() : childConfig.typeId ?? null;
+        const clsid        = TypeRegistry.resolve(typeId, layoutHint);
 
-        // route config to child properties
-        const prop_config = self.config[prop.getName()];
-        const slider_view = $$(SLIDERVIEW, {prop, config: prop_config });
-        DOM.attach(slider_view, this, { slot: 'content' });
+        if (!clsid) {
+            console.warn(`[PropsView] No component for typeId '${typeId}' on '${prop.getName()}'`);
+            return;
+        }
+
+        // Groups get a props interface, leaves get a prop interface
+        const isGroup = typeof prop.for_each === 'function';
+        const view = isGroup
+            ? DOM.create(clsid, { props: prop, config: childConfig })
+            : DOM.create(clsid, { prop,         config: childConfig });
+
+        DOM.attach(view, this, { slot: 'content' });
     };
 
-    props.for_each((prop) => {
-        add(prop);
+    props.getChildren().forEach(addChild);
+
+    props.on('prop-added',   addChild);
+    props.on('prop-removed', ({ name }) => {
+        // future: DOM.detach by name if needed
     });
-
-    props.on('prop-added', (prop) => {
-        add(prop);
-    });
-
-
 
     return self;
 }
-
-// const aaa = (self) => IPropsView(init(self));
 
 const IPropsView = (self) => ({
     add(propview) {
         DOM.attach(propview, this, { slot: 'content' });
     },
-    addMany(props) {
-        props.forEach((propview) => {
-            DOM.attach(propview, this, { slot: 'content' });
-        })
+    addMany(propviews) {
+        propviews.forEach(v => DOM.attach(v, this, { slot: 'content' }));
     },
 });
 
-const clsid = DOM.register(ctor, function (role, action, reaction) {
-
-    // role("PropsView", (self) => IPropsView(self), true);
-    role("PropsView", function (self) {
+const clsid = DOM.register(ctor, function (role) {
+    role('PropsView', function (self) {
         self = init.bind(this)(self);
         return IPropsView(self);
     }, true);
-
 });
 
 export default clsid;

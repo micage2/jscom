@@ -1,4 +1,4 @@
-// src/dom-comps/prop-string.js
+// src/dom-comps/prop-null.js
 import { DomRegistry as DOM } from '../dom-registry.js';
 import { makeFragment } from '../shared/dom-helper.js';
 
@@ -11,25 +11,26 @@ const fragment = makeFragment(`
             background: var(--color-bg);
             color: var(--color-text);
         }
-        .string-edit {
+        .null-view {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 6px 22px;
+            opacity: 0.5;
         }
-        .string-edit label {
+        .null-view label {
             width: 80px;
             text-overflow: ellipsis;
             overflow: hidden;
             user-select: none;
         }
-        .string-edit input {
-            flex: 1;
+        .null-view span {
+            font-style: italic;
         }
     </style>
-    <div class="string-edit">
+    <div class="null-view">
         <label></label>
-        <input type="text">
+        <span>null</span>
     </div>
 `);
 
@@ -37,26 +38,16 @@ function ctor({ prop, config = {} }) {
     const self = {};
     self.prop = prop;
 
-    const name  = prop.getName();
-    const value = prop.getValue();
+    const name = prop.getName();
 
     self.host   = document.createElement('div');
     self.shadow = self.host.attachShadow({ mode: 'closed' });
     self.shadow.appendChild(fragment.cloneNode(true));
 
     self.label = self.shadow.querySelector('label');
-    self.input = self.shadow.querySelector('input');
-
     self.label.textContent = name;
-    self.input.value       = value ?? '';
 
-    self.input.oninput = (e) => {
-        self.prop.setValue(e.target.value);  // string, no coercion
-    };
-
-    self.prop.on('value-changed', ({ newValue }) => {
-        self.input.value = newValue;
-    });
+    // null is read-only — no input, no listeners needed
 
     return {
         getHost:     () => self.host,
@@ -64,10 +55,10 @@ function ctor({ prop, config = {} }) {
     };
 }
 
-const IStringEdit = (self) => ({});
+const INullView = (self) => ({});
 
 const clsid = DOM.register(ctor, function (role) {
-    role('StringEdit', self => IStringEdit(self), true);
+    role('NullView', self => INullView(self), true);
 });
 
 export default clsid;

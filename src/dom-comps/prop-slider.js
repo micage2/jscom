@@ -47,25 +47,6 @@ const fragment = makeFragment(`
     document.body.appendChild(datalist);   
 */
             
-function setup_slider(sldr, options) {
-    const {
-        title = "value", value = 0, min = -1, max = 1,
-        ...otherArgs
-    } = { ...(options ?? {}) };
-
-    const [label, slider, output] = [...sldr.children];
-    label.textContent = title;
-    // slider.value = value;
-    // slider.min = min;
-    // slider.max = max;
-    slider.oninput = (e) => {
-        output.textContent = +slider.value;
-        // the plus converts value to number
-        this.emit('changed', +slider.value);
-    }
-    output.textContent = slider.value;
-}
-
 // name, prop
 function ctor({ prop, config={} }) {
     const self = {};
@@ -94,10 +75,10 @@ function ctor({ prop, config={} }) {
     
     self.input.oninput = (e) => {
         // the plus converts value to number
-        // self.output.value = +self.input.value;
-        // self.prop.setValue(+self.input.value);
-        self.output.value = +e.target.value;
-        self.prop.setValue(+e.target.value);
+        self.output.value = +self.input.value;
+        self.prop.setValue(+self.input.value);
+        // self.output.value = +e.target.value;
+        // self.prop.setValue(+e.target.value);
     }
 
     self.prop.on('value-changed', ({newValue, oldValue}) => {

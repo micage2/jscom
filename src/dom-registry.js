@@ -2,7 +2,7 @@
 import { Mediator } from './shared/mediator.js';
 
 const klasses = new Map();           // clsid → { ctor, roleFactories: [{roleName, factory}] }
-const compounds = new Map();         // clsid → { ctor, roleFactories: [{roleName, factory}] }
+const compounds = new Map();         // clsid → { ctor, info }
 const privateNodes = new WeakMap();  // iface → { instance, host }
 const roleMaps = new WeakMap();      // iface → Map<roleName, roleImpl>
 const connections = new Map();       // key → { mediator }
@@ -54,51 +54,32 @@ export const DomRegistry = {
         return clsid;
     },
 
-    registerCompound(ctor, config, info = {}) {
+    // Compounds are pure composition roots — no roles, actions or reactions.
+    // info: { name, title } — used by app-root for the app switcher.
+    registerCompound(ctor, info = {}) {
         const clsid = gen_id('CLSID_');
-        
-        // collect roles (supported interfaces)
-        const roles = new Map();
-        let default_role = null;
-        const role = (name, impl, _default) => {
-            roles.set(name, impl);
-            if (_default) default_role = name;
-        };
-        
-        // collect actions (message emitter)
-        const actions = new Map();
-        const action = (name) => {
-            actions.set(name);
-        };
-        
-        // collect reactions (message handler)
-        const reactions = new Map();
-        const reaction = (name, impl) => {
-            reactions.set(name, impl);
-        };
-
-        if (typeof config === 'function') {
-            config(role, action, reaction);
-        }
-
-        const mediator = new Mediator();
-
-        compounds.set(clsid, {
-            ctor, // create component function
-            roles, // name -> role ctor
-            default_role, // name
-            actions, // names[]
-            reactions, // name -> handler function
-            mediator, // name -> Set of handler functions
-            info
-        });
-
+        compounds.set(clsid, { ctor, info });
         return clsid;
     },
 
     getClassInfo(clsid) {
         const klass = klasses.get(clsid);
         return klass ? klass.info : null;
+    },
+
+    // Returns a Map<name, { name, title, root }> of all self-registered compounds
+    // that provided info.name. Anonymous compounds (no name in info) are excluded.
+    getCompounds() {
+        const result = new Map();
+        compounds.forEach(({ ctor, info }, clsid) => {
+            if (!info.name) return;
+            result.set(info.name, {
+                name:  info.name,
+                title: info.title ?? info.name,
+                root:  (args) => this.createCompound(clsid, args),
+            });
+        });
+        return result;
     },
 
     create(compId, options = {}) {
@@ -243,7 +224,6 @@ export const DomRegistry = {
             console.warn(`[DOM.attach] No target host`);
             return false;
         }
-
 
         sourceHost.slot = options.slot || '';
 

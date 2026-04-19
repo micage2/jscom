@@ -5,7 +5,6 @@ const klasses = new Map();           // clsid → { ctor, roleFactories: [{roleN
 const compounds = new Map();         // clsid → { ctor, info }
 const privateNodes = new WeakMap();  // iface → { instance, host }
 const roleMaps = new WeakMap();      // iface → Map<roleName, roleImpl>
-const connections = new Map();       // key → { mediator }
 
 const gen_id = (prefix = "") => 
     `${prefix}` + Math.random().toString(36).slice(2, 11);
@@ -13,8 +12,11 @@ const gen_id = (prefix = "") =>
 export const DomRegistry = {
 
     register(ctor, config, info = {}) {
-        const clsid = gen_id('CLSID_');
-        
+        if (!info.clsid) {
+            console.log('[DOM] No clsid.', info);            
+            return false;
+        }
+
         // collect roles (supported interfaces)
         const roles = new Map();
         let default_role = null;
@@ -23,43 +25,32 @@ export const DomRegistry = {
             if (_default) default_role = name;
         };
         
-        // collect actions (message emitter)
-        const actions = new Map();
-        const action = (name) => {
-            actions.set(name);
-        };
-        
-        // collect reactions (message handler)
-        const reactions = new Map();
-        const reaction = (name, impl) => {
-            reactions.set(name, impl);
-        };
-
         if (typeof config === 'function') {
-            config(role, action, reaction);
+            config(role);
         }
 
         const mediator = new Mediator();
 
-        klasses.set(clsid, {
+        klasses.set(info.clsid, {
             ctor, // create component function
-            roles, // name -> role ctor
+            roles, // name → role ctor
             default_role, // name
-            actions, // names[]
-            reactions, // name -> handler function
-            mediator, // name -> Set of handler functions
+            mediator,
             info
         });
 
-        return clsid;
+        return true;
     },
 
-    // Compounds are pure composition roots — no roles, actions or reactions.
-    // info: { name, title } — used by app-root for the app switcher.
+    // Compounds are pure composition roots — no roles.
+    // info: { uid, name, description } — used by app-root for the app switcher.
     registerCompound(ctor, info = {}) {
-        const clsid = gen_id('CLSID_');
-        compounds.set(clsid, { ctor, info });
-        return clsid;
+        if (!info.clsid) {
+            console.log('[DOM] No clsid.', info);
+            return false;
+        }
+        compounds.set(info.clsid, { ctor, info });
+        return true;
     },
 
     getClassInfo(clsid) {
@@ -84,7 +75,10 @@ export const DomRegistry = {
 
     create(compId, options = {}) {
         const klass = klasses.get(compId);
-        if (!klass) throw new Error(`Unknown component type: ${compId}`);
+        if (!klass) {
+            console.error(`Unknown component type: ${compId}`);
+            return null;
+        }
 
         // Create pure public interface object
         const iface = {
@@ -114,40 +108,15 @@ export const DomRegistry = {
                 return iface;
             },
 
-            _call: function (functionName, args = {}) {
-                const key = `${this.uid}:${functionName}`;
-                const conn = connections.get(key);
-                if (!conn) { // inactive
-                    const info = klass.info;
-                    // console.info(`No connection for '${functionName}' on ${info.name || this.type} #${this.uid}`);
-                    return null;
-                }
-
-                const sink_klass = klasses.get(conn.sinkIface.type);
-                const sink_func = sink_klass.reactions.get(conn.sinkFuncName);
-                if (typeof sink_func !== 'function') {
-                    console.error('Sink is not a function: ' + sink_klass.info);                    
-                    return null;
-                }
-
-                // klass.mediator.emit(functionName, args);
-
-                const transformed_args = typeof conn.transformer === 'function' 
-                    ? conn.transformer(args) : args;
-
-                return sink_func.bind(conn.sinkIface)(transformed_args);
-            },
-
             emit(msg, payload = null) {
                 this.mediator.emit(msg, payload);
             },
-
-            // add reaction to klass
             on(pin, cb) {
-                // klass: { ctor, roles, actions, reactions, default_role, info }
-                // source klass is our own (already in closure)
-                this.mediator.on(pin, cb);
-            }
+                return this.mediator.on(pin, cb);
+            },
+            once(pin, cb) {
+                return this.mediator.once(pin, cb);
+            },
         };
 
         // Call ctor — returns IDomNode interface object
@@ -155,10 +124,8 @@ export const DomRegistry = {
         const icomp = klass.ctor.bind(iface)(options);
 
         // Validate protocol
-        if (!icomp ||
-            typeof icomp.getHost !== 'function' ||
-            typeof icomp.getInstance !== 'function') {
-            throw new Error(`ctor for ${compId} did not return valid IDomNode interface`);
+        if (!icomp) {
+            console.error(`Invalid IDomNode: ${compId}`);
         }
 
         const instance = icomp.getInstance();
@@ -166,6 +133,7 @@ export const DomRegistry = {
 
         // Store unpacked instance + host
         privateNodes.set(iface, { instance, host });
+        icomp.postCreate?.bind(iface)(instance);
 
         return klass.default_role ? iface.as(klass.default_role) : iface;
     },
@@ -174,31 +142,6 @@ export const DomRegistry = {
         const compound = compounds.get(compound_id);
         if (compound) return compound.ctor(options);
         return null;
-    },
-
-    connect(sourceIface, sourceFuncName, sinkIface, sinkFuncName, transformer = null) {
-        if (!sourceIface) {
-            console.warn(`[DOM.connect] no source for ${sourceFuncName}`)
-            return false;
-        }
-        if (!sinkIface) {
-            console.warn("[DOM.connect] no sink")
-            return false;
-        }
-
-        const sourceKlass = klasses.get(sourceIface.type);
-        const sinkKlass = klasses.get(sinkIface.type);
-
-        const sinkFunc = sinkKlass.reactions.get(sinkFuncName);
-
-        const key = `${sourceIface.uid}:${sourceFuncName}`;
-        if (connections.has(key)) {
-            console.log(`[DOM.connect] key already exists: ${key}.`);
-            return false;
-        }
-
-        connections.set(key, { sinkIface, sinkFuncName, transformer });
-        return true;
     },
 
     attach(sourceIface, targetIface, options = {}) {

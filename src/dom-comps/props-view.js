@@ -70,37 +70,51 @@ function ctor({ props, config = {} }) {
     return {
         getHost:     () => self.host,
         getInstance: () => self,
+        postCreate: init
     };
 }
 
 function init(self) {
-    const { props, config } = self;
+    const { props, config = {} } = self;
 
-    const addChild = (prop) => {
-        // Resolve typeId → clsid via TypeRegistry.
-        // Layout config can carry per-child overrides under the child's name.
-        const childConfig  = config[prop.getName()] ?? {};
-        const layoutHint   = childConfig.view ?? null;
-        const typeId       = prop.getTypeId ? prop.getTypeId() : childConfig.typeId ?? null;
-        const clsid        = TypeRegistry.resolve(typeId, layoutHint);
+    const addView = (prop) => {
+        // 1. Does config has a view?               → clsid = childConfig.view
+        // 1. Does parent config has a view?        → clsid = config.view
+        // 2. resolve view from value's datatype    → clsid = typeof prop.value
 
-        if (!clsid) {
-            console.warn(`[PropsView] No component for typeId '${typeId}' on '${prop.getName()}'`);
-            return;
-        }
+        const prop_name = prop.getName();
+        const childConfig = config[prop_name] ?? {};
+        const layoutHint = childConfig.view ?? null;
 
         // Groups get a props interface, leaves get a prop interface
-        const isGroup = typeof prop.for_each === 'function';
-        const view = isGroup
-            ? DOM.create(clsid, { props: prop, config: childConfig })
-            : DOM.create(clsid, { prop,         config: childConfig });
+        let view;
+        if (prop.isGroup()) {
+            // TODO: group view ?
+            // view = DOM.create(clsid, { props: prop, config: childConfig });
+            return;
+        }
+        else {
+            const typeId = typeof prop.get();
+
+            const clsid = layoutHint || TypeRegistry.resolve(typeId);
+            if (!clsid) {
+                console.warn(`[PropsView] No component for typeId '${typeId}' on '${prop.getName()}'`);
+                return;
+            }
+    
+            view = DOM.create(clsid, { prop, config: childConfig });
+        }
 
         DOM.attach(view, this, { slot: 'content' });
     };
 
-    props.getChildren().forEach(addChild);
+    // props.getChildren().forEach((v,i,a) => {
+    //     addView(v);
+    // });
 
-    props.on('prop-added',   addChild);
+    props.on('prop-added', (prop) => {
+        addView(prop);
+    });
     props.on('prop-removed', ({ name }) => {
         // future: DOM.detach by name if needed
     });
@@ -117,11 +131,19 @@ const IPropsView = (self) => ({
     },
 });
 
-const clsid = DOM.register(ctor, function (role) {
-    role('PropsView', function (self) {
-        self = init.bind(this)(self);
-        return IPropsView(self);
-    }, true);
-});
 
-export default clsid;
+// ==================== Registration ======================
+//
+const info = {
+    clsid: 'jscom.dom-comps.props-view',
+    name: 'PropsView',
+    description: 'Container for Buttons and more ...'
+};
+
+const res = DOM.register(ctor, function (role) {
+
+    role('PropsView', (self) => IPropsView(self), true);
+
+}, info);
+
+export default info.clsid;

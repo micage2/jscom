@@ -9,7 +9,7 @@
 //                          e.g. { r: { view: CLSID_PropSlider, min: 0, max: 100 } }
 
 import { DomRegistry as DOM } from '../dom-registry.js';
-import { buildJsonEditor }    from '../dom-comps/json-editor.js';
+import CLSID_JsonEditor       from '../dom-comps/json-editor.js';
 import CLSID_PropSlider       from '../dom-comps/prop-slider.js';
 
 const DEMO_JSON = JSON.stringify({
@@ -43,15 +43,21 @@ const DEMO_LAYOUT = {
 };
 
 const ctor = (args = {}) => {
-    const json         = args.json         ?? DEMO_JSON;
-    const layoutConfig = args.layoutConfig ?? DEMO_LAYOUT;
+    const json   = args.json         ?? DEMO_JSON;
+    const config = args.layoutConfig ?? DEMO_LAYOUT;
 
-    const root = buildJsonEditor(json, layoutConfig);
+    const root = DOM.create(CLSID_JsonEditor, { json, config });
     if (!root) {
         console.error('[app-json-editor] buildJsonEditor failed');
     }
     return root;
 };
 
-const clsid = DOM.registerCompound(ctor, { name: '11.0', title: 'JSON Editor' });
-export default clsid;
+const info = {
+    clsid: 'jscom.compounds.json-editor',
+    name: '11.0',
+    title: 'JSON Editor'
+}
+
+const res = DOM.registerCompound(ctor, info);
+export default info.clsid;

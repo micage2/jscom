@@ -66,7 +66,13 @@ function ctor(args = {}, call) {
     };
 }
 
-const class_id = DOM.register(ctor, (role, action, reaction) => {
+const info = {
+    clsid: 'jscom.dom-comps.top-bottom-static',
+    description: 'Only selected compound is attached',
+    name: 'OnlyOneBox'
+};
+
+const res = DOM.register(ctor, (role) => {
     role('TopBottom', (self) => ITopBottom(self), true);
-});
-export default class_id;
+}, info);
+export default info.clsid;

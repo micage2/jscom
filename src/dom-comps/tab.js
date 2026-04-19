@@ -119,13 +119,15 @@ const ITabFactory = ({ host, tab, icon, label, close }) => ({
 });
 
 
-const clsid = DOM.register(ctor, function(role, action, reaction) {
+const info = {
+    clsid: 'jscom.dom-comps.tabs-view',
+    name: 'TabsView',
+    description: 'Container for Buttons and more ...'
+};
+
+const res = DOM.register(ctor, function(role, action, reaction) {
     
     role("Tab", self => ITabFactory(self), true);
 
-}, {
-    name: 'Tab',
-    description: 'Tab for use in TabViews.\n' +
-        'It has an icon, a label and a close button.\n'
-});
-export default clsid;
+}, info);
+export default info.clsid;

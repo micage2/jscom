@@ -1,0 +1,112 @@
+<!-- assets/svg/sample2.svg -->
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+
+  <!-- Root group: Map Area -->
+  <g id="map-area">
+
+    <!-- Group: Background -->
+    <g id="background">
+      <rect id="base" x="0" y="0" width="800" height="600" fill="#F5F5F5" />
+    </g>
+
+    <!-- Group: Streets -->
+    <g id="streets">
+
+      <!-- Main horizontal street -->
+      <g id="street-schumannstrasse">
+        <rect id="road-schumann" x="0" y="200" width="800" height="40" fill="#E0E0E0" />
+        <text id="label-schumann" x="400" y="220" font-family="Arial" font-size="12" fill="#333333" text-anchor="middle">Schumannstraße</text>
+        <path id="centerline-schumann" d="M0 220 H800" stroke="#AAAAAA" stroke-width="2" stroke-dasharray="15,5" />
+      </g>
+
+      <!-- Main vertical street -->
+      <g id="street-reinhardstrasse">
+        <rect id="road-reinhard" x="300" y="0" width="40" height="600" fill="#E0E0E0" />
+        <text id="label-reinhard" x="320" y="300" font-family="Arial" font-size="12" fill="#333333" transform="rotate(90 320,300)" text-anchor="middle">Reinhardstraße</text>
+        <path id="centerline-reinhard" d="M320 0 V600" stroke="#AAAAAA" stroke-width="2" stroke-dasharray="15,5" />
+      </g>
+
+      <!-- Side street -->
+      <g id="street-unterbaumstrasse">
+        <rect id="road-unterbaum" x="0" y="100" width="300" height="20" fill="#E0E0E0" />
+        <text id="label-unterbaum" x="150" y="110" font-family="Arial" font-size="10" fill="#333333" text-anchor="middle">Unterbaumstraße</text>
+      </g>
+
+    </g>
+
+    <!-- Group: Buildings -->
+    <g id="buildings">
+
+      <!-- Building 1 -->
+      <g id="building-1">
+        <rect id="bldg-1-main" x="50" y="50" width="100" height="80" fill="#D3D3D3" />
+        <rect id="bldg-1-roof" x="55" y="55" width="90" height="70" fill="#C0C0C0" />
+        <text id="bldg-1-label" x="100" y="90" font-family="Arial" font-size="8" fill="#000000" text-anchor="middle">Haus</text>
+      </g>
+
+      <!-- Building 2 -->
+      <g id="building-2">
+        <rect id="bldg-2-main" x="450" y="50" width="100" height="80" fill="#D3D3D3" />
+        <rect id="bldg-2-roof" x="455" y="55" width="90" height="70" fill="#C0C0C0" />
+        <text id="bldg-2-label" x="500" y="90" font-family="Arial" font-size="8" fill="#000000" text-anchor="middle">Café</text>
+      </g>
+
+      <!-- Building 3 -->
+      <g id="building-3">
+        <rect id="bldg-3-main" x="50" y="350" width="100" height="80" fill="#D3D3D3" />
+        <rect id="bldg-3-roof" x="55" y="355" width="90" height="70" fill="#C0C0C0" />
+        <text id="bldg-3-label" x="100" y="390" font-family="Arial" font-size="8" fill="#000000" text-anchor="middle">Shop</text>
+      </g>
+
+      <!-- Building 4 -->
+      <g id="building-4">
+        <rect id="bldg-4-main" x="450" y="350" width="100" height="80" fill="#D3D3D3" />
+        <rect id="bldg-4-roof" x="455" y="355" width="90" height="70" fill="#C0C0C0" />
+        <text id="bldg-4-label" x="500" y="390" font-family="Arial" font-size="8" fill="#000000" text-anchor="middle">Theater</text>
+      </g>
+
+    </g>
+
+    <!-- Group: Green Spaces -->
+    <g id="green-spaces">
+
+      <!-- Park -->
+      <g id="park-karlplatz">
+        <rect id="park-bg" x="350" y="250" width="80" height="80" fill="#90EE90" />
+        <text id="park-label" x="390" y="290" font-family="Arial" font-size="10" fill="#000000" text-anchor="middle">Karlplatz</text>
+        <!-- Tree in park -->
+        <g id="tree-park">
+          <rect id="trunk-park" x="380" y="280" width="6" height="20" fill="#8B4513" />
+          <circle id="foliage-park" cx="383" cy="270" r="18" fill="#2F4F2F" />
+        </g>
+      </g>
+
+      <!-- Small green area -->
+      <g id="green-area-1">
+        <rect id="green-bg-1" x="100" y="150" width="40" height="40" fill="#98FB98" />
+      </g>
+
+    </g>
+
+    <!-- Group: Icons & Markers -->
+    <g id="icons">
+
+      <!-- Parking icon -->
+      <g id="icon-parking-1">
+        <rect id="parking-bg-1" x="200" y="210" width="12" height="12" fill="#FFD700" />
+        <text id="parking-text-1" x="206" y="220" font-family="Arial" font-size="8" fill="#000000" text-anchor="middle">P</text>
+      </g>
+
+      <!-- Restaurant icon -->
+      <g id="icon-restaurant-1">
+        <rect id="rest-bg-1" x="500" y="110" width="12" height="12" fill="#FF6347" />
+        <text id="rest-text-1" x="506" y="120" font-family="Arial" font-size="8" fill="#FFFFFF" text-anchor="middle">R</text>
+      </g>
+
+      <!-- Tree icon -->
+      <g id="icon-tree-1">
+        <circle id="tree-icon-bg" cx="150" cy="300" r="8" fill="#2F4F2F" />
+      </g>
+    </g>
+  </g>
+</svg>

@@ -2,9 +2,6 @@
 import { DomRegistry as DOM } from '../dom-registry.js';
 import { makeFragment } from '../shared/dom-helper.js';
 
-// f({...args,  height: 200, width: 300}
-// { height = 200, width = 300, ...(args ?? {}) }
-
 const makehtml = (args) => {
     const {
         width = 300, 
@@ -188,18 +185,15 @@ const ISVGViewFactory = ({ selected, path, path_data_0, path_data, svg_circles }
     };
 };
 
-const clsid = DOM.register(ctor, function(role, action, reaction) {
+const info = {
+    clsid: 'jscom.dom-comps.svg-view',
+    name: 'SVGView',
+    description: 'SVG Viewer'
+};
+
+const res = DOM.register(ctor, function(role) {
     
     role("SVGView", self => ISVGViewFactory(self), true);
 
-    action('point-x');
-    action('point-y');
-
-    reaction('set-point-x', function(value) {
-        this.setPointX(value);
-    });
-    reaction('set-point-y', function(value) {
-        this.setPointY(value);
-    });
-});
-export default clsid;
+}, info);
+export default info.clsid;

@@ -19,11 +19,6 @@ const $$ = DOM.create;
 const Simple = (str) => $$(SIMPLE, { title: str });
 const Button = (name, options) => $$(BUTTON, { name, ...options });
 
-const info = 'TreeView with button and status bar\n\n'
-    + 'Each section is its own component communicating via "connections".\n\n'
-    + 'Comparable to devices like amplifiers, speakers, phono, tape, ...'
-;
-
 const ctor = (args = {}) => {
     const status = Simple('no selection');
     const listview = $$(LISTVIEW, { itemClassId: LISTITEM });
@@ -36,10 +31,12 @@ const ctor = (args = {}) => {
     lv_toolbar.addMany([lv_add_item_button, lv_add_folder_button]);
     lv_toolbar.add(lv_delete_button, { align: 'right' });
     lv_add_item_button.on('clicked', b=>{
-        listview.add();
+        const item = listview.add();
+        listview.unfoldParent(item);
     });
     lv_add_folder_button.on('clicked', b => {
-        listview.add({ type: 'folder' });
+        const item = listview.add({ type: 'folder' });
+        listview.unfoldParent(item);
     });
     lv_delete_button.on('clicked', b => {
         listview.removeSelected();
@@ -104,13 +101,15 @@ const ctor = (args = {}) => {
         }
     });
     svgview.on('svg-loaded', () => {
-        console.log('[app33.ctor] on svg-loaded');
+        console.log('[app31] SVG loaded');
         
         listview.select(listview.get_first());
     });
 
     svgview.on('selected', (iface) => {
         console.log('svgview.on("selected")', iface.getName(), iface.getType());
+
+        svgview.select(iface);
 
         // TODO: iface2item needed
         const item = iface2item.get(iface);
@@ -147,7 +146,7 @@ const ctor = (args = {}) => {
             tabbar.select(button);
         }
 
-        svgview.isolateSelect2(listitem.iface);
+        svgview.select(listitem.iface);
     });
 
     listview.on('removed-items', (listitems) => {
@@ -163,8 +162,7 @@ const ctor = (args = {}) => {
     });
     tabbar.on('clicked', (tab) => {
         console.log('tab selected', tab);
-    });
-    
+    });    
 
     return $$(TB, { ratio: 0 })
         .setTop(Simple(info))
@@ -178,5 +176,13 @@ const ctor = (args = {}) => {
     ;
 };
 
-const clsid = DOM.registerCompound(ctor);
-export default clsid;
+// ==================== Registration ======================
+//
+const info = {
+    clsid: 'jscom.compounds.app31',
+    name: '3.1',
+    description: 'A tree view with a tool bar to create tree items'
+};
+
+const clsid = DOM.registerCompound(ctor, info);
+export default info.clsid;

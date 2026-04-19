@@ -1,0 +1,33 @@
+=== JSON Round-Trip Test ===
+
+Original JSON:
+{
+  "name": "root",
+  "age": 30,
+  "active": true,
+  "address": {
+    "street": "123 Main St",
+    "city": "Wonderland",
+    "coordinates": {
+      "lat": 51.5074,
+      "lng": -0.1278
+    }
+  },
+  "tags": null,
+  "hobbies": {
+    "reading": true,
+    "gaming": false
+  }
+}
+
+--- Building tree from JSON ---
+
+--- Serializing tree to JSON ---
+
+Reconstructed JSON:
+{}
+
+--- Comparison ---
+Match: ❌ NO
+
+❌ Round-trip test FAILED

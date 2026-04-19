@@ -13,7 +13,10 @@ const html_file = "./src/dom-comps/list-item.html";
 /** @type {DocumentFragment} */
 const fragment = await loadFragment(html_file);
 
-function ctor(args = {}) {
+function ctor({prop, config = {}}) {
+    const name = prop.getName();
+    const type = prop.getType();
+    console.log(name, type);    
 
     const host = document.createElement('div');
     const shadow = host.attachShadow({ mode: 'closed' });
@@ -21,10 +24,10 @@ function ctor(args = {}) {
 
     const content = shadow.querySelector('.list-item');
     const icon = shadow.querySelector('.expander');
-    icon.textContent = args.icon || '□';
+    icon.textContent = config.icon || '□';
     const label = shadow.querySelector('.label');
-    label.textContent = args.title;
-    const depth = args.depth || 0;
+    label.textContent = config.title || prop.getName();
+    const depth = config.depth || 0;
 
     const click_handler = function (e) {
         this.emit("selected", this);
@@ -36,18 +39,13 @@ function ctor(args = {}) {
     };
     icon.onclick = icon_click_handler.bind(this);
 
-    // const label_dblclick_handler = function () {
-    //     this.emit("double-clicked", this);
-    // };
-    // label.ondblclick = label_dblclick_handler.bind(this);
-
     const that = this; // needed for emit(), otherwise 'this' is <span>
     shadow.querySelectorAll('.list-item .label').forEach((span) => {
         span.addEventListener('dblclick', () => makeEditable(that, span));
     });
     
     return {
-        getInstance: () => ({ content, icon, label, depth, iface: args.iface }),
+        getInstance: () => ({ content, icon, label, depth, prop }),
         getHost: () => host,
     }
 }
@@ -81,7 +79,8 @@ function makeEditable(that, span) {
 }
 
 
-const IListItemFactory = ({ content, icon, label, depth, iface }) => ({
+const IListItemFactory = ({ content, icon, label, depth, prop }) => ({
+
     // determines indentation of item content
     get_depth() { return depth; },
     set_depth(d) {
@@ -110,18 +109,19 @@ const IListItemFactory = ({ content, icon, label, depth, iface }) => ({
         state ? content.classList.add("selected")
             : content.classList.remove("selected");
     },
-    iface,
+
+    prop,
 });
 
 const info = {
-    clsid: 'jscom.dom-comps.list-item',
-    name: 'ListItem',
+    clsid: 'jscom.dom-comps.list-item-2',
+    name: 'ListItem2',
     description: 'List item with expander, label and icon.\n' +
                  'has a selected, hidden and depth state.\n' +
                  'for use in lists e.g. ListView.\n'
 };
 
-const res = DOM.register(ctor, function (role, action, reaction) {
+const res = DOM.register(ctor, function (role) {
 
     role("ListItem", self => IListItemFactory(self), true);
 

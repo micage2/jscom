@@ -36,10 +36,12 @@ const ctor = (args = {}) => {
     lv_toolbar.addMany([lv_add_item_button, lv_add_folder_button]);
     lv_toolbar.add(lv_delete_button, { align: 'right' });
     lv_add_item_button.on('clicked', b=>{
-        listview.add();
+        const item = listview.add();
+        listview.unfoldParent(item);
     });
     lv_add_folder_button.on('clicked', b => {
-        listview.add({ type: 'folder' });
+        const item = listview.add({ type: 'folder' });
+        listview.unfoldParent(item);
     });
     lv_delete_button.on('clicked', b => {
         listview.removeSelected();
@@ -104,13 +106,15 @@ const ctor = (args = {}) => {
         }
     });
     svgview.on('svg-loaded', () => {
-        console.log('[app33.ctor] on svg-loaded');
+        console.log('[app33] SVG loaded');
         
         listview.select(listview.get_first());
     });
 
     svgview.on('selected', (iface) => {
         console.log('svgview.on("selected")', iface.getName(), iface.getType());
+
+        svgview.select(iface);
 
         // TODO: iface2item needed
         const item = iface2item.get(iface);
@@ -147,7 +151,7 @@ const ctor = (args = {}) => {
             tabbar.select(button);
         }
 
-        svgview.isolateSelect2(listitem.iface);
+        svgview.select(listitem.iface);
     });
 
     listview.on('removed-items', (listitems) => {
@@ -178,5 +182,9 @@ const ctor = (args = {}) => {
     ;
 };
 
-const clsid = DOM.registerCompound(ctor);
+const clsid = 'jsom.compounds.app33';
+const description = 'App using PropsView';
+const res = DOM.registerCompound(ctor, {
+    clsid, description, name: '3.3'
+});
 export default clsid;

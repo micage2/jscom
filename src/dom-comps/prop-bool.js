@@ -68,8 +68,15 @@ function ctor({ prop, config = {} }) {
 
 const IBoolEdit = (self) => ({});
 
+const info = {
+    clsid: 'jscom.dom-comps.prop-bool',
+    name: 'PropBool',
+    description: 'Atomic view for a boolean value',
+    type: 'boolean'
+};
+
 const clsid = DOM.register(ctor, function (role) {
     role('BoolEdit', self => IBoolEdit(self), true);
-});
+}, info);
 
-export default clsid;
+export default info.clsid;

@@ -46,6 +46,12 @@ const ctor = (args = {}) => {
     return app_root;
 
 }
-const clsid = DOM.registerCompound(ctor);
+
+const clsid = 'jscom.comp.app-switch';
+DOM.registerCompound(ctor, {
+    clsid,
+    // name: 'AppSwitch', // anonymous
+    description: 'Compound to select certain sub-compounds'
+});
 export default clsid;
 

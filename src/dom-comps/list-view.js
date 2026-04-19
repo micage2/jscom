@@ -44,18 +44,15 @@ class ListView {
             this.folderIcons.closed);
     }
 
+    // true -> unfold
     fold(item, bool) {
         if (!item || !this.isFolder(item)) return; // only folders can be folded
+        
         if (!bool && this.isFolderOpen(item)) return; // already opened
         if (bool && this.isFolderClosed(item)) return; // already closed
-        if (bool) {
-            this.toggleSubtreeOpen(item);
-            item.set_icon(this.folderIcons.closed);
-        }
-        else {
-            this.toggleSubtreeOpen(item);
-            item.set_icon(this.folderIcons.opened);
-        }
+
+        this.toggleSubtreeOpen(item);
+        item.set_icon(bool ? this.folderIcons.closed : this.folderIcons.opened);
     }
 
     selectItem(item) {
@@ -160,8 +157,6 @@ class ListView {
         return { index: -1, item: null }
     }
 }
-
-
 
 const IListViewFactory = (self) => ({
     init(args = {}) {
@@ -392,8 +387,7 @@ const IListViewFactory = (self) => ({
 
     get_selected() { return self.selectedItem; },
     get_first() { return self.list[0]; },
-    });
-
+});
 
 function ctor(options) {
     const self = new ListView(options);
@@ -404,49 +398,18 @@ function ctor(options) {
     }
 };
 
-// 'this' in 'reaction()' is IListView object
-const clsid = DOM.register(ctor, (role, action, reaction) => {
+// ==================== Registration ======================
+//
+const info = {
+    clsid: 'jscom.dom-comps.list-view',
+    name: 'ListView',
+    description: 'Container for list items. \n' +
+                'can be used as a tree view'
+};
+
+const res = DOM.register(ctor, (role) => {
 
     role('ListView', (self) => IListViewFactory(self), true); // true = default role
 
-    action('selected');
-
-    reaction('add-item', function (args) {
-        const item = this.add(args);
-        if (!item) {
-            console.log(`[ListView DOM:reaction('add-item')] No item added.`);
-            return false;
-        }
-        if (!DOM.connect(item, 'selected', this, 'select')) {
-            console.log(`[ListView DOM:reaction('add-item')] 
-                Could not connect item ${item.uid} with action 'selected'.`);
-            return false;
-        }
-        if (!DOM.connect(item, 'icon-clicked', this, 'toggle')) {
-            console.log(`[ListView DOM:reaction('add-item')] Could not connect item ${item.uid}.`);
-            return false;
-        }
-
-    });
-
-    reaction('add-folder', function (args = {}) {
-        const item = this.add({ ...args, type: 'folder' });
-        DOM.connect(item, 'selected', this, 'select');
-        DOM.connect(item, 'icon-clicked', this, 'toggle');
-    });
-
-    reaction('remove-selected', function () {
-        this.removeSelected();
-    });
-
-    reaction('select', function (item) {
-        this.select(item)
-    });
-
-    reaction('toggle', function (item_uid) {
-        this.toggle(item_uid)
-    });
-}, {
-    name: 'ListView'
-});
-export default clsid;
+}, info);
+export default info.clsid;

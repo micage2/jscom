@@ -24,10 +24,9 @@ const data = {
         // shared config for all circles
         __config: {
             title: 'Circle',
-            view: SLIDERVIEW,
             cx: { min: -500, max: 500, step: 10 },
             cy: { min: -500, max: 500, step: 10 },
-            r: { min: 2, max: 200, step: 1 },
+            r: { min: 2, max: 200, step: 1, view: SLIDERVIEW },
             flag: { view: BOOLVIEW },
         },
         'circle1': {
@@ -45,39 +44,43 @@ const data = {
             cy: RR(300, -300, 10),
             r: RR(100)
         },
-        'circle4': {
-            __config: { type: 'circle', view: 'CirclePropsView' },
-            cx: 20, cy: 50, r: 25, fill: 'red'
+        'circle3': {
+            cx: RR(300, -300, 10),
+            cy: RR(300, -300, 10),
+            r: RR(100)
         },
     },
-    rect: {
+    rects: {
         __config: {
-            title: 'User',
-            view: 'USERVIEW',
-            age: {}
+            title: 'Rect',
+            x: { min: -500, max: 500, step: 10 },
+            y: { min: -500, max: 500, step: 10 },
+            height: { min: 2, max: 200, step: 1, view: SLIDERVIEW },
+            width: { min: 2, max: 200, step: 1, view: SLIDERVIEW },
         },
-        'Heinz': { age: 42, email: 'heinz@gmail.com' },
-
+        'rect1': {
+            x: RR(300, -300, 10),
+            y: RR(300, -300, 10),
+            height: RR(300, -300, 10),
+            width: RR(100)
+        },
     }
-
 }
 
 const ctor = (args = {}) => {
     const app = $$(APP, { name: 'app101' });
-    const app_props = app.from_obj(data); // build tree from data
+    const root = app.from_obj(data); // build tree from data
 
-    const circles = app_props.getChild('circles'); // root props group
-    const config = circles.getConfig(); // shared config
+    // data for a collection of 'Circle' dialogs
+    const circles = root.getChild('circles');
+    const config = data.circles.__config;
 
-    const circle1 = circles.getChild('circle1');
-    const circle2 = app_props.getByPath('circles.circle2');
-    const circle3 = circles.getChild('circle3');
+    const box = $$(BOX); // dialog container
 
-    const box = $$(BOX);
-    circles.for_each((props) => {
-        const config1 = props.isConfigEmpty() 
-            ? config : props.getConfig();
-        const view = $$(PROPSVIEW, { props, config: config1 });
+    // create 'Circle' dialogs, in fact it's a generic container
+    const circles_children = circles.getChildren();
+    circles_children.forEach((props) => {
+        const view = $$(PROPSVIEW, { props, config });
         box.add(view);
     });
     
@@ -87,5 +90,10 @@ const ctor = (args = {}) => {
 };
 
 
-const clsid = DOM.registerCompound(ctor);
+const clsid = 'jsom.compounds.app101';
+const description = 'App using PropsView';
+const res = DOM.registerCompound(ctor, {
+    clsid, description, name: '10.1'
+});
+if (!res) console.log('[app101] Registration failed', clsid, name);
 export default clsid;

@@ -1,125 +1,154 @@
-import { Mediator } from './mediator.js';
 
+// watches node structur, insertion and deletion
+export class IPropertyGroup extends Mediator {
+    #node;
+    #childProperties = new Map();
 
-class __IProperty {
-    constructor(node, validator = null) {
-        this.node = node;
-        this.validator = validator;
-        this.subscribers = new Set();
-    }
-
-    get() {
-        return this.node.payload;
-    }
-
-    set(newValue) {
-        if (this.validator && !this.validator(newValue)) {
-            return { success: false, reason: "validation_failed" };
-        }
-
-        const oldValue = this.get();
-        this.node.payload = newValue;
-
-        this.subscribers.forEach(callback => callback(newValue, oldValue));
-
-        return { success: true };
-    }
-
-    onChange(callback) {
-        this.subscribers.add(callback);
-        return () => this.subscribers.delete(callback);
-    }
-}
-
-
-class __IPropertyGroup {
+    // {name, data, config, type = 'group'} = node.P
     constructor(node) {
-        this.node = node;
-        this.properties = new Map();
-        this.deleteCallbacks = new Set();
+        console.assert(typeof node.P.name === 'string', 'Node has no name');
+        console.assert(node.P.type === 'group', 'Node is not a group');
+        super();
+        this.#node = node;
     }
 
-    get_prop(propertyName, validator = null) {
-        const key = `${propertyName}:${validator?.name || 'default'}`;
-        if (!this.properties.has(key)) {
-            this.properties.set(key, new IProperty(this.node, propertyName, validator));
+    getName() {
+        return this.#node.P.name;
+    }
+
+    isGroup() { return true; }
+
+    // Spawn child Property or PropertyGroup on demand
+    getChild(childName) {
+        if (this.#childProperties.has(childName)) {
+            return this.#childProperties.get(childName);
         }
-        return this.properties.get(key);
+
+        const childNode = this.#node.getChild((name) => name === childName);
+        if (!childNode) return null;
+    
+        // Determine type from node.P.type, not from children count
+        const childProp = childNode.P.type === 'group'
+            ? new IPropertyGroup(childNode)
+            : new IProperty(childNode);
+    
+        this.#childProperties.set(childName, childProp);
+        return childProp;
+    }
+    
+    getChildren() {
+        return this.#node.getChildren().map(child => this.getChild(child.P.name));
     }
 
-    onDelete(callback) {
-        this.deleteCallbacks.add(callback);
+    getByPath(path) {
+        const parts = path.split('.');
+        let current = this;
+        
+        for (const part of parts) {
+            current = current.getChild(part);
+            if (!current) return null;
+        }
+        
+        return current;
     }
 
-    notifyDelete() {
-        this.deleteCallbacks.forEach(cb => cb());
+    addChild(name, type, data = {}, config = {}) {
+        const childNode = new Node({
+            name,
+            type,
+            data: type === 'group' ? {} : { value: data },
+            config
+        });
+
+        this.#node.add(childNode);
+        const childProp = this.getChild(name);
+        this.emit('prop-added', childProp);
+
+        return childProp;
+    }
+
+    addProp(prop) {
+        this.#childProperties.set(prop.getName(), prop);
+        this.emit('prop-added', prop);
+    }
+
+    removeChild(name) {
+        const childNode = this.#node.getChild(name);
+        if (childNode) {
+            this.#node.remove(childNode);
+            
+            const childProp = this.#childProperties.get(name);
+            if (childProp) {
+                childProp.#destroy();
+            }
+            
+            this.#childProperties.delete(name);
+            this.emit('prop-removed', { name });
+            return true;
+        }
+        return false;
+    }
+
+    // Cleanup
+    #destroy() {
+        this.#childProperties.forEach(prop => prop.#destroy?.());
+        this.#childProperties.clear();
+        this.clear();
     }
 }
 
 
-const _IProperty = (node, validator = null) => {
-    const subscribers = new Set();    
+// watches value changes
+export class IProperty extends Mediator {
+    #node;
+    #validator;
 
-    const get = () => node.payload;
+    constructor(node, validator = null) {
+        console.assert(typeof node.P.name === 'string', 'Node has no data');
+        console.assert(typeof node.P.value !== 'object' && node.P.value !== undefined, 'Node has no valid type');
+        super();
+        this.#node = node;
+        this.#validator = validator;
+    }
 
-    const set = (newValue) => {
-        if (validator && !validator(newValue)) {
+    isGroup() { return false; }
+
+    getName() {
+        return this.#node.P.name;
+    }
+
+    getValue() {
+        return this.#node.P.value;
+    }
+
+    setValue(newValue) {
+        if (this.#validator && !this.#validator(newValue)) {
             return { success: false, reason: "validation_failed" };
         }
 
-        const oldValue = node.payload;
-        node.payload = newValue;
-
-        subscribers.forEach(callback => callback(newValue, oldValue));
-
-        return { success: true };
-    };
-
-    const on_change = (callback) => {
-        subscribers.add(callback);
-        return () => subscribers.delete(callback);
-    };
-
-    return { get, set, on_change };
-};
-
-// node.P has { name, data = { value, config = {} } } guaranteed
-export const IPropertyGroup = (node, validator = null) => {
-    const { value, config = {} } = node.P.data;
-    const properties = new Map();
-    const mediator = new Mediator();
-    const get_name = () => node.P.name;
-    const get_config = () => config;
-
-    const get = () => node.P.data.value;
-    const set = (newValue) => {
-        if (validator && !validator(newValue)) {
-            return { success: false, reason: "validation_failed" };
+        const oldValue = this.getValue();
+        if (oldValue === newValue) {
+            return { success: true };
         }
 
-        const oldValue = node.P.value.value;
-        node.P.value.value = newValue;
-
-        if (oldValue !== newValue)
-            mediator.emit('prop-changed', newValue);
-
+        this.#node.P.value = newValue;
+        this.emit('value-changed', { oldValue, newValue });
         return { success: true };
-    };
+    }
 
-    // spawn child PropertyGroups on demand
-    const get_prop = (propertyName, validator = null) => {
-        const prop = properties.get(propertyName);
-        if (prop) { return prop; }
-
-        const child = node.get_child(propertyName);
-        if (child) {
-            return IPropertyGroup(node, validator);
+    // Optional: get full path (useful for debugging or binding)
+    getPath() {
+        const path = [];
+        let current = this.#node;
+        while (current) {
+            path.unshift(current.P.name);
+            current = current.getParent();
         }
-        return null;
-    };
+        return path;
+    }
 
-    const on = (msg, cb) => mediator.on(msg, cb);
-
-    return { get_name, get_config, get, set, get_prop, on }
+    // Cleanup
+    #destroy() {
+        this.clear();
+    }
 }
-

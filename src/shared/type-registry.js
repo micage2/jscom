@@ -4,25 +4,24 @@
 // Two-level lookup: layout config override wins over registered default.
 //
 // Usage:
-//   TypeRegistry.registerDefault('float', CLSID_FloatEdit);
-//   const clsid = TypeRegistry.resolve('float');           // → CLSID_FloatEdit
-//   const clsid = TypeRegistry.resolve('float', MY_CLSID); // → MY_CLSID (layout override)
+//   TypeRegistry.register('float', CLSID_FloatEdit);
+//   const clsid = TypeRegistry.resolve('float'); // → CLSID_FloatEdit
 
-const defaults = new Map();  // typeId → clsid
+import PROPSTRING from '../dom-comps/prop-string.js'
+import PROPFLOAT from '../dom-comps/prop-float.js'
+
+const defaults = new Map();  // data typeId → view clsid
 
 export const TypeRegistry = {
 
-    registerDefault(typeId, clsid) {
+    register(typeId, clsid) {
         if (defaults.has(typeId)) {
             console.warn(`[TypeRegistry] Overwriting default for '${typeId}'`);
         }
         defaults.set(typeId, clsid);
     },
 
-    // layoutHint is the optional clsid from the layout config binding.
-    // If provided, it wins unconditionally.
-    resolve(typeId, layoutHint = null) {
-        if (layoutHint) return layoutHint;
+    resolve(typeId) {
         const clsid = defaults.get(typeId);
         if (!clsid) {
             console.warn(`[TypeRegistry] No component registered for type '${typeId}'`);
@@ -39,3 +38,6 @@ export const TypeRegistry = {
         console.table([...defaults.entries()].map(([typeId, clsid]) => ({ typeId, clsid })));
     }
 };
+
+TypeRegistry.register('string', PROPSTRING);
+TypeRegistry.register('number', PROPFLOAT);

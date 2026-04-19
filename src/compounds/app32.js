@@ -20,11 +20,6 @@ const $$ = DOM.create;
 const Simple = (str) => $$(SIMPLE, { title: str });
 const Button = (name, options) => $$(BUTTON, { name, ...options });
 
-const info = 'TreeView with button and status bar\n\n'
-    + 'Each section is its own component communicating via "connections".\n\n'
-    + 'Comparable to devices like amplifiers, speakers, phono, tape, ...'
-;
-
 const ctor = (args = {}) => {
     const status = Simple('no selection');
     const listview = $$(LISTVIEW, { itemClassId: LISTITEM });
@@ -37,10 +32,12 @@ const ctor = (args = {}) => {
     lv_toolbar.addMany([lv_add_item_button, lv_add_folder_button]);
     lv_toolbar.add(lv_delete_button, { align: 'right' });
     lv_add_item_button.on('clicked', b=>{
-        listview.add();
+        const item = listview.add();
+        listview.unfoldParent(item);
     });
     lv_add_folder_button.on('clicked', b => {
-        listview.add({ type: 'folder' });
+        const item = listview.add({ type: 'folder' });
+        listview.unfoldParent(item);
     });
     lv_delete_button.on('clicked', b => {
         listview.removeSelected();
@@ -75,7 +72,7 @@ const ctor = (args = {}) => {
         'path': 'p',
         'polygon': '⏢',
         'polyline': '☈',
-    }
+    };
 
     let parents = [];
     svgview.on('svg-node', (node) => {
@@ -105,12 +102,14 @@ const ctor = (args = {}) => {
         }
     });
     svgview.on('svg-loaded', () => {
-        console.log('[app33.ctor] on svg-loaded');
+        console.log('[app32] SVG loaded');
         
         listview.select(listview.get_first());
     });
     svgview.on('selected', (iface) => {
         console.log('svgview.on("selected")', iface.getName(), iface.getType());
+
+        svgview.select(iface);
 
         const item = iface2item.get(iface);
         listview.select(item);
@@ -130,7 +129,7 @@ const ctor = (args = {}) => {
                 tabbar.select(button);
                 const listitem = button2listitem.get(button);
                 listview.select(listitem);
-                svgview.isolateSelect2(listitem.iface);
+                svgview.select(listitem.iface);
             });
 
             tab.on('closed', (tab) => {
@@ -146,7 +145,7 @@ const ctor = (args = {}) => {
             tabbar.select(button);
         }
 
-        svgview.isolateSelect2(listitem.iface);
+        svgview.select(listitem.iface);
     });
 
     listview.on('removed-items', (listitems) => {
@@ -166,7 +165,7 @@ const ctor = (args = {}) => {
     
     return $$(APP).set(
         $$(TB, { ratio: 0 })
-            .setTop(Simple(info))
+            .setTop(Simple(description))
             .setBottom($$(TBS, { bottomHeight: 32 })
                 .setTop($$(LR, {minLeft: 0, ratio: 0.3})
                     .setLeft(listview_with_toolbar)
@@ -178,5 +177,10 @@ const ctor = (args = {}) => {
     ;
 };
 
-const clsid = DOM.registerCompound(ctor);
+const clsid = 'jsom.compounds.app32';
+const description = 'TreeView with button and status bar';
+
+const res = DOM.registerCompound(ctor, {
+    clsid, description, name: '3.2'
+});
 export default clsid;

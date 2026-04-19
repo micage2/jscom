@@ -19,24 +19,24 @@ import { DomRegistry as DOM } from '../dom-registry.js';
 import { TypeRegistry } from '../shared/type-registry.js';
 import { Node, IPropertyGroup, IProperty } from '../shared/mediator.js';
 
-import CLSID_FloatEdit  from '../dom-comps/prop-float.js';
-import CLSID_StringEdit from '../dom-comps/prop-string.js';
-import CLSID_BoolEdit   from '../dom-comps/prop-bool.js';
-import CLSID_NullView   from '../dom-comps/prop-null.js';
-import CLSID_PropsView  from '../dom-comps/props-view.js';
+import CLSID_FloatEdit  from './prop-float.js';
+import CLSID_StringEdit from './prop-string.js';
+import CLSID_BoolEdit   from './prop-bool.js';
+import CLSID_NullView   from './prop-null.js';
+import CLSID_PropsView  from './props-view.js';
 
 // ─── Type registry defaults ───────────────────────────────────────────────────
 // This is the axiomatic fixed-point layer: the default type→view map.
 // All JSON primitives covered. 'object' and 'array' both map to PropsView
 // since both are PropertyGroups — array just has numeric-string keys.
 
-TypeRegistry.registerDefault('float',   CLSID_FloatEdit);
-TypeRegistry.registerDefault('integer', CLSID_FloatEdit);   // integers use FloatEdit for now
-TypeRegistry.registerDefault('string',  CLSID_StringEdit);
-TypeRegistry.registerDefault('boolean', CLSID_BoolEdit);
-TypeRegistry.registerDefault('null',    CLSID_NullView);
-TypeRegistry.registerDefault('object',  CLSID_PropsView);
-TypeRegistry.registerDefault('array',   CLSID_PropsView);   // arrays render as collapsible groups
+TypeRegistry.register('float',   CLSID_FloatEdit);
+TypeRegistry.register('integer', CLSID_FloatEdit);   // integers use FloatEdit for now
+TypeRegistry.register('string',  CLSID_StringEdit);
+TypeRegistry.register('boolean', CLSID_BoolEdit);
+TypeRegistry.register('null',    CLSID_NullView);
+TypeRegistry.register('object',  CLSID_PropsView);
+TypeRegistry.register('array',   CLSID_PropsView);   // arrays render as collapsible groups
 
 
 // ─── JSON → Node tree ─────────────────────────────────────────────────────────

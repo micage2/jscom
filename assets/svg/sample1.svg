@@ -1,0 +1,180 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+
+  <!-- Root group: City Block -->
+  <g id="city-block">
+
+    <!-- Background -->
+    <rect id="bg" x="0" y="0" width="800" height="600" fill="#F5F5F5" />
+
+    <!-- Group: Outer Streets (with buildings) -->
+    <g id="outer-streets">
+
+      <!-- Top Street (Schumannstraße) -->
+      <g id="street-top">
+        <rect id="road-top" x="0" y="0" width="800" height="40" fill="#3D3D3D" />
+        <text id="label-top" x="400" y="20" font-family="Arial" font-size="12" fill="#FFFFFF" text-anchor="middle">Schumannstraße</text>
+        <path id="centerline-top" d="M0,20 H800" stroke="#FFFF00" stroke-width="2" stroke-dasharray="20,10" fill="none" />
+        <!-- Buildings along top street -->
+        <g id="buildings-top">
+          <g id="bldg-top-1">
+            <rect id="bldg-top-1-main" x="0" y="40" width="100" height="100" fill="#D3D3D3" />
+            <rect id="bldg-top-1-roof" x="5" y="45" width="90" height="90" fill="#C0C0C0" />
+            <text id="bldg-top-1-label" x="50" y="90" font-family="Arial" font-size="8" fill="#000" text-anchor="middle">Shop</text>
+          </g>
+          <g id="bldg-top-2">
+            <rect id="bldg-top-2-main" x="100" y="40" width="100" height="100" fill="#D3D3D3" />
+            <rect id="bldg-top-2-roof" x="105" y="45" width="90" height="90" fill="#C0C0C0" />
+            <text id="bldg-top-2-label" x="150" y="90" font-family="Arial" font-size="8" fill="#000" text-anchor="middle">Café</text>
+          </g>
+          <g id="bldg-top-3">
+            <rect id="bldg-top-3-main" x="200" y="40" width="100" height="100" fill="#D3D3D3" />
+            <rect id="bldg-top-3-roof" x="205" y="45" width="90" height="90" fill="#C0C0C0" />
+            <text id="bldg-top-3-label" x="250" y="90" font-family="Arial" font-size="8" fill="#000" text-anchor="middle">Office</text>
+          </g>
+          <!-- ... continue for full width -->
+        </g>
+      </g>
+
+      <!-- Right Street (Reinhardstraße) -->
+      <g id="street-right">
+        <rect id="road-right" x="760" y="0" width="40" height="600" fill="#3D3D3D" />
+        <text id="label-right" x="780" y="300" font-family="Arial" font-size="12" fill="#FFFFFF" transform="rotate(90 780,300)" text-anchor="middle">Reinhardstraße</text>
+        <path id="centerline-right" d="M780,0 V600" stroke="#FFFF00" stroke-width="2" stroke-dasharray="20,10" fill="none" />
+        <!-- Buildings along right street -->
+        <g id="buildings-right">
+          <g id="bldg-right-1">
+            <rect id="bldg-right-1-main" x="660" y="0" width="100" height="100" fill="#D3D3D3" />
+            <rect id="bldg-right-1-roof" x="665" y="5" width="90" height="90" fill="#C0C0C0" />
+            <text id="bldg-right-1-label" x="710" y="50" font-family="Arial" font-size="8" fill="#000" text-anchor="middle">Apartment</text>
+          </g>
+          <g id="bldg-right-2">
+            <rect id="bldg-right-2-main" x="660" y="100" width="100" height="100" fill="#D3D3D3" />
+            <rect id="bldg-right-2-roof" x="665" y="105" width="90" height="90" fill="#C0C0C0" />
+            <text id="bldg-right-2-label" x="710" y="150" font-family="Arial" font-size="8" fill="#000" text-anchor="middle">Store</text>
+          </g>
+          <!-- ... continue for full height -->
+        </g>
+      </g>
+
+      <!-- Bottom Street -->
+      <g id="street-bottom">
+        <rect id="road-bottom" x="0" y="560" width="800" height="40" fill="#3D3D3D" />
+        <text id="label-bottom" x="400" y="580" font-family="Arial" font-size="12" fill="#FFFFFF" text-anchor="middle">Unterbaumstraße</text>
+        <path id="centerline-bottom" d="M0,580 H800" stroke="#FFFF00" stroke-width="2" stroke-dasharray="20,10" fill="none" />
+        <!-- Buildings along bottom street -->
+        <g id="buildings-bottom">
+          <g id="bldg-bottom-1">
+            <rect id="bldg-bottom-1-main" x="0" y="460" width="100" height="100" fill="#D3D3D3" />
+            <rect id="bldg-bottom-1-roof" x="5" y="465" width="90" height="90" fill="#C0C0C0" />
+            <text id="bldg-bottom-1-label" x="50" y="510" font-family="Arial" font-size="8" fill="#000" text-anchor="middle">Garage</text>
+          </g>
+          <g id="bldg-bottom-2">
+            <rect id="bldg-bottom-2-main" x="100" y="460" width="100" height="100" fill="#D3D3D3" />
+            <rect id="bldg-bottom-2-roof" x="105" y="465" width="90" height="90" fill="#C0C0C0" />
+            <text id="bldg-bottom-2-label" x="150" y="510" font-family="Arial" font-size="8" fill="#000" text-anchor="middle">Workshop</text>
+          </g>
+          <!-- ... continue -->
+        </g>
+      </g>
+
+      <!-- Left Street -->
+      <g id="street-left">
+        <rect id="road-left" x="0" y="0" width="40" height="600" fill="#3D3D3D" />
+        <text id="label-left" x="20" y="300" font-family="Arial" font-size="12" fill="#FFFFFF" transform="rotate(90 20,300)" text-anchor="middle">Lindenstraße</text>
+        <path id="centerline-left" d="M20,0 V600" stroke="#FFFF00" stroke-width="2" stroke-dasharray="20,10" fill="none" />
+        <!-- Buildings along left street -->
+        <g id="buildings-left">
+          <g id="bldg-left-1">
+            <rect id="bldg-left-1-main" x="40" y="0" width="100" height="100" fill="#D3D3D3" />
+            <rect id="bldg-left-1-roof" x="45" y="5" width="90" height="90" fill="#C0C0C0" />
+            <text id="bldg-left-1-label" x="90" y="50" font-family="Arial" font-size="8" fill="#000" text-anchor="middle">Residence</text>
+          </g>
+          <g id="bldg-left-2">
+            <rect id="bldg-left-2-main" x="40" y="100" width="100" height="100" fill="#D3D3D3" />
+            <rect id="bldg-left-2-roof" x="45" y="105" width="90" height="90" fill="#C0C0C0" />
+            <text id="bldg-left-2-label" x="90" y="150" font-family="Arial" font-size="8" fill="#000" text-anchor="middle">Clinic</text>
+          </g>
+          <!-- ... continue -->
+        </g>
+      </g>
+
+    </g>
+
+    <!-- Group: Inner Block (shared space) -->
+    <g id="inner-block">
+
+      <!-- Shared green space -->
+      <g id="inner-park">
+        <rect id="park-bg" x="150" y="150" width="500" height="300" fill="#90EE90" />
+        <text id="park-label" x="400" y="300" font-family="Arial" font-size="10" fill="#000" text-anchor="middle">Shared Courtyard</text>
+        <!-- Trees in courtyard -->
+        <g id="trees-inner">
+          <g id="tree-1">
+            <rect id="trunk-1" x="200" y="200" width="6" height="20" fill="#8B4513" />
+            <circle id="foliage-1" cx="203" cy="190" r="18" fill="#2F4F2F" />
+          </g>
+          <g id="tree-2">
+            <rect id="trunk-2" x="300" y="250" width="6" height="20" fill="#8B4513" />
+            <circle id="foliage-2" cx="303" cy="240" r="18" fill="#2F4F2F" />
+          </g>
+          <g id="tree-3">
+            <rect id="trunk-3" x="400" y="200" width="6" height="20" fill="#8B4513" />
+            <circle id="foliage-3" cx="403" cy="190" r="18" fill="#2F4F2F" />
+          </g>
+          <g id="tree-4">
+            <rect id="trunk-4" x="500" y="250" width="6" height="20" fill="#8B4513" />
+            <circle id="foliage-4" cx="503" cy="240" r="18" fill="#2F4F2F" />
+          </g>
+        </g>
+      </g>
+
+      <!-- Bike racks -->
+      <g id="bike-racks">
+        <rect id="bike-rack-1" x="200" y="350" width="20" height="5" fill="#666666" />
+        <rect id="bike-rack-2" x="230" y="350" width="20" height="5" fill="#666666" />
+        <rect id="bike-rack-3" x="260" y="350" width="20" height="5" fill="#666666" />
+        <text id="bike-label" x="250" y="340" font-family="Arial" font-size="8" fill="#000" text-anchor="middle">Bikes</text>
+      </g>
+
+      <!-- Garbage area -->
+      <g id="garbage-area">
+        <rect id="garbage-bg" x="400" y="350" width="30" height="30" fill="#8B0000" />
+        <text id="garbage-label" x="415" y="370" font-family="Arial" font-size="8" fill="#FFFFFF" text-anchor="middle">🗑️</text>
+      </g>
+
+    </g>
+
+    <!-- Group: Street Furniture -->
+    <g id="street-furniture">
+
+      <!-- Parking spots along streets -->
+      <g id="parking-spots">
+        <g id="parking-1">
+          <rect id="parking-bg-1" x="50" y="20" width="15" height="15" fill="#FFD700" />
+          <text id="parking-text-1" x="57.5" y="30" font-family="Arial" font-size="8" fill="#000" text-anchor="middle">P</text>
+        </g>
+        <g id="parking-2">
+          <rect id="parking-bg-2" x="100" y="20" width="15" height="15" fill="#FFD700" />
+          <text id="parking-text-2" x="107.5" y="30" font-family="Arial" font-size="8" fill="#000" text-anchor="middle">P</text>
+        </g>
+        <!-- ... more parking spots -->
+      </g>
+
+      <!-- Street lights -->
+      <g id="street-lights">
+        <g id="light-1">
+          <rect id="post-1" x="100" y="20" width="3" height="20" fill="#333333" />
+          <circle id="lamp-1" cx="101.5" cy="15" r="5" fill="#FFD700" />
+        </g>
+        <g id="light-2">
+          <rect id="post-2" x="200" y="20" width="3" height="20" fill="#333333" />
+          <circle id="lamp-2" cx="201.5" cy="15" r="5" fill="#FFD700" />
+        </g>
+        <!-- ... more lights -->
+      </g>
+
+    </g>
+
+  </g>
+
+</svg>

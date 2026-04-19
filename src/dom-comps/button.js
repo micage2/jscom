@@ -39,7 +39,7 @@ const sheet = create_sheet(
  * @prop {string} [args.svg_file]
  * @prop {'default' | '2-state' | 'toggle'} [args.mode]
  */
-function ctor(args, call) {
+function ctor(args) {
     const svg_file = args.svg_file;
 
     const host = document.createElement('div');
@@ -59,23 +59,21 @@ function ctor(args, call) {
         button.textContent = button.name;
     }
     
-    const that = this; // otherwise <button> is 'this'
+    const that = this; // 'this' is <button> inside onclick, we need this == iface
     button.onclick = function (e) {
         if (args.mode === '2-state') {
             if (!button.classList.contains('activated')) {
                 button.classList.add('activated');
-                call('activated', that.as('Button'));
-                call('activated2', that.as('Button'));
+                that.emit('activated', that.as('Button'));
             }
         }
         else if (args.mode === 'toggle') {
             let state = button.classList
                 .contains('activated') ? 'state1' : 'state2'
             button.classList.toggle('activated');
-            call('toggled', that.as('Button'));
+            that.emit('toggled', that.as('Button'));
         }
         else {
-            // call('clicked', that.as('Button'));
             that.emit('clicked', that);
         }
     };
@@ -102,23 +100,13 @@ const IButtonFactory = function({button, svg_file}) {
     return IButton;
 }
 
-
-const clsid = DOM.register(ctor, function(role, action, reaction) {
+const clsid = 'jscom.dom-comps.button';
+const res = DOM.register(ctor, function(role) {
 
     role('Button', (self) => IButtonFactory(self), true);
 
-    // action('clicked');
-    // action('activated');
-    // action('activated2');
-    // action('toggled');
-
-    // reaction('activate', function({name, state}) {
-    //     this.select(state);
-    // });
-    // reaction('reset', function() {
-    //     this.reset();
-    // });
 }, {
+    clsid,
     name: 'Button',
     description: 'button with svg icon, fallback is text'
 });

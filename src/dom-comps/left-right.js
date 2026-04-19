@@ -89,7 +89,13 @@ const ILeftRight = (self) => ({
 });
 
 
-const class_id = DOM.register(ctor, (role, action, reaction) => {
+const info = {
+    clsid: 'jscom.dom-comps.left-right',
+    name: 'LR',
+    description: 'Vertical splitter that divides into left and right'
+};
+
+const res = DOM.register(ctor, (role) => {
     role('LeftRight', (self) => ILeftRight(self), true);
-});
-export default class_id;
+}, info);
+export default info.clsid;

@@ -9,10 +9,6 @@ const $$ = DOM.create;
 const Simple = (str) => $$(SIMPLE, { title: str });
 const Button = (name, options) => $$(BUTTON, { name, ...options });
 
-const info = 'Early SVG viewer for inspiration.\n\n' 
-    + '... mainly to test concepts. :)'
-;
-
 // svg files to load
 const SVG_FILE = "./assets/svg/wave_packet.svg";
 const ICON_PATH = './assets/icons/';
@@ -49,5 +45,12 @@ const ctor = (args = {}) => {
     ;
 };
 
-const clsid = DOM.registerCompound(ctor);
-export default clsid;
+const info = {
+    clsid: 'jscom.compounds.app81',
+    name: '8.1',
+    description: 'Early SVG viewer for inspiration.\n\n' 
+               + '... mainly to test concepts. :)'
+};
+
+const res = DOM.registerCompound(ctor, info);
+export default info.clsid;

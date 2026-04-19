@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+
+  <!-- Root group: City Block -->
+  <g id="city-block">
+
+    <!-- Group: Background (Grass/Parks) -->
+    <g id="background">
+      <rect id="grass" x="0" y="0" width="800" height="600" fill="#90EE90" />
+    </g>
+
+    <!-- Group: Streets & Sidewalks -->
+    <g id="streets">
+      <!-- Main horizontal street -->
+      <rect id="street-main-h" x="0" y="220" width="800" height="60" fill="#3D3D3D" />
+      <!-- Main vertical street -->
+      <rect id="street-main-v" x="280" y="0" width="60" height="600" fill="#3D3D3D" />
+      
+      <!-- Street markings (center lines) -->
+      <g id="street-markings">
+        <path id="line-horiz" d="M0 250 H800" stroke="#FFFF00" stroke-width="2" stroke-dasharray="20,10" />
+        <path id="line-vert" d="M310 0 V600" stroke="#FFFF00" stroke-width="2" stroke-dasharray="20,10" />
+      </g>
+
+      <!-- Sidewalks -->
+      <g id="sidewalks">
+        <rect id="sidewalk-n" x="0" y="200" width="800" height="20" fill="#C0C0C0" />
+        <rect id="sidewalk-s" x="0" y="280" width="800" height="20" fill="#C0C0C0" />
+        <rect id="sidewalk-w" x="260" y="0" width="20" height="600" fill="#C0C0C0" />
+        <rect id="sidewalk-e" x="340" y="0" width="20" height="600" fill="#C0C0C0" />
+      </g>
+    </g>
+
+    <!-- Group: Buildings (Rooftops) -->
+    <g id="buildings">
+
+      <!-- Group: Building NW (North-West) -->
+      <g id="building-nw">
+        <rect id="roof-nw-main" x="40" y="40" width="140" height="120" fill="#CD5C5C" />
+        <rect id="roof-nw-accent" x="50" y="50" width="120" height="100" fill="#E9967A" />
+        <!-- Roof details -->
+        <g id="roof-nw-details">
+          <rect id="chimney-nw" x="85" y="55" width="15" height="25" fill="#8B4513" />
+          <rect id="skylight-nw-1" x="60" y="75" width="20" height="20" fill="#87CEEB" />
+          <rect id="skylight-nw-2" x="100" y="100" width="20" height="20" fill="#87CEEB" />
+        </g>
+      </g>
+
+      <!-- Group: Building NE (North-East) -->
+      <g id="building-ne">
+        <rect id="roof-ne-main" x="420" y="40" width="140" height="120" fill="#4169E1" />
+        <rect id="roof-ne-accent" x="430" y="50" width="120" height="100" fill="#6495ED" />
+        <g id="roof-ne-details">
+          <rect id="chimney-ne" x="465" y="55" width="15" height="25" fill="#8B4513" />
+          <rect id="skylight-ne-1" x="440" y="75" width="20" height="20" fill="#87CEEB" />
+          <rect id="skylight-ne-2" x="480" y="100" width="20" height="20" fill="#87CEEB" />
+        </g>
+      </g>
+
+      <!-- Group: Building SW (South-West) -->
+      <g id="building-sw">
+        <rect id="roof-sw-main" x="40" y="380" width="140" height="120" fill="#DAA520" />
+        <rect id="roof-sw-accent" x="50" y="390" width="120" height="100" fill="#FFD700" />
+        <g id="roof-sw-details">
+          <rect id="chimney-sw" x="85" y="395" width="15" height="25" fill="#8B4513" />
+          <rect id="skylight-sw-1" x="60" y="415" width="20" height="20" fill="#87CEEB" />
+          <rect id="skylight-sw-2" x="100" y="440" width="20" height="20" fill="#87CEEB" />
+        </g>
+      </g>
+
+      <!-- Group: Building SE (South-East) -->
+      <g id="building-se">
+        <rect id="roof-se-main" x="420" y="380" width="140" height="120" fill="#228B22" />
+        <rect id="roof-se-accent" x="430" y="390" width="120" height="100" fill="#32CD32" />
+        <g id="roof-se-details">
+          <rect id="chimney-se" x="465" y="395" width="15" height="25" fill="#8B4513" />
+          <rect id="skylight-se-1" x="440" y="415" width="20" height="20" fill="#87CEEB" />
+          <rect id="skylight-se-2" x="480" y="440" width="20" height="20" fill="#87CEEB" />
+        </g>
+      </g>
+
+    </g>
+
+    <!-- Group: Street Furniture & Vegetation -->
+    <g id="street-furniture">
+
+      <!-- Group: Trees (Better shapes with trunks & foliage) -->
+      <g id="trees">
+
+        <!-- Tree NW -->
+        <g id="tree-nw">
+          <rect id="trunk-nw" x="170" y="140" width="8" height="25" fill="#8B4513" />
+          <circle id="foliage-nw-main" cx="174" cy="130" r="22" fill="#2F4F2F" />
+          <circle id="foliage-nw-left" cx="156" cy="140" r="16" fill="#3CB371" />
+          <circle id="foliage-nw-right" cx="192" cy="140" r="16" fill="#3CB371" />
+        </g>
+
+        <!-- Tree NE -->
+        <g id="tree-ne">
+          <rect id="trunk-ne" x="610" y="140" width="8" height="25" fill="#8B4513" />
+          <circle id="foliage-ne-main" cx="614" cy="130" r="22" fill="#2F4F2F" />
+          <circle id="foliage-ne-left" cx="596" cy="140" r="16" fill="#3CB371" />
+          <circle id="foliage-ne-right" cx="632" cy="140" r="16" fill="#3CB371" />
+        </g>
+
+        <!-- Tree SW -->
+        <g id="tree-sw">
+          <rect id="trunk-sw" x="170" y="380" width="8" height="25" fill="#8B4513" />
+          <circle id="foliage-sw-main" cx="174" cy="370" r="22" fill="#2F4F2F" />
+          <circle id="foliage-sw-left" cx="156" cy="380" r="16" fill="#3CB371" />
+          <circle id="foliage-sw-right" cx="192" cy="380" r="16" fill="#3CB371" />
+        </g>
+
+        <!-- Tree SE -->
+        <g id="tree-se">
+          <rect id="trunk-se" x="610" y="380" width="8" height="25" fill="#8B4513" />
+          <circle id="foliage-se-main" cx="614" cy="370" r="22" fill="#2F4F2F" />
+          <circle id="foliage-se-left" cx="596" cy="380" r="16" fill="#3CB371" />
+          <circle id="foliage-se-right" cx="632" cy="380" r="16" fill="#3CB371" />
+        </g>
+
+      </g>
+
+      <!-- Group: Street Lights -->
+      <g id="street-lights">
+        <g id="light-nw">
+          <rect id="post-nw" x="125" y="250" width="4" height="35" fill="#333333" />
+          <circle id="lamp-nw" cx="127" cy="245" r="8" fill="#FFD700" />
+        </g>
+        <g id="light-ne">
+          <rect id="post-ne" x="545" y="250" width="4" height="35" fill="#333333" />
+          <circle id="lamp-ne" cx="547" cy="245" r="8" fill="#FFD700" />
+        </g>
+        <g id="light-sw">
+          <rect id="post-sw" x="125" y="250" width="4" height="35" fill="#333333" />
+          <circle id="lamp-sw" cx="127" cy="245" r="8" fill="#FFD700" />
+        </g>
+        <g id="light-se">
+          <rect id="post-se" x="545" y="250" width="4" height="35" fill="#333333" />
+          <circle id="lamp-se" cx="547" cy="245" r="8" fill="#FFD700" />
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

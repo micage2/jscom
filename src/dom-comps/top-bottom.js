@@ -94,7 +94,16 @@ function ctor(args = {}) {
     };
 }
 
-const class_id = DOM.register(ctor, (role, action, reaction) => {
+// ==================== Registration ======================
+//
+const info = {
+    clsid: 'jscom.dom-comps.top-bottom',
+    name: 'TopBottom',
+    description: 'Dynamic horizontal splitter'
+};
+
+const res = DOM.register(ctor, (role) => {
     role('TopBottom', (self) => ITopBottom(self), true);
-});
-export default class_id;
+}, info);
+
+export default info.clsid;

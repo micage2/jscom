@@ -1,0 +1,113 @@
+<!-- assets/svg/sample3.svg -->
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+
+  <!-- Root group: Map -->
+  <g id="map">
+
+    <!-- Background -->
+    <rect id="bg" x="0" y="0" width="800" height="600" fill="#F5F5F5" />
+
+    <!-- Streets -->
+    <g id="streets">
+
+      <!-- Schumannstraße (curved, simplified) -->
+      <g id="street-schumann">
+        <path id="road-schumann" d="M0,200 C100,210 200,190 300,200 C400,210 500,190 600,200 C700,210 800,190 800,200 L800,240 L0,240 Z" fill="#E0E0E0" />
+        <text id="label-schumann" x="400" y="220" font-family="Arial" font-size="12" fill="#333" text-anchor="middle">Schumannstraße</text>
+        <path id="centerline-schumann" d="M0,220 C100,225 200,215 300,220 C400,225 500,215 600,220 C700,225 800,215 800,220" stroke="#AAAAAA" stroke-width="2" stroke-dasharray="15,5" fill="none" />
+      </g>
+
+      <!-- Reinhardstraße (straight) -->
+      <g id="street-reinhard">
+        <rect id="road-reinhard" x="300" y="0" width="40" height="600" fill="#E0E0E0" />
+        <text id="label-reinhard" x="320" y="300" font-family="Arial" font-size="12" fill="#333" transform="rotate(90 320,300)" text-anchor="middle">Reinhardstraße</text>
+        <path id="centerline-reinhard" d="M320,0 L320,600" stroke="#AAAAAA" stroke-width="2" stroke-dasharray="15,5" fill="none" />
+      </g>
+
+      <!-- Unterbaumstraße (short, angled) -->
+      <g id="street-unterbaum">
+        <path id="road-unterbaum" d="M0,100 L300,120 L300,140 L0,120 Z" fill="#E0E0E0" />
+        <text id="label-unterbaum" x="150" y="115" font-family="Arial" font-size="10" fill="#333" text-anchor="middle">Unterbaumstraße</text>
+      </g>
+
+    </g>
+
+    <!-- Buildings -->
+    <g id="buildings">
+
+      <!-- Irregular building 1 -->
+      <g id="building-1">
+        <path id="bldg-1-shape" d="M50,50 L120,45 L130,100 L60,110 Z" fill="#D3D3D3" />
+        <path id="bldg-1-roof" d="M55,55 L115,50 L125,95 L65,105 Z" fill="#C0C0C0" />
+        <text id="bldg-1-label" x="85" y="80" font-family="Arial" font-size="8" fill="#000" text-anchor="middle">Haus</text>
+      </g>
+
+      <!-- Building 2 (with curve) -->
+      <g id="building-2">
+        <path id="bldg-2-shape" d="M450,50 C470,55 490,45 510,50 L510,110 C490,115 470,105 450,110 Z" fill="#D3D3D3" />
+        <path id="bldg-2-roof" d="M455,55 C470,60 490,50 505,55 L505,105 C490,110 470,100 455,105 Z" fill="#C0C0C0" />
+        <text id="bldg-2-label" x="480" y="80" font-family="Arial" font-size="8" fill="#000" text-anchor="middle">Café</text>
+      </g>
+
+      <!-- Building 3 (angled) -->
+      <g id="building-3">
+        <path id="bldg-3-shape" d="M50,350 L110,345 L120,400 L60,405 Z" fill="#D3D3D3" />
+        <path id="bldg-3-roof" d="M55,355 L105,350 L115,395 L65,400 Z" fill="#C0C0C0" />
+        <text id="bldg-3-label" x="85" y="380" font-family="Arial" font-size="8" fill="#000" text-anchor="middle">Shop</text>
+      </g>
+
+      <!-- Building 4 (complex shape) -->
+      <g id="building-4">
+        <path id="bldg-4-shape" d="M450,350 L480,345 L500,360 L490,390 L460,400 L440,380 Z" fill="#D3D3D3" />
+        <path id="bldg-4-roof" d="M455,355 L475,350 L490,365 L480,385 L465,395 L445,385 Z" fill="#C0C0C0" />
+        <text id="bldg-4-label" x="470" y="380" font-family="Arial" font-size="8" fill="#000" text-anchor="middle">Theater</text>
+      </g>
+
+    </g>
+
+    <!-- Parks & Green Spaces -->
+    <g id="green-spaces">
+
+      <!-- Karlplatz (irregular shape) -->
+      <g id="park-karlplatz">
+        <path id="park-bg" d="M350,250 C370,260 390,240 410,250 C430,260 450,240 470,250 C490,260 510,240 530,250 L530,330 C510,340 490,320 470,330 C450,340 430,320 410,330 C390,340 370,320 350,330 Z" fill="#90EE90" />
+        <text id="park-label" x="440" y="290" font-family="Arial" font-size="10" fill="#000" text-anchor="middle">Karlplatz</text>
+        <!-- Tree in park -->
+        <g id="tree-park">
+          <rect id="trunk-park" x="430" y="280" width="6" height="20" fill="#8B4513" />
+          <circle id="foliage-park" cx="433" cy="270" r="18" fill="#2F4F2F" />
+        </g>
+      </g>
+
+      <!-- Small green area -->
+      <g id="green-area-1">
+        <path id="green-bg-1" d="M100,150 C110,155 120,145 130,150 L130,170 C120,175 110,165 100,170 Z" fill="#98FB98" />
+      </g>
+
+    </g>
+
+    <!-- Icons -->
+    <g id="icons">
+
+      <!-- Parking icon -->
+      <g id="icon-parking-1">
+        <rect id="parking-bg-1" x="200" y="210" width="12" height="12" fill="#FFD700" />
+        <text id="parking-text-1" x="206" y="220" font-family="Arial" font-size="8" fill="#000" text-anchor="middle">P</text>
+      </g>
+
+      <!-- Restaurant icon -->
+      <g id="icon-restaurant-1">
+        <rect id="rest-bg-1" x="500" y="110" width="12" height="12" fill="#FF6347" />
+        <text id="rest-text-1" x="506" y="120" font-family="Arial" font-size="8" fill="#FFF" text-anchor="middle">R</text>
+      </g>
+
+      <!-- Tree icon -->
+      <g id="icon-tree-1">
+        <circle id="tree-icon-bg" cx="150" cy="300" r="8" fill="#2F4F2F" />
+      </g>
+
+    </g>
+
+  </g>
+
+</svg>

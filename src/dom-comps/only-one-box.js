@@ -68,16 +68,17 @@ const IOnlyOneBoxFactory = function({ box, roots, active_root }) {
     return IOnlyOneBox;
 }
 
-const clsid = DOM.register(ctor, function(role, action, reaction) {
+const info = {
+    clsid: 'jscom.dom-comps.only-one-box',
+    description: 'Only selected compound is attached',
+    name: 'OnlyOneBox'
+};
+
+const res = DOM.register(ctor, function(role) {
+
     role("Box", self => IOnlyOneBoxFactory(self), true);
 
-    reaction('select', function(name) {
-        // console.log(`${payload}`);
-        this.select(name);
-    });
-}, {
-    name: 'OnlyOneBox',
-    description: 'Only one of the roots is attached'
-});
+}, info);
+if (!res) console.log('[only-one-box] Registration failed.', clsid);
 
-export default clsid;
+export default info.clsid;

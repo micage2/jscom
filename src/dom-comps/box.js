@@ -1,7 +1,8 @@
 import { DomRegistry as DOM } from '../dom-registry.js';
-import { create_sheet, makeFragment } from '../shared/dom-helper.js';
+import { makeFragment } from '../shared/dom-helper.js';
 
-const sheet = create_sheet(`
+const fragment = makeFragment(`
+<style>
 :host {
     display: flex;
     flex-direction: row;
@@ -84,9 +85,7 @@ bkup{
 ::slotted([slot="right"]) {
     margin-left: auto;
 }
-`);
-
-const fragment = makeFragment(`
+</style>
 <div class="container">
     <div class="content">
         <slot name="left"></slot>
@@ -105,7 +104,6 @@ function ctor(args) {
     const host = document.createElement('div');
     host.style.setProperty('--sb-height', `${sbHeight}px`);
     const shadow = host.attachShadow({ mode: 'closed' });
-    shadow.adoptedStyleSheets.push(sheet);
     shadow.appendChild(fragment.cloneNode(true));
 
     const container = shadow.querySelector('.container');
@@ -270,20 +268,16 @@ const IBoxFactory = function ({ slot_left, selected, members, updateScroll }) {
     return IBox;
 }
 
+const info = {
+    clsid: 'jscom.dom-comps.box',
+    name: 'Box',
+    description: 'Container for Buttons and more ...'
+};
+
 const clsid = DOM.register(ctor, function (role, action, reaction) {
 
     role("Box", self => IBoxFactory(self), true);
 
-    // action('button-state');
+}, info);
 
-    // reaction('button-select', function (btn) {
-    //     this.select(btn);
-    // });
-
-
-
-}, {
-    name: 'Box',
-    description: 'Container for Buttons and more ...'
-});
-export default clsid;
+export default info.clsid;

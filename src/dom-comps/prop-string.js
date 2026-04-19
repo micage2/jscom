@@ -66,8 +66,17 @@ function ctor({ prop, config = {} }) {
 
 const IStringEdit = (self) => ({});
 
-const clsid = DOM.register(ctor, function (role) {
-    role('StringEdit', self => IStringEdit(self), true);
-});
+// ==================== Registration ======================
+//
+const info = {
+    clsid: 'jscom.dom-comps.prop-string',
+    name: 'PropString',
+    description: 'Atomic view to edit a string',
+    type: 'string'
+};
 
-export default clsid;
+const res = DOM.register(ctor, function (role) {
+    role('StringEdit', self => IStringEdit(self), true);
+}, info);
+
+export default info.clsid;

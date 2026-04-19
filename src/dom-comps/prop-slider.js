@@ -53,7 +53,7 @@ function ctor({ prop, config={} }) {
     self.prop = prop;
     
     const name = prop.getName();
-    const prop_value = prop.getValue();
+    const prop_value = prop.get();
     const { min = 0, max = 1, step = .01 } = config;
 
     self.host = document.createElement('div');
@@ -76,9 +76,7 @@ function ctor({ prop, config={} }) {
     self.input.oninput = (e) => {
         // the plus converts value to number
         self.output.value = +self.input.value;
-        self.prop.setValue(+self.input.value);
-        // self.output.value = +e.target.value;
-        // self.prop.setValue(+e.target.value);
+        self.prop.set(+self.input.value);
     }
 
     self.prop.on('value-changed', ({newValue, oldValue}) => {
@@ -95,10 +93,20 @@ function ctor({ prop, config={} }) {
 const IPropSlider = (self) => ({
 });
 
-const clsid = DOM.register(ctor, function(role, action, reaction) {
+
+// ==================== Registration ======================
+//
+const info = {
+    clsid: 'jscom.dom-comps.prop-slider',
+    name: 'PropSlider',
+    description: 'Atomic view with a slider to edit a number',
+    type: 'number'
+};
+
+const res = DOM.register(ctor, function(role) {
     
     role("PropSlider", self => IPropSlider(self), true);
     
-});
+}, info);
 
-export default clsid;
+export default info.clsid;

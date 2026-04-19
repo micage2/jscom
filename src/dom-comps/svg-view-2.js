@@ -12,6 +12,7 @@ import {
     ISVGDocument,
     ISVGPath
 } from '../shared/svg.js'
+import { GroupProperty } from '../shared/property.js'
 
 /*
     emits:
@@ -183,7 +184,7 @@ function ready({ svg, iface2elem, elem2iface, selected, options }) {
 
         realTarget = e.target;
 
-        console.log('pointer down', e.target);
+        // console.log('pointer down', e.target);
     });
 
     document.addEventListener("pointermove", (e) => {
@@ -215,12 +216,11 @@ function ready({ svg, iface2elem, elem2iface, selected, options }) {
         if (!hasMoved) {
             let target = e.target;
 
-            const composedPath = e.composedPath();
-
             const iface = elem2iface.get(realTarget);
-            console.log('pointerup', e.target, realTarget);
-            if (iface)
+            if (iface) {
+                // console.log(realTarget);
                 this.emit('selected', iface);
+            }
         }
 
     });
@@ -263,7 +263,7 @@ function ready({ svg, iface2elem, elem2iface, selected, options }) {
         // pre-order visitor
         this.emit('svg-node', {
             type: node.elem.nodeName,
-            name: node.elem.getAttribute('name'),
+            name: node.elem.getAttribute('name') || node.elem.id,
             depth: node.depth,
             num_children: node.num_children,
             is_last: node.is_last,
@@ -287,7 +287,7 @@ function ready({ svg, iface2elem, elem2iface, selected, options }) {
     }
 }
 
-function ctor(args = {}) {
+function ctor({ prop, config = {} }) {
     const host = document.createElement('div');
     const shadow = host.attachShadow({ mode: 'closed' });
     shadow.adoptedStyleSheets.push(sheet);
@@ -319,9 +319,11 @@ const ISVGViewFactory = ({ shadow, doc, svg, iface2elem, elem2iface, selected })
                 load_file(myfile).then((str) => {
                     doc.innerHTML = str;
                     svg = shadow.querySelector('svg');
+                    svg.name = myfile;
 
                     ready.call(this, { svg, iface2elem, elem2iface, selected, options });
-                    this.emit('svg-loaded');
+                    // this.emit('svg-loaded');
+                    this.emit('svg-loaded', new GroupProperty(myfile));
                 });
             }
             else {
@@ -351,7 +353,7 @@ const ISVGViewFactory = ({ shadow, doc, svg, iface2elem, elem2iface, selected })
             }
         },
 
-        isolateSelect2(iface) {
+        select(iface) {
             if (!iface) return;
             if (!svg) return;
 
@@ -381,7 +383,13 @@ const ISVGViewFactory = ({ shadow, doc, svg, iface2elem, elem2iface, selected })
     };
 };
 
-const clsid = DOM.register(ctor, function (role, action, reaction) {
+const info = {
+    clsid: 'jscom.dom-comps.svg-view-2',
+    name: 'SVGView',
+    description: 'SVG view with pan and zoon'
+};
+
+const clsid = DOM.register(ctor, function (role) {
     role("SVGView", self => ISVGViewFactory(self), true);
-});
-export default clsid;
+}, info);
+export default info.clsid;

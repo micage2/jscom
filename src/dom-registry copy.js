@@ -107,7 +107,7 @@ export const DomRegistry = {
             return null;
         }
 
-        // Create pure public interface object
+        // create public interface object
         const iface = {
             // uid: crypto.randomUUID(),
             uid: gen_id(),
@@ -136,39 +136,14 @@ export const DomRegistry = {
                 return iface;
             },
 
-            _call: function (functionName, args = {}) {
-                const key = `${this.uid}:${functionName}`;
-                const conn = connections.get(key);
-                if (!conn) { // inactive
-                    const info = klass.info;
-                    // console.info(`No connection for '${functionName}' on ${info.name || this.type} #${this.uid}`);
-                    return null;
-                }
-
-                const sink_klass = klasses.get(conn.sinkIface.type);
-                const sink_func = sink_klass.reactions.get(conn.sinkFuncName);
-                if (typeof sink_func !== 'function') {
-                    console.error('Sink is not a function: ' + sink_klass.info);                    
-                    return null;
-                }
-
-                // klass.mediator.emit(functionName, args);
-
-                const transformed_args = typeof conn.transformer === 'function' 
-                    ? conn.transformer(args) : args;
-
-                return sink_func.bind(conn.sinkIface)(transformed_args);
-            },
-
-            emit(msg, payload = null) {
+            emit(msg, payload = null) { 
                 this.mediator.emit(msg, payload);
             },
-
-            // add reaction to klass
             on(pin, cb) {
-                // klass: { ctor, roles, actions, reactions, default_role, info }
-                // source klass is our own (already in closure)
                 this.mediator.on(pin, cb);
+            },
+            once(pin, cb) {
+                this.mediator.once(pin, cb);
             }
         };
 

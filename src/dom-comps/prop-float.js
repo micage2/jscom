@@ -43,7 +43,7 @@ function ctor({ prop, config = {} }) {
     self.prop = prop;
 
     const name      = prop.getName();
-    const value     = prop.getValue();
+    const value     = prop.get();
     const { step = 0.01 } = config;
 
     self.host   = document.createElement('div');
@@ -78,8 +78,17 @@ function ctor({ prop, config = {} }) {
 
 const IFloatEdit = (self) => ({});
 
+// ==================== Registration ======================
+//
+const info = {
+    clsid: 'jscom.dom-comps.prop-float',
+    name: 'PropFloat',
+    description: 'Atomic view to edit a floating-point number',
+    type: 'number'
+};
+
 const clsid = DOM.register(ctor, function (role) {
     role('FloatEdit', self => IFloatEdit(self), true);
-});
+}, info);
 
-export default clsid;
+export default info.clsid;

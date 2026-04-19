@@ -103,6 +103,11 @@ const IAppNode = function(node) {
             if (child) return IAppNode(child);
             else return null;
         },
+
+        getChildren() {
+            return node.children;
+        },
+
         forChildren(cb) {
             for(let i = node.children.length-1; i >= 0 ; i--) {
                 cb(node.children[i]);

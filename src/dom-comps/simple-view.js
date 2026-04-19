@@ -36,7 +36,7 @@ function ctor(args = {}) {
     // this action call is for testing this comp as a ListItem
     const that = this;
     simple.onclick = function(e) {
-        that.call('selected', that.uid);
+        that.emit('selected', that);
     }
 
     const status = shadow.querySelector('.status');
@@ -69,22 +69,15 @@ const ISimpleViewFactory = ({simple, status, initial_text}) => {
     };
 };
 
-const clsid = DOM.register(ctor, function(role, action, reaction) {
+const info = {
+    clsid: 'jscom.dom-comps.simple-view',
+    name: 'SimpleView',
+    description: 'Simple view'
+};
+
+const res = DOM.register(ctor, function(role) {
     
     role("SimpleView", self => ISimpleViewFactory(self), true);
 
-    action('selected'); // for test as a ListItem
-
-    reaction('title', function(text) {
-        this.set_title(text);
-    });
-    reaction('timed', function(text) {
-        this.set_timed(text);
-    });
-    reaction('set-text-3', function(text) {
-        this.set_title(text);
-    });
-}, {
-    name: 'SimpleView'
-});
-export default clsid;
+}, info);
+export default info.clsid;

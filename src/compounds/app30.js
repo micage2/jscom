@@ -111,5 +111,9 @@ const ctor = (args = {}) => {
     );
 };
 
-const clsid = DOM.registerCompound(ctor);
+const clsid = 'jsom.compounds.app30';
+const description = 'A tree view with a toolbar';
+const res = DOM.registerCompound(ctor, {
+    clsid, description, name: '3.0'
+});
 export default clsid;

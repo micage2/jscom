@@ -6,7 +6,8 @@ import TB from '../dom-comps/top-bottom.js'
 const $$ = DOM.create;
 const Simple = (str) => $$(SIMPLE, { title: str });
 
-const info = 'Dynamic left-right split.\n\n' 
+const clsid = 'jsom.compounds.app1.0';
+const description = 'Dynamic left-right split.\n\n' 
     + 'The layout always consumes the entire screen.'
 ;
 
@@ -17,9 +18,10 @@ const ctor = (args = {}) => {
     );
 
     return $$(TB, { ratio: 0.0 })
-        .setTop(Simple(info))
+        .setTop(Simple(description))
         .setBottom(main)
 };
 
-const clsid = DOM.registerCompound(ctor);
+const res = DOM.registerCompound(ctor, { clsid, description });
+if (!res) console.log('[app10] Registration failed', clsid);
 export default clsid;

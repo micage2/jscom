@@ -1,9 +1,11 @@
 import { Create, Register } from '../registry.js';
 import { DomRegistry as DOM } from '../dom-registry.js';
 import { makeFragment } from '../shared/dom-helper.js';
-import TREE from '../shared/Tree-mmm.js';
-import { Node, IPropertyGroup } from '../shared/mediator.js';
 // import { junk } from '../shared/TreeTestData.js';
+import TREE from '../shared/Tree-mmm.js';
+// import { Node, IPropertyGroup } from '../shared/mediator.js';
+import { TypeRegistry, TYPE_GROUP } from '../shared/property.js';
+import { Node } from '../shared/node.js';
 import BUTTON from './button.js'
 
 const fragment = makeFragment(`
@@ -134,8 +136,8 @@ function obj2tree(tree, obj) {
         if (type !== 'group') continue;
 
         const entries = Object.entries(entry.val);
-        // for(let i = entries.length - 1; i >= 0; i--) {
-        for (let i = 0; i < entries.length; i++) {
+        for(let i = entries.length - 1; i >= 0; i--) {
+        // for (let i = 0; i < entries.length; i++) {
             const [key, val] = entries[i];
 
             // skip metadata
@@ -204,8 +206,7 @@ function ctor(args) {
 
     self.project_name = args.name ?? 'no-name'
 
-    self.tree = Create(TREE, 'AppNode', { name: self.project_name });
-    self.prop = new IPropertyGroup(self.tree);
+    self.props = TypeRegistry.create(TYPE_GROUP, self.project_name);
 
     const that = this;
     self.upload.addEventListener('change', function (e) {
@@ -251,6 +252,7 @@ const IApp = (self) => ({
         DOM.attach(content, this, { slot: 'content' });
         return this;
     },
+    
     load: () => {
         self.upload.click(); // starts user upload
     },
@@ -265,13 +267,14 @@ const IApp = (self) => ({
             link.click();
         });
     },
+
     from_obj(obj) {
         obj2tree(self.tree, obj);
-        return self.prop;
+        return self.props;
     },
 
-    prop: self.prop,
-    // tree: self.tree,
+    props: self.props,
+
     log() {
         self.tree.traverse((P, info) => {
             const indent = '  '.repeat(info?.depth);
@@ -280,10 +283,11 @@ const IApp = (self) => ({
     }
 });
 
-
-const clsid = DOM.register(ctor, function (role, action, reaction) {
+const clsid = 'jscom.comp.App';
+DOM.register(ctor, function (role) {
     role("App", self => IApp(self), true);
 }, {
+    clsid,
     name: 'App',
     description: 'Container with serialization support'
 });

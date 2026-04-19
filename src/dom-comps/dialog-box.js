@@ -249,14 +249,21 @@ const IDialogBoxCtor = function ({ slot_left, selected, members, updateScroll })
         has(elem) { return members.includes(elem); },
     };
     return IDialogBox;
-}
+};
 
-const clsid = DOM.register(ctor, function (role) {
+
+// ==================== Registration ======================
+//
+const info = {
+    clsid: 'jscom.dom-comps.dialog-box',
+    name: 'DialogBox',
+    description: 'Container for Buttons and more ...'
+};
+
+const res = DOM.register(ctor, function (role) {
 
     role("DialogBox", self => IDialogBoxCtor(self), true);
 
-}, {
-    name: 'DialogBox',
-    description: 'Container for Buttons and more ...'
-});
-export default clsid;
+}, info);
+
+export default info.clsid;

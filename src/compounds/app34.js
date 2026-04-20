@@ -1,11 +1,9 @@
 import { DomRegistry as DOM } from '../dom-registry.js';
-import { Mediator } from '../shared/mediator.js';
 import APP from '../dom-comps/app_with_store.js'
 import SIMPLE from '../dom-comps/simple-view.js'
 import LR from '../dom-comps/left-right.js'
 import TB from '../dom-comps/top-bottom.js'
 import TBS from '../dom-comps/top-bottom-static.js'
-// import LISTVIEW from '../dom-comps/list-view.js'
 import LISTVIEW from '../dom-comps/list-view-2.js'
 import LISTITEM from '../dom-comps/list-item-2.js'
 import BOX from '../dom-comps/box.js'
@@ -17,9 +15,10 @@ import PROPSVIEW from '../dom-comps/props-view.js'
 import {TYPE_SVG_FILE} from '../shared/svg_property.js'
 
 const ICON_PATH = './assets/icons/';
-const SVG_PATH = './assets/svg/world.svg';
+// const SVG_PATH = './assets/svg/world.svg';
+// const SVG_PATH = './.private/eberswalder1.svg';
 // const SVG_PATH = './assets/svg/Eberswalder9_opt2.svg';
-// const SVG_PATH = './assets/svg/sample1.svg';
+const SVG_PATH = './assets/svg/sample1.svg';
 const path2name = (path) => path.split('/').at(-1);
 const strip_ext = (filename) => filename.split('.')[0];
 
@@ -68,6 +67,16 @@ function createToolbar(listview) {
     return lv_toolbar;
 }
 
+function createTabsView() {
+    const only1box = $$(ONLYONEBOX);
+    const tabsbar = $$(BOX);
+    const tabsview = $$(TBS)
+        .setTop(tabsbar)
+        .setBottom(only1box)
+    ;
+    return tabsview;
+}
+
 function createLeftSide(props) {
     views.treeview = $$(LISTVIEW, {
         props, config: { item_clsid: LISTITEM }
@@ -87,7 +96,6 @@ function createLeftSide(props) {
                 svgviewready = true;
             });
         }
-
     });
 
     return $$(TBS).setTop(toolbar).setBottom(views.treeview);
@@ -107,7 +115,7 @@ function createRightSide(svgprop) {
     });
     views.svgview = svgview;
     
-    return $$(TB).setTop(svgview).setBottom(views.propsview);
+    return $$(TB, { ratio: .7 }).setTop(svgview).setBottom(views.propsview);
 }
 
 const ctor = (args = {}) => {
@@ -134,7 +142,7 @@ const ctor = (args = {}) => {
         });
     });
 
-    const lr = $$(LR)
+    const lr = $$(LR, { ratio: .2 })
         .setLeft(createLeftSide(svgprop))
         .setRight(createRightSide(svgprop))
     ;

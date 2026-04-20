@@ -137,7 +137,10 @@ function init(self) {
 }
 
 const IListViewFactory = (self) => ({
-    removeSelected() {},
+    // TODO:  check that item isn't displayed anywhere else
+    removeSelected() {
+        // self.selectedItem
+    }, 
     select(prop) {
         const item = findItem(self, prop);
         selectItem(self, item);

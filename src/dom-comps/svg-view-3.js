@@ -7,6 +7,8 @@ import {
     load_file
 } from '../shared/dom-helper.js';
 
+const SVGNS = 'http://www.w3.org/2000/svg';
+
 /*
     emits:
         'selected',
@@ -123,6 +125,10 @@ function ctor({ prop, config = {} }) {
     };
 }
 
+function createSelectionGroup(self) {
+    return document.createElementNS(SVGNS, 'g');
+}
+
 function init(self) {
     const MOVE_THRESHOLD = 5;
     let hasMoved = false; 
@@ -131,6 +137,8 @@ function init(self) {
     let realTarget = null;
 
     const svg = self.prop.get(); // SVGSVGElement
+
+    createSelectionGroup(self);
     
     svg.addEventListener("pointerdown", (e) => {
         isPanning = true;

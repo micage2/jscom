@@ -38,7 +38,7 @@ function ctor({ prop, config = {} }) {
     self.prop = prop;
 
     const name  = prop.getName();
-    const value = prop.getValue();
+    const value = prop.get();
 
     self.host   = document.createElement('div');
     self.shadow = self.host.attachShadow({ mode: 'closed' });
@@ -51,7 +51,7 @@ function ctor({ prop, config = {} }) {
     self.input.value       = value ?? '';
 
     self.input.oninput = (e) => {
-        self.prop.setValue(e.target.value);  // string, no coercion
+        self.prop.set(e.target.value);  // string, no coercion
     };
 
     self.prop.on('value-changed', ({ newValue }) => {

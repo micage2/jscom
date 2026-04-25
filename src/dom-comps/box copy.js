@@ -1,8 +1,7 @@
 import { DomRegistry as DOM } from '../dom-registry.js';
 import { create_sheet } from '../shared/dom-helper.js';
 
-const sheet = create_sheet(
-    `
+const sheet = create_sheet(`
 :host {
     display: flex;
     flex-direction: row;

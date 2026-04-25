@@ -11,6 +11,7 @@ import './compounds/app31.js';
 import './compounds/app32.js';
 import './compounds/app33.js';
 import './compounds/app34.js';
+import './compounds/app35.js';
 // import './compounds/app70.js';
 // import './compounds/app80.js';
 import './compounds/app81.js';
@@ -24,7 +25,7 @@ const mapAsc = new Map([...compounds.entries()].sort((a, b) => {
 
 const app = DOM.createCompound(APPSWITCH, {
     apps:  mapAsc,
-    start: '3.4',
+    start: '3.5',
 });
 
 DOM.mount(app);

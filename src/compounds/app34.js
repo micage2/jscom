@@ -37,7 +37,7 @@ const icons = {
 const views = {
     treeview: null,
     propsview: null,
-    svgview: null,
+    svg: null,
 };
 
 
@@ -77,9 +77,13 @@ function createTabsView() {
     return tabsview;
 }
 
-function createLeftSide(props) {
+function createLeftSide(prop) {
     views.treeview = $$(LISTVIEW, {
-        props, config: { item_clsid: LISTITEM }
+        prop, 
+        config: {
+            item_clsid: LISTITEM,
+            filter: (prop) => prop.isGroup(), 
+        }
     });
     const toolbar = createToolbar(views.treeview);
 
@@ -87,12 +91,12 @@ function createLeftSide(props) {
     views.treeview.on('selected', (item) => {
         console.log('[TreeView]', 'selected', item.prop);
         if (svgviewready) {
-            views.svgview.toggleHighLight(item.prop);
+            views.svg.toggleHighLight(item.prop);
         }
         else {
             // make sure we don't miss it
-            views.svgview.once('ready', (view) => {
-                views.svgview.toggleHighLight(item.prop);
+            views.svg.once('ready', (view) => {
+                views.svg.toggleHighLight(item.prop);
                 svgviewready = true;
             });
         }
@@ -101,10 +105,10 @@ function createLeftSide(props) {
     return $$(TBS).setTop(toolbar).setBottom(views.treeview);
 }
 
-function createRightSide(svgprop) {
-    views.propsview = $$(PROPSVIEW, { props: svgprop });
+function createRightSide(svgfile) {
+    views.propsview = $$(PROPSVIEW, { props: svgfile });
 
-    const svgview = $$(SVGVIEW3, {prop: svgprop});
+    const svgview = $$(SVGVIEW3, {prop: svgfile});
     svgview.on('selected', (prop) => {
         console.log('[SVGView]', 'selected:', prop);
         if (!prop) debugger;
@@ -113,27 +117,30 @@ function createRightSide(svgprop) {
 
         views.treeview.select(prop);
     });
-    views.svgview = svgview;
+    views.svg = svgview;
     
-    return $$(TB, { ratio: .7 }).setTop(svgview).setBottom(views.propsview);
+    return $$(TB, { ratio: .7 })
+        .setTop(svgview)
+        .setBottom(views.propsview)
+    ;
 }
 
 const ctor = (args = {}) => {
     const app = $$(APP, { name: 'app34' });
 
     const svgname = path2name(SVG_PATH);
-    const svgprop = app.props.add(
-        svgname,
-        SVG_PATH,
-        TYPE_SVG_FILE,
-        {
+    const svgfile = app.props.add({
+        name: svgname,
+        value: SVG_PATH,
+        type: TYPE_SVG_FILE, 
+        config: {
             protocol: 'local' // ['internal', 'remote']
         }
-    );
+    });
 
     // fired after SVG file loaded
-    svgprop.on('_prop-added', (prop) => {
-        svgprop.traverse((prop, info) => {
+    svgfile.on('NA child-added', (prop) => {
+        svgfile.traverse((prop, info) => {
             console.log('  '.repeat(info.depth), 
                 prop.getType(), 
                 prop.getName(),
@@ -143,8 +150,8 @@ const ctor = (args = {}) => {
     });
 
     const lr = $$(LR, { ratio: .2 })
-        .setLeft(createLeftSide(svgprop))
-        .setRight(createRightSide(svgprop))
+        .setLeft(createLeftSide(svgfile))
+        .setRight(createRightSide(svgfile))
     ;
 
     return app.set(lr);

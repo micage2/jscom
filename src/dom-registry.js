@@ -58,6 +58,14 @@ export const DomRegistry = {
         return klass ? klass.info : null;
     },
 
+    getViewForType(type) {
+        const classes = [...klasses.values()];
+        const view = classes.find((klass) => {
+            return klass.info.type === type;
+        });
+        return view.info.clsid;
+    },
+
     // Returns a Map<name, { name, title, root }> of all self-registered compounds
     // that provided info.name. Anonymous compounds (no name in info) are excluded.
     getCompounds() {
@@ -186,6 +194,32 @@ export const DomRegistry = {
         }
 
         return true;
+    },
+
+    replace(sourceIface, targetIface) {
+        const node_source = privateNodes.get(sourceIface);
+        if (!node_source) {
+            console.warn(`[DOM.attach] Invalid source.`);            
+            return false;
+        }
+
+        const node_target = privateNodes.get(targetIface);
+        if (!node_target) {
+            console.warn(`[DOM.attach] Invalid target.`);            
+            return false;
+        }
+
+        const sourceHost = node_source.host;
+        if (!sourceHost) {
+            console.warn(`[DOM.attach] No source host`);
+            return false;
+        }
+        const targetHost = node_target.host;
+        if (!targetHost) {
+            console.warn(`[DOM.attach] No target host`);
+            return false;
+        }
+        sourceHost.replaceWith(targetHost);
     },
 
     detach(childIface) {

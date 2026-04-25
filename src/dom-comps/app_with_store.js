@@ -4,7 +4,8 @@ import { makeFragment } from '../shared/dom-helper.js';
 // import { junk } from '../shared/TreeTestData.js';
 import TREE from '../shared/Tree-mmm.js';
 // import { Node, IPropertyGroup } from '../shared/mediator.js';
-import { TypeRegistry, TYPE_GROUP } from '../shared/property.js';
+import { TYPE_GROUP } from '../shared/property.js';
+import { TypeRegistry } from '../shared/type-registry.js';
 import { Node } from '../shared/node.js';
 import BUTTON from './button.js'
 
@@ -101,6 +102,7 @@ function obj2ctx(obj) {
 }
 
 function obj2tree(tree, obj) {
+    debugger; // rework this
     const stack = [{
         key: 'root',
         val: obj,
@@ -206,7 +208,7 @@ function ctor(args) {
 
     self.project_name = args.name ?? 'no-name'
 
-    self.props = TypeRegistry.create(TYPE_GROUP, self.project_name);
+    self.props = TypeRegistry.create({ name: self.project_name });
 
     const that = this;
     self.upload.addEventListener('change', function (e) {
@@ -269,8 +271,9 @@ const IApp = (self) => ({
     },
 
     from_obj(obj) {
-        obj2tree(self.tree, obj);
-        return self.props;
+        // obj2tree(self.tree, obj);
+        const prop = TypeRegistry.fromJson(obj);
+        return prop;
     },
 
     props: self.props,

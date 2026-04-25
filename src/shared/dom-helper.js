@@ -112,3 +112,56 @@ export function getDimensions(N) {
 export {
     fitChildDimensions, logobj, uid,
 }
+
+export function bindMouse(element, handlers) {
+    const MOVE_THRESHOLD = 2;
+    let startX, startY, hasMoved, realTarget = null;
+
+    element.addEventListener('pointerdown', (event) => {
+        hasMoved = false;
+        realTarget = event.target;
+
+        startX = event.clientX;
+        startY = event.clientY;
+
+        if (event.buttons !== 1) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        window.addEventListener('pointermove', handleMouseMove);
+        window.addEventListener('pointerup', handleMouseUp);
+    });
+
+    function handleMouseMove(event) {
+        const dx = event.clientX - startX;
+        const dy = event.clientY - startY;
+
+        if (Math.abs(dx) > MOVE_THRESHOLD || Math.abs(dy) > MOVE_THRESHOLD) {
+            hasMoved = true;
+        }
+        if (!hasMoved) return;
+
+        startX = event.clientX;
+        startY = event.clientY;
+
+        const { altKey: alt, ctrlKey: ctrl, shiftKey: shift, metaKey: meta } = event;
+        
+        handlers.onMove(dx, dy, {
+            alt: event.altKey, 
+            ctrl: event.ctrlKey, 
+            shift: event.shiftKey,
+            meta: event.metaKey,
+        });
+    }
+
+    function handleMouseUp() {
+        if (!hasMoved) {
+            handlers.onClick(realTarget);
+        }
+
+        window.removeEventListener('pointermove', handleMouseMove);
+        window.removeEventListener('pointerup', handleMouseUp);
+    }
+}
+

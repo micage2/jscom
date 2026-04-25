@@ -4,10 +4,16 @@ import {
     makeFragment,
     load_sheet,
     create_sheet,
-    load_file
+    load_file,
+    bindMouse
 } from '../shared/dom-helper.js';
+import { Property } from "../shared/property.js";
+import {
+    TYPE_SVG_G,
+    TYPE_SVG_USE,
+    TYPE_SVG_SVG,
+} from "../shared/svg_property.js";
 
-const SVGNS = 'http://www.w3.org/2000/svg';
 
 /*
     emits:
@@ -65,6 +71,20 @@ svg.isolate-mode.strict .selected,
 svg.isolate-mode.strict .selected * {
     visibility: visible;
 }
+
+.SSS use {
+    fill: none !important;
+    stroke: green !important;
+    stroke-width: 1.2 !important;
+    stroke-dasharray: 5, 5 !important;
+    animation: dash-offset-move 1s linear infinite !important;
+}
+
+@keyframes dash-offset-move {
+  to {
+    stroke-dashoffset: 10; /* Move by the total pattern length (5+5) */
+  }
+}
 `);
 
 function screenToSVG(svg, x, y) {
@@ -83,6 +103,7 @@ function findProp(self, elem) {
     if (prop) return prop;
 
     self.prop.traverse((_prop, info) => {
+        if (!_prop.isGroup()) return;
         const _elem = _prop.get();
         self.elem2prop.set(_elem, _prop);
 
@@ -92,21 +113,21 @@ function findProp(self, elem) {
         //     return 'stop'; // should stop traversal
         // }
     });
-    prop = self.elem2prop.get(elem);
 
+    prop = self.elem2prop.get(elem);
     return prop;
 }
 
 
 function ctor({ prop, config = {} }) {
-    const self = {};
+    const self = { SSS: new Set() };
     self.host = document.createElement('div');
     const shadow = self.host.attachShadow({ mode: 'closed' });
     shadow.adoptedStyleSheets.push(sheet);
     shadow.innerHTML = '<div class="svg-view"></div>';
     self.doc = shadow.querySelector('.svg-view');
 
-    prop.on('prop-added', (_prop) => {
+    prop.on('child-added', (_prop) => {
         self.prop = _prop;
         const svg = _prop.get();
         self.elem2prop.set(svg, _prop);
@@ -115,7 +136,7 @@ function ctor({ prop, config = {} }) {
         this.emit('ready', this);
     });
 
-    // bi-directional look-up
+    // SVG*Element → Property
     self.elem2prop = new WeakMap();
 
     return {
@@ -125,63 +146,21 @@ function ctor({ prop, config = {} }) {
     };
 }
 
-function createSelectionGroup(self) {
-    return document.createElementNS(SVGNS, 'g');
-}
-
+// called when child prop 'content' exists
 function init(self) {
-    const MOVE_THRESHOLD = 5;
-    let hasMoved = false; 
-    let isPanning = false;
-    let startX, startY;
-    let realTarget = null;
+    const that = this;
 
     const svg = self.prop.get(); // SVGSVGElement
+    $$$.svg = svg;
 
-    createSelectionGroup(self);
-    
-    svg.addEventListener("pointerdown", (e) => {
-        isPanning = true;
-        hasMoved = false;
-        startX = e.clientX;
-        startY = e.clientY;
-        // svg.style.cursor = "grabbing";
-        e.preventDefault();
-        e.stopPropagation();
-
-        realTarget = e.target;
-
-        // console.log('pointer down', e.target);
-    });
-
-    document.addEventListener("pointermove", (e) => {
-        if (!isPanning) return;
-
-        const ctm = svg.getScreenCTM();
-        const dx = e.clientX - startX;
-        const dy = e.clientY - startY;
-        
-        if (Math.abs(dx) > MOVE_THRESHOLD || Math.abs(dy) > MOVE_THRESHOLD) {
-            hasMoved = true;               // ← this was a real pan, not a click
-        }
-
-        if (!hasMoved) return; // still waiting to decide if it's a click or pan
-
-        const vb = svg.viewBox.baseVal;
-        vb.x -= (dx / ctm.a);
-        vb.y -= (dy / ctm.d);
-
-        startX = e.clientX;
-        startY = e.clientY;
-    });
-
-    document.addEventListener("pointerup", (e) => {
-        if (!isPanning) return;
-        isPanning = false;
-
-        if (!hasMoved) {
-            const selectedProp = findProp(self, realTarget)
-            this.emit('selected', selectedProp);
+    // self.$G = new SVGGroupProperty('SSS');
+    self.SSS = self.prop.add({
+        name: 'SSS',
+        type: TYPE_SVG_G,
+        config: {
+            SSS: {
+                class: 'SSS'
+            }
         }
     });
 
@@ -202,49 +181,129 @@ function init(self) {
         e.preventDefault();
     };
 
+    bindMouse(svg, {
+        onClick: (realTarget) => {
+            const selectedProp = findProp(self, realTarget)
+            this.emit('selected', selectedProp);
+        },
+        onMove: (dx, dy, keys) => {
+            const ctm = svg.getScreenCTM();
+            const vb = svg.viewBox.baseVal;
+            vb.x -= (dx / ctm.a);
+            vb.y -= (dy / ctm.d);
+        },
+        onScale: (s) => {
+        },
+
+    });
+
+}
+
+// Idea 1: props create a <use> element and href to their id
+// 
+
+function MMM(M) {
+    return `s: ${M.a.toFixed(2)} xy: (${M.e.toFixed(2)}, ${M.f.toFixed(2)})`;
 }
 
 // creates ISVGView interface objects
 const ISVGViewFactory = (self) => {
     return {
-        deselect(iface) {
-            if (!iface) return;
+        toggleSelect(prop) {
 
-            const elem = iface2elem.get(iface);
-
-            if (selected === elem) {
-                selected.classList.remove('selected');
-                selected = null;
+            if (prop.getType() === TYPE_SVG_SVG) {
+                self.SSS.clear();
+                return;
             }
+
+            const child = self.SSS.getChild(prop.getName())
+            if (child) {
+                self.SSS.remove(child.getName());
+            }
+            else {
+                const id = Property.gen_id();
+                const elem = prop.get();
+                elem.id = id;
+                const use = self.SSS.add({
+                    name: prop.getName(),
+                    type: TYPE_SVG_USE,
+                    config: {
+                        href: id,
+                        class: 'ref'
+                    }
+                });
+                console.log(prop.getType());
+
+                const svgElem = self.prop.get();
+                const svgCTM = svgElem.getCTM();
+                const useElem = use.get();
+                if (prop.getType() !== TYPE_SVG_G) {
+                    const elemCTM = elem.getCTM();
+                    const useCTM = useElem.getCTM();
+                    const svgCTMinv = svgCTM.inverse();
+                    const M = svgCTMinv.multiply(elemCTM);
+                    useElem.setAttribute('transform', `matrix(${M.a}, ${M.b}, ${M.c}, ${M.d}, ${M.e}, ${M.f})`);
+                }
+                else if (1) {
+                    let parent = elem.parentNode;
+                    let accumulated = svgElem.createSVGMatrix();
+
+                    while (parent && parent.tagName !== 'svg') {
+                        const res = parent.transform.baseVal.consolidate();
+                        const localMatrix = res ? res.matrix : svgElem.createSVGMatrix();
+                        console.log(parent.getAttribute('name'), MMM(localMatrix));
+                        
+                        // accumulated = accumulated.multiply(localMatrix);
+                        accumulated = localMatrix.multiply(accumulated);
+                        parent = parent.parentNode;
+                    }
+                    const M = accumulated;
+                    console.log('result', MMM(M));
+
+                    useElem.setAttribute('transform', `matrix(${M.a}, ${M.b}, ${M.c}, ${M.d}, ${M.e}, ${M.f})`);
+                }
+
+            }
+        },
+
+        deselect(prop) {
         },
 
         // only sets style of selected element
         toggleHighLight(prop) {
-            if (!prop) debugger;
+            if (!prop) {
+                console.warn('[ISVGViewFactory.toggleHighLight]', 'No prop.');
+                return;
+            };
+            if (!prop.isGroup()) return;
+
             const elem = prop.get();
             const svg = self.prop.get();
 
-            // Remove old highlight from anywhere
-            svg.querySelectorAll('.selected').forEach(el => {
-                el.classList.remove('selected');
-                el.classList.remove('isolate-selected');
-            });
 
-            svg.classList.add('isolate-mode');
-            if (elem === svg) {
-                elem.classList.toggle('isolate-mode', false);
-                return;
+
+            {
+                // Remove old highlight from anywhere
+                svg.querySelectorAll('.selected').forEach(el => {
+                    el.classList.remove('selected');
+                    el.classList.remove('isolate-selected');
+                });
+
+                svg.classList.add('isolate-mode');
+                if (elem === svg) {
+                    elem.classList.toggle('isolate-mode', false);
+                    return;
+                }
+
+                if (!elem) return;
+
+                elem.classList.add('selected');  // only this node + children lights up
+                let parent = elem.parentElement;
+                while (parent && parent !== svg) {
+                    parent.classList.add('isolate-selected');
+                    parent = parent.parentElement;
+                }
             }
-
-            if (!elem) return;
-
-            elem.classList.add('selected');  // only this node + children lights up
-            let parent = elem.parentElement;
-            while (parent && parent !== svg) {
-                parent.classList.add('isolate-selected');
-                parent = parent.parentElement;
-            }
-
         },
     };
 };

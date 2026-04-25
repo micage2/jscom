@@ -53,7 +53,7 @@ function ctor({ prop, config = {} }) {
     self.input.checked     = !!value;
 
     self.input.onchange = (e) => {
-        self.prop.setValue(e.target.checked);
+        self.prop.set(e.target.checked);
     };
 
     self.prop.on('value-changed', ({ newValue }) => {

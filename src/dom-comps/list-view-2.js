@@ -6,8 +6,13 @@ const html_file = "./src/dom-comps/list-view.html";
 const fragment = await loadFragment(html_file);
 
 
-function ctor({ props, config = {} }) {
-    const self = { props, config, list: [] };
+function ctor({ prop, config = {} }) {
+    const self = {
+        prop, 
+        config, 
+        list: []
+    };
+
     self.host = document.createElement('div');
     const shadow = self.host.attachShadow({ mode: 'closed' });
     shadow.appendChild(fragment.cloneNode(true));
@@ -62,6 +67,10 @@ function toggle(self, item) {
 }
 
 function selectItem(self, item) {
+    if (!item) {
+        console.warn('[ListView.selectItem]', 'No item.');        
+        return;
+    }
     if (self.selectedItem) self.selectedItem.set_selected(false);
     self.selectedItem = item;
     item.set_selected(true);
@@ -91,12 +100,17 @@ function scrollIntoView(self, item) {
 }
 
 function init(self) {
-    const { props, config } = self;
+    const { prop: root, config } = self;
     const that = this;
 
     // Populate tree by traversing subtree of added prop
-    props.on('prop-added', (prop) => {
-        prop.traverse((prop, info) => {
+    const add = (content) => {
+        content.traverse((prop, info) => {
+            if (config.filter && !config.filter(prop))
+                return;
+
+            const propcfg = prop.getConfig();
+
             const item = DOM.create(config.item_clsid, {
                 prop,
                 config: {
@@ -111,7 +125,7 @@ function init(self) {
 
             // rename root from 'content' to parents name
             if (info.depth === 0) {
-                item.set_title(props.getName());
+                item.set_title(root.getName());
             }
 
             item.on('selected', () => {
@@ -131,15 +145,29 @@ function init(self) {
         if (self.list.length) {
             const item = self.list[0];
             selectItem(self, item);
-            that.emit('selected', item);
+
+            // in case SVGView needs some time
+            setTimeout(() => {
+                that.emit('selected', item);
+            }, 10);
         }
-    });
+    }
+
+    root.on('child-added', add);
+
+    // add(root);
 }
 
 const IListViewFactory = (self) => ({
     // TODO:  check that item isn't displayed anywhere else
     removeSelected() {
-        // self.selectedItem
+        const prop = self.selectedItem.prop;
+
+        // calc start, end index then splice self.list
+
+        // 
+
+        console.log('[IListViewFactory.removeSelected]', prop);        
     }, 
     select(prop) {
         const item = findItem(self, prop);

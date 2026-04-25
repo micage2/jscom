@@ -2,6 +2,9 @@
 import { DomRegistry as DOM } from '../dom-registry.js';
 import { TypeRegistry } from '../shared/type-registry.js';
 import { makeFragment } from '../shared/dom-helper.js';
+import STRINGVIEW from './prop-string.js';
+import FLOATVIEW from './prop-float.js';
+import BOOLVIEW from './prop-bool.js';
 
 const fragment = makeFragment(`
 <style>
@@ -46,10 +49,8 @@ const fragment = makeFragment(`
 </fieldset>
 `);
 
-function ctor({ props, config = {} }) {
-    const self = {};
-    self.props  = props;
-    self.config = config;
+function ctor({ prop, config = {} }) {
+    const self = { prop, config };
 
     self.host   = document.createElement('div');
     self.shadow = self.host.attachShadow({ mode: 'closed' });
@@ -57,7 +58,7 @@ function ctor({ props, config = {} }) {
 
     self.propsview    = self.shadow.querySelector('.props-view');
     self.legend       = self.shadow.querySelector('.legend-text');
-    self.legend.textContent = props.getName();
+    self.legend.textContent = prop.getName();
 
     self.legend_toggle = self.shadow.querySelector('legend button');
     self.legend_toggle.onclick = () => {
@@ -75,7 +76,7 @@ function ctor({ props, config = {} }) {
 }
 
 function init(self) {
-    const { props, config = {} } = self;
+    const { prop, config = {} } = self;
 
     const addView = (prop) => {
         // 1. Does config has a view?               → clsid = childConfig.view
@@ -86,19 +87,18 @@ function init(self) {
         const childConfig = config[prop_name] ?? {};
         const layoutHint = childConfig.view ?? null;
 
-        // Groups get a props interface, leaves get a prop interface
         let view;
         if (prop.isGroup()) {
             // TODO: group view ?
-            // view = DOM.create(clsid, { props: prop, config: childConfig });
+            // view = DOM.create(clsid, { prop: prop, config: childConfig });
             return;
         }
         else {
-            const typeId = typeof prop.get();
+            const type = prop.getType();
 
-            const clsid = layoutHint || TypeRegistry.resolve(typeId);
+            const clsid = layoutHint || DOM.getViewForType(type);
             if (!clsid) {
-                console.warn(`[PropsView] No component for typeId '${typeId}' on '${prop.getName()}'`);
+                console.warn(`[PropsView] No component for typeId '${type}' on '${prop.getName()}'`);
                 return;
             }
     
@@ -108,14 +108,14 @@ function init(self) {
         DOM.attach(view, this, { slot: 'content' });
     };
 
-    // props.getChildren().forEach((v,i,a) => {
-    //     addView(v);
-    // });
+    prop.getChildren().forEach((v,i,a) => {
+        addView(v);
+    });
 
-    props.on('prop-added', (prop) => {
+    prop.on('child-added', (prop) => {
         addView(prop);
     });
-    props.on('prop-removed', ({ name }) => {
+    prop.on('prop-removed', ({ name }) => {
         // future: DOM.detach by name if needed
     });
 

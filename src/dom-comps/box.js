@@ -100,7 +100,6 @@ bkup{
 const sbHeight = 7;
 
 function ctor(args) {
-
     const host = document.createElement('div');
     host.style.setProperty('--sb-height', `${sbHeight}px`);
     const shadow = host.attachShadow({ mode: 'closed' });
@@ -163,7 +162,6 @@ function ctor(args) {
 
     updateScroll();
 
-    // for what?
     host.onclick = (e) => {
         this.emit('clicked', this);
     };
@@ -259,6 +257,13 @@ const IBoxFactory = function ({ slot_left, selected, members, updateScroll }) {
                 members.splice(index, 1);
                 this.emit('removed', elem);
             }
+        },
+
+        replace(elem) {
+            if (!elem) return null;
+            DOM.detach(members[0]);
+            members[0] = elem;
+            DOM.attach(elem, this, { slot: 'left' });
         },
 
         removeMany(elems) { },

@@ -16,7 +16,6 @@ const fragment = await loadFragment(html_file);
 function ctor({prop, config = {}}) {
     const name = prop.getName();
     const type = prop.getType();
-    console.log(name, type);    
 
     const host = document.createElement('div');
     const shadow = host.attachShadow({ mode: 'closed' });

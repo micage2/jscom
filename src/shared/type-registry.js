@@ -1,43 +1,77 @@
-// src/shared/type-registry.js
-//
-// Maps data type ids to component clsids.
-// Two-level lookup: layout config override wins over registered default.
-//
-// Usage:
-//   TypeRegistry.register('float', CLSID_FloatEdit);
-//   const clsid = TypeRegistry.resolve('float'); // → CLSID_FloatEdit
-
-import PROPSTRING from '../dom-comps/prop-string.js'
-import PROPFLOAT from '../dom-comps/prop-float.js'
-
-const defaults = new Map();  // data typeId → view clsid
-
-export const TypeRegistry = {
-
-    register(typeId, clsid) {
-        if (defaults.has(typeId)) {
-            console.warn(`[TypeRegistry] Overwriting default for '${typeId}'`);
-        }
-        defaults.set(typeId, clsid);
-    },
-
-    resolve(typeId) {
-        const clsid = defaults.get(typeId);
-        if (!clsid) {
-            console.warn(`[TypeRegistry] No component registered for type '${typeId}'`);
-        }
-        return clsid ?? null;
-    },
-
-    has(typeId) {
-        return defaults.has(typeId);
-    },
-
-    // For debugging
-    dump() {
-        console.table([...defaults.entries()].map(([typeId, clsid]) => ({ typeId, clsid })));
+function inferType(value) {
+    if (value === null) {
+        return null;  // Signal that type inference failed
     }
-};
+    if (Array.isArray(value)) return 'array';
+    if (value === undefined) return 'group';
+    if (typeof value === 'object') return 'group';
+    return typeof value;
+}
 
-TypeRegistry.register('string', PROPSTRING);
-TypeRegistry.register('number', PROPFLOAT);
+export class _TypeRegistry {
+    #types = new Map();
+
+    constructor() {
+        if (window) {
+            window.$$$ = { Types: this.#types }
+        };
+
+    }
+
+    register(type, PropertyClass) {
+        this.#types.set(type, PropertyClass);
+        return type;
+    }
+
+    create(params) {
+        let { name, type, value } = params;
+        console.assert(name, '[TypeRegistry.create]', 'No name field.');
+
+        if (type === undefined) {
+            type = inferType(value);
+            
+            if (type === null) {
+                console.warn(`Skipping property '${name}': null values are not allowed`);
+                return null;
+            }
+        }
+
+        let PropertyClass = this.#types.get(type);
+
+        if (!PropertyClass) {
+            const inferredType = inferType(value);
+            
+            if (inferredType === null) {
+                console.warn(`Skipping property '${name}': null values are not allowed`);
+                return null;
+            }
+            
+            PropertyClass = this.#types.get(inferredType);
+
+            if (!PropertyClass) {
+                console.warn(`Skipping property '${name}': type '${type}' not registered`);
+                return null;
+            }
+        }
+
+        return new PropertyClass(params);
+    }
+
+    fromJson(obj, name = 'root') {
+        const property = this.create({ name, value: obj });
+        
+        if (!property) return null;
+
+        if (property.isGroup()) {
+            for (const [key, val] of Object.entries(obj)) {
+                const child = this.fromJson(val, key);
+                if (child) {
+                    property.adopt(child);
+                }
+            }
+        }
+
+        return property;
+    }
+}
+export const TypeRegistry = new _TypeRegistry();

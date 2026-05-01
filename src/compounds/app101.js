@@ -79,8 +79,8 @@ const ctor = (args = {}) => {
 
     // create 'Circle' dialogs, in fact it's a generic container
     const circles_children = circles.getChildren();
-    circles_children.forEach((props) => {
-        const view = $$(PROPSVIEW, { props, config });
+    circles_children.forEach((circle) => {
+        const view = $$(PROPSVIEW, { prop: circle, config });
         box.add(view);
     });
     

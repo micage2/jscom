@@ -244,7 +244,12 @@ const IDialogBoxCtor = function ({ slot_left, selected, members, updateScroll })
             }
         },
 
-        removeMany(elems) { },
+        removeAll() {
+            members.forEach((view) => {
+                DOM.detach(view);
+            });
+            members = [];
+        },
 
         has(elem) { return members.includes(elem); },
     };

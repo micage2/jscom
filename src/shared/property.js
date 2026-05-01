@@ -36,6 +36,7 @@ export class Property extends Mediator {
     getParent() { return this.#parent; }
     setParent(parent) { this.#parent = parent; }
 
+    getChildCount() { return null; } 
     getChildren() { return null; }
     getChild(name) { return null; }
 
@@ -48,9 +49,12 @@ export class Property extends Mediator {
             const child_count = children ? children.length : 0;
     
             const info = { depth, child_count, isLast };
+            
             const res = cb(property, info);
             if (res === 'stop')
                 return;
+            if (res === 'skip')
+                continue;
     
             if (children) {
                 for (let i = children.length - 1; i >= 0; i--) {
@@ -65,9 +69,16 @@ export class Property extends Mediator {
     }
 
     toJson() { return this.get(); }
+    log() {
+        let str = `${this.getType()}: "${this.getName()}"`;
+        console.log(str, this.get());    
+    }
 }
 Property.gen_id = (prefix = "") => `${prefix}` + Math.random().toString(36).slice(2, 11);
-
+Property.visitor = (prop, info) => {
+    const indent = '  '.repeat(info.depth);
+    console.log(info.depth, indent, `${prop.getName()}`);    
+};
 
 export class GroupProperty extends Property {
     #children = new Map();
@@ -100,12 +111,20 @@ export class GroupProperty extends Property {
         return property;
     }
 
+    abandon(prop) {
+        if (!(prop instanceof Property)) {
+            console.log('[GroupProperty.abandon]', 'invalid prop:', prop);
+            return;
+        }
+        prop.setParent(null);
+        this.#children.delete(prop.getName());
+        this.emit('child-removed', prop);
+    }
+
     remove(name) {
-        const property = this.#children.get(name);
-        if (property) {
-            property.setParent(null);
-            this.#children.delete(name);
-            this.emit('child-removed', property);
+        const prop = this.#children.get(name);
+        if (prop) {
+            this.abandon(prop);
             return true;
         }
         return false;
@@ -117,8 +136,21 @@ export class GroupProperty extends Property {
         });
     }
 
+    getChildCount() { return this.#children.length; } 
+
     getChild(name) {
         return this.#children.get(name) ?? null;
+    }
+
+    getDescendant(name) {
+        const path = name.split('.');
+        let parent;
+        path.forEach((name) => {
+            const child = this.#children.get(name);
+            if (child) return child;
+            parent = child;
+        });
+        return null;
     }
 
     getChildren() {
@@ -148,18 +180,15 @@ export const TYPE_STRING = TypeRegistry.register('string', StringProperty);
 
 class NumberProperty extends Property {
     #num;
-    #config;
     constructor(params) {
         super(params);
         this.#num = params.value;
-        this.#config = params.config;
-        let value = params.value;
-        console.assert(typeof value === 'number', '[NumberProperty.ctor]', 'value is not a number', value);
+        // console.assert(typeof value !== 'number', '[NumberProperty.ctor]', 'value is not a number', this.#num);
     }
     getType() { return TYPE_NUMBER; }
     get() { return this.#num; }
     set(value) {
-        console.assert(typeof value === 'number', '[NumberProperty.set]', 'value is not a number');
+        // console.assert(typeof value !== 'number', '[NumberProperty.set]', 'value is not a number');
         const oldValue = this.#num;
         this.#num = value;
         this.emit('value-changed', { oldValue, newValue: value });
@@ -342,6 +371,8 @@ export class ArrayProperty extends Property {
         return this.#children.get(key) ?? null;
     }
 
+    getChildCount() { return this.#children.length; }
+    
     getChildren() {
         return Array.from(this.#children.values())
             .sort((a, b) => parseInt(a.getName()) - parseInt(b.getName()));

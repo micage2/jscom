@@ -1,6 +1,8 @@
 # This .gitignore is appropriate for repositories deployed to GitHub Pages
 .vscode
+.misc
 .private
+.temp
 
 # Specific ignore for GitHub Pages
 # GitHub Pages will always use its own deployed version of pages-gem 

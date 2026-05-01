@@ -106,7 +106,7 @@ function createLeftSide(prop) {
 }
 
 function createRightSide(svgfile) {
-    views.propsview = $$(PROPSVIEW, { props: svgfile });
+    views.propsview = $$(PROPSVIEW, { prop: svgfile });
 
     const svgview = $$(SVGVIEW3, {prop: svgfile});
     svgview.on('selected', (prop) => {

@@ -1,3 +1,5 @@
+import { Mediator } from "./mediator.js";
+
 function uid() {
     return Math.random().toString(36).slice(2, 11);
     // return crypto.randomUUID();
@@ -37,9 +39,15 @@ export function CSSRules(rules = {}) {
     };
 };
 
-export function create_sheet(code) {
+export function create_sheet_sync(code) {
     const sheet = new CSSStyleSheet();
     sheet.replaceSync(code);
+    return sheet;
+}
+
+export function create_sheet(code) {
+    const sheet = new CSSStyleSheet();
+    sheet.replace(code);
     return sheet;
 }
 
@@ -55,12 +63,10 @@ export async function load_sheet(file) {
 }
 
 export async function load_file(file) {
-    const sheet = new CSSStyleSheet();
-
     const response = await fetch(file);
-    const cssText = await response.text();
+    const text = await response.text();
 
-    return cssText;
+    return text;
 }
 
 export async function loadFragment(file) {
@@ -113,7 +119,7 @@ export {
     fitChildDimensions, logobj, uid,
 }
 
-export function bindMouse(element, handlers) {
+export function _bindMouse(element, handlers) {
     const MOVE_THRESHOLD = 2;
     let startX, startY, hasMoved, realTarget = null;
 
@@ -146,10 +152,10 @@ export function bindMouse(element, handlers) {
         startY = event.clientY;
 
         const { altKey: alt, ctrlKey: ctrl, shiftKey: shift, metaKey: meta } = event;
-        
+
         handlers.onMove(dx, dy, {
-            alt: event.altKey, 
-            ctrl: event.ctrlKey, 
+            alt: event.altKey,
+            ctrl: event.ctrlKey,
             shift: event.shiftKey,
             meta: event.metaKey,
         });
@@ -163,5 +169,82 @@ export function bindMouse(element, handlers) {
         window.removeEventListener('pointermove', handleMouseMove);
         window.removeEventListener('pointerup', handleMouseUp);
     }
+}
+
+export function bindMouse(element) {
+    const MOVE_THRESHOLD = 2;
+    let startX, startY, hasMoved, realTarget = null;
+    const med = new Mediator();
+
+    const handleWheel = (event) => {
+        med.emit('wheel', {
+            target: element,
+            delta: event.deltaY, 
+            x: event.clientX, y: event.clientY,
+        });
+        event.preventDefault();
+    };
+    window.addEventListener('wheel', handleWheel);
+
+    const handlePointerDown = (event) => {
+        hasMoved = false;
+        realTarget = event.target;
+
+        startX = event.clientX;
+        startY = event.clientY;
+
+        med.emit('pointer-down', {
+            target: realTarget,
+            x: startX,
+            y: startY,
+            keys: {
+                alt: event.altKey,
+                ctrl: event.ctrlKey,
+                shift: event.shiftKey,
+                meta: event.metaKey,
+            }
+        });
+
+        if (event.buttons !== 1) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        window.addEventListener('pointermove', handleMouseMove);
+        window.addEventListener('pointerup', handleMouseUp);
+    }
+    element.addEventListener('pointerdown', handlePointerDown);
+
+    function handleMouseMove(event) {
+        const dx = event.clientX - startX;
+        const dy = event.clientY - startY;
+
+        if (Math.abs(dx) > MOVE_THRESHOLD || Math.abs(dy) > MOVE_THRESHOLD) {
+            hasMoved = true;
+        }
+        if (!hasMoved) return;
+
+        startX = event.clientX;
+        startY = event.clientY;
+
+        med.emit('move', { target: realTarget, dx, dy });
+    }
+
+    function handleMouseUp() {
+        if (!hasMoved) {
+            med.emit('click', { target: realTarget });
+        }
+
+        window.removeEventListener('pointermove', handleMouseMove);
+        window.removeEventListener('pointerup', handleMouseUp);
+    }
+
+    const off = med.on('off', () => {
+        window.removeEventListener('pointerdown', handlePointerDown);
+        window.removeEventListener('wheel', handleWheel);
+        off();
+    });
+
+    return med;
 }
 

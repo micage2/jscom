@@ -4,14 +4,17 @@ import { load_file } from '../shared/dom-helper.js';
 
 const SVGNS = 'http://www.w3.org/2000/svg';
 
-// TODO: what if type is not allowed?
 function initChildren(svg_or_g, prop) {
     const children = [...svg_or_g.children]
         .filter((elem) => allowedTags[elem.nodeName])
         .map((elem, i) => {
             const name = elem.getAttribute('name') || elem.id || elem.nodeName + i;
             const type = allowedTags[elem.nodeName];
-            return prop.add({ name, value: elem, type, config: prop.config });
+
+            logM(name, elem);
+
+            const child = prop.add({ name, value: elem, type, config: prop.config });
+            return child;
         });
 }
 
@@ -75,34 +78,14 @@ class SVGFileProperty extends GroupProperty {
 }
 export const TYPE_SVG_FILE = TypeRegistry.register('svg.file', SVGFileProperty);
 
-class SVGSVGProperty extends GroupProperty {
-    #svg;
-
-    constructor(params) {
-        console.assert(params && params.value, '[SVGSVGProperty.create]', 'No value field.');
-        super(params);
-        this.#svg = params.value;
-        initChildren(this.#svg, this);
-        this.on('child-added', (child) => {
-            // console.log('[SVGSVGProperty.ctor]', 'child: ', child);
-            const elem = child.get();
-            this.#svg.appendChild(elem);
-        });
-    }
-
-    get() { return this.#svg; } // TODO: unsafe!
-    getType() { return TYPE_SVG_SVG; }
-}
-export const TYPE_SVG_SVG = TypeRegistry.register('svg.svg', SVGSVGProperty);
-
-
 class SVGGroupProperty extends GroupProperty {
-    #g;
+    #value;
+    #ltm;
 
     constructor(params) {
         super(params);
         let g = params.value;
-        if (!(g instanceof SVGGElement)) {
+        if (!(g instanceof SVGGElement || g instanceof SVGSVGElement)) {
             if (g) console.warn('[SVGGroupProperty].ctor', 'Invalid argument: ', g);
             g = document.createElementNS(SVGNS, 'g');
             const cfg = params.config[params.name];
@@ -114,19 +97,68 @@ class SVGGroupProperty extends GroupProperty {
         this.on('child-added', (child) => {
             // console.log('[SVGGroupProperty.ctor]', 'child: ', child);
             const elem = child.get();
-            g.appendChild(elem);
+            if (elem && Object.keys(allowedTags).includes(elem.nodeName) ) {
+                g.appendChild(elem);
+                logM(this.getName(), elem);
+            }
         });
         this.on('child-removed', (child) => {
-            child.get().remove();
+            const elem = child.get();
+            if (elem && Object.keys(allowedTags).includes(elem.nodeName) ) {
+                child.get().remove();
+            }
         });
 
-        this.#g = g;
+        // const ltm = getLTM(g);
+        // if (ltm) {
+        //     const {angle, pos, scale} = getAnglePosScale(ltm);
+
+        //     const transforms = g.transform.baseVal;
+        //     const transform = transforms.getItem(0);
+
+        //     const angleProp = this.add({ name: 'angle', value: angle });
+        //     angleProp.on('value-changed', ({ newValue }) => {
+        //         console.log('[SVGGroup:angle]', 'value-changed', newValue);                
+        //     });
+            
+        //     const xProp = this.add({ name: 'x', value: pos.x });
+        //     xProp.on('value-changed', ({ newValue, oldValue }) => {
+        //         const svgCTM = g.ownerSVGElement.getCTM();
+        //         // const gg = g.transform.baseVal.getItem(0);
+        //         // gg.setTranslate(newValue/svgCTM.a, ltm.f);
+
+        //         // ltm.e = newValue;
+        //         ltm.e = newValue/svgCTM.a;
+        //         // ltm.e -= (oldValue-newValue)/svgCTM.a;
+        //     });
+            
+        //     const yProp = this.add({ name: 'y', value: pos.y });
+        //     yProp.on('value-changed', ({ newValue, oldValue }) => {
+        //         const svgCTM = g.ownerSVGElement.getCTM();
+        //         // const gg = g.transform.baseVal.getItem(0);
+        //         // gg.setTranslate(ltm.e, newValue/svgCTM.d);
+        //         // ltm.f = newValue;
+        //         ltm.f = newValue/svgCTM.d;
+        //         // ltm.f -= (oldValue-newValue)/svgCTM.d;
+        //     });
+            
+        //     const scaleProp = this.add({ name: 'scale', value: scale });
+        // }
+
+        this.#value = g;
     }
 
-    get() { return this.#g; } // TODO: unsafe!
+    get() { return this.#value; } // TODO: unsafe!
     getType() { return TYPE_SVG_G; }
 }
 export const TYPE_SVG_G = TypeRegistry.register('svg.group', SVGGroupProperty);
+
+
+class SVGSVGProperty extends SVGGroupProperty {
+    getType() { return TYPE_SVG_SVG; }
+}
+export const TYPE_SVG_SVG = TypeRegistry.register('svg.svg', SVGSVGProperty);
+
 
 class SVGCircleProperty extends GroupProperty {
     #circle;
@@ -234,6 +266,22 @@ class SVGUseProperty extends GroupProperty {
 }
 export const TYPE_SVG_USE = TypeRegistry.register('svg.use', SVGUseProperty);
 
+class SVGMatrixProperty extends GroupProperty {
+    #value;
+
+    constructor(params) {
+        super(params);
+        this.#value = params.value;
+        if (!(this.#value instanceof SVGMatrix)) {
+            if (this.#value) console.warn('[SVGMatrixProperty].ctor', 'Invalid argument: ', this.#value);
+            this.#value = new DOMMatrix();
+        }
+    }
+    get() { return undefined; } // TODO: unsafe!
+    getType() { return TYPE_SVG_MATRIX; }
+}
+export const TYPE_SVG_MATRIX = TypeRegistry.register('svg.matrix', SVGMatrixProperty);
+
 const allowedTags = {
     'svg': TYPE_SVG_SVG,
     'g': TYPE_SVG_G,
@@ -242,5 +290,31 @@ const allowedTags = {
     'path': TYPE_SVG_PATH,
     'text': TYPE_SVG_TEXT,
     'use': TYPE_SVG_USE,
+};
+
+const logM = function (str, elem) {
+    const M = getLTM(elem);
+    if (!M) return;
+    // console.log(`"${str}":`, 'R•S:', M.a, M.b, M.c, M.d +',', 'T:', M.e, M.f);
+}
+
+export function getLTM(elem) {
+    const transformList = elem.transform.baseVal;
+    if (transformList.numberOfItems === 0) {
+        const svg = elem.ownerSVGElement || elem;
+        const identityTransform = svg.createSVGTransformFromMatrix(svg.createSVGMatrix());
+        transformList.appendItem(identityTransform);
+        return identityTransform.matrix; // This is live
+    }
+    else {
+        const consolidated = transformList.consolidate();
+        return consolidated.matrix;
+    }
+};
+
+export function getAnglePosScale(M) {
+    const scale = M.a * M.d - M.b * M.c;
+
+    return { angle: Math.acos(M.a/scale), pos: { x: M.e, y: M.f }, scale }
 };
 

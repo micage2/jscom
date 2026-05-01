@@ -12,8 +12,8 @@ export class _TypeRegistry {
     #types = new Map();
 
     constructor() {
-        if (window) {
-            window.$$$ = { Types: this.#types }
+        if (typeof window !== 'undefined') {
+            window.$$$ = { Types: this.#types };
         };
 
     }
@@ -25,7 +25,7 @@ export class _TypeRegistry {
 
     create(params) {
         let { name, type, value } = params;
-        console.assert(name, '[TypeRegistry.create]', 'No name field.');
+        console.assert(name, '[TypeRegistry.create]', 'No name field.', params);
 
         if (type === undefined) {
             type = inferType(value);
@@ -72,6 +72,11 @@ export class _TypeRegistry {
         }
 
         return property;
+    }
+
+    isExternal(type) {
+        const arr = type.split('.');
+        return arr.length > 1;
     }
 }
 export const TypeRegistry = new _TypeRegistry();

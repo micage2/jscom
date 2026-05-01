@@ -1,6 +1,7 @@
 // list-view.js (internal)
 import { DomRegistry as DOM } from '../dom-registry.js';
 import { loadFragment } from '../shared/dom-helper.js';
+import { TypeRegistry } from '../shared/type-registry.js';
 
 const html_file = "./src/dom-comps/list-view.html";
 const fragment = await loadFragment(html_file);
@@ -138,7 +139,7 @@ function init(self) {
             });
 
             // cache prop -> item, makes later traversal unnecessary
-            self.prop2item.set(prop, item);    
+            self.prop2item.set(prop, item);           
         });
 
         // select first item (root)

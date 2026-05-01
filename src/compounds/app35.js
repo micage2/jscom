@@ -6,7 +6,7 @@ import TB from '../dom-comps/top-bottom.js'
 import TBS from '../dom-comps/top-bottom-static.js'
 import LISTVIEW from '../dom-comps/list-view-2.js'
 import LISTITEM from '../dom-comps/list-item-2.js'
-import BOX from '../dom-comps/box.js'
+import DIALOG from '../dom-comps/dialog-box.js'
 import ONLYONEBOX from '../dom-comps/only-one-box.js'
 import BUTTON from '../dom-comps/button.js'
 import TAB from '../dom-comps/tab.js'
@@ -14,9 +14,10 @@ import SVGVIEW from '../dom-comps/svg-view-3.js'
 import PROPSVIEW from '../dom-comps/props-view.js'
 import SLIDERVIEW from '../dom-comps/prop-slider.js'
 import BOOLVIEW from '../dom-comps/prop-bool.js'
-import {TYPE_SVG_FILE} from '../shared/svg_property.js'
+import { TYPE_SVG_FILE } from '../shared/svg_property.js'
 import { TypeRegistry } from '../shared/type-registry.js';
 import { Mediator } from '../shared/mediator.js';
+import { Selection } from '../shared/selection.js';
 
 const ICON_PATH = './assets/icons/';
 const SVG_PATH = './assets/svg/cities.svg';
@@ -26,8 +27,6 @@ const strip_ext = (filename) => filename.split('.')[0];
 const $$ = DOM.create;
 
 const icons = {
-    'script': '⌾',
-    'style': '🥝',
     'svg': 's',
     'g': 'g',
     'path': 'p',
@@ -52,7 +51,7 @@ app LR.
 */
 
 const views = {
-    tb_tree: $$(SIMPLE), // $$(BOX),
+    tb_tree: $$(SIMPLE), // $$(DIALOG),
     tree: $$(SIMPLE), // $$(TREEVIEW),
     svg: $$(SIMPLE), // $$(SVGVIEW)
     list: $$(SIMPLE), // 
@@ -74,16 +73,6 @@ const layout = {
 };
 
 const dispatcher = new Mediator();
-dispatcher.on('prop-selected', (prop) => {
-    // console.log('[app35:dispatcher]', prop);
-
-    // views.svg.toggleHighLight(prop);
-    views.svg.toggleSelect(prop);
-    views.tree.select(prop);
-
-    const props = $$(PROPSVIEW, { prop, config: layout.circle });
-    views.list.replace(props);
-});
 
 
 const ctor = (args = {}) => {
@@ -92,33 +81,91 @@ const ctor = (args = {}) => {
         value: SVG_PATH,
         type: TYPE_SVG_FILE
     });
-    const tree = $$(LISTVIEW, { prop: file, config: layout.tree });
-    const svg = $$(SVGVIEW, { prop: file });
-    const list = $$(BOX);
+    const treeview = $$(LISTVIEW, {
+        prop: file, 
+        config: layout.tree,
+        filter: (prop) => {
+            if  (TypeRegistry.isExternal(prop.getType())) return 'skip';
+
+        }
+    });
+    const svgview = $$(SVGVIEW, { prop: file });
+    const list = $$(DIALOG);
     list.add($$(SIMPLE));
     views.list = list;
 
-    tree.on('selected', ({ prop }) => {
+    treeview.on('selected', ({ prop }) => {
         dispatcher.emit('prop-selected', prop);
+        selected = prop;
     });
-    views.tree = tree;
+    views.tree = treeview;
 
-    svg.on('selected', (prop) => {
-        dispatcher.emit('prop-selected', prop);
+    let selected = null;
+    $$$.selected = selected;
+
+    // save to access svgview
+    svgview.on('ready', ({ view, prop }) => {
+        selected = prop;
+        view.on('selected', (prop1) => {
+            if (view.toggleSelected(prop1)) {
+                selected = prop1;
+            }
+            else {
+                selected = prop
+            };
+            self.selected = $$$.selected = selected;
+        });
+
+        // prop is always a leaf or the svg prop (cannot click groups)
+        view.on('move-selected', ({ prop, dx, dy }) => {
+            if (prop.getType() === 'svg.svg') {
+                view.pan(dx, dy);
+            }
+            else if (prop === selected) {
+                view.move(prop, dx, dy);
+            }
+            // TODO: and if (prop is highlighted)
+            else {
+                view.move(selected, dx, dy);
+            }
+        });
+
+        view.on('scale-selected', ({ prop, delta, x, y }) => {
+            if (prop.getType() === 'svg.svg') view.zoom(delta, {x, y});
+            else { view.scale(prop, delta, dx, dy); }
+        });
+        
+        views.svg = view;
     });
-    views.svg = svg;
+    const selection = new Selection();
 
+    dispatcher.on('prop-selected', (prop) => {
+        // console.log('[app35:dispatcher]', prop);
+    
+        views.svg.toggleSelected(prop);
+        views.tree.select(prop);
+    
+        if (selected !== prop) { // prevent rebuild if no change
+            views.list.removeAll();
+            prop.getChildren().forEach(childProp => {
+                if (!childProp.isGroup()) return;
+                const propsview = $$(PROPSVIEW, { prop: childProp, config: layout.circle });
+                views.list.add(propsview);
+            });
+        }
+    });
+    
     const lr = $$(LR, { ratio: .2 })
         .setLeft($$(TBS)
             .setTop(views.tb_tree)
-            .setBottom(tree)
+            .setBottom(treeview)
         )
-        .setRight($$(TB)
-            .setTop(svg)
-            .setBottom($$(LR)
-                .setLeft(list)
-                .setRight($$(SIMPLE))
+        .setRight($$(TB, {ratio:1})
+            .setTop($$(LR, { ratio: .8 })
+                .setLeft(svgview)
+                .setRight(list)
             )
+            .setBottom($$(SIMPLE))
         )
     ;
     return lr;

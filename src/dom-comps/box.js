@@ -266,6 +266,13 @@ const IBoxFactory = function ({ slot_left, selected, members, updateScroll }) {
             DOM.attach(elem, this, { slot: 'left' });
         },
 
+        removeAll() {
+            members.forEach((view) => {
+                DOM.detach(view);
+            });
+            members = [];
+        },
+
         removeMany(elems) { },
 
         has(elem) { return members.includes(elem); },

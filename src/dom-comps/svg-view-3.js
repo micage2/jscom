@@ -77,15 +77,11 @@ function MMM(M) {
     return `s: ${M.a.toFixed(2)} xy: (${M.e.toFixed(2)}, ${M.f.toFixed(2)})`;
 }
 
-function selectElement(self, elem) {
-    console.assert(!!0, 'not impl.');
-}
-
 function findProp(self, elem) {
     let prop = self.elem2prop.get(elem);
     if (prop) return prop;
 
-    // TODO: avoid this
+    // TODO: stop if elem is found
     self.prop.traverse((_prop, info) => {
         if (!isSVG(_prop)) return;
         const _elem = _prop.get();
@@ -268,6 +264,12 @@ const ISVGViewFactory = (self) => {
             useElem.setAttribute('transform', `matrix(${M.a}, ${M.b}, ${M.c}, ${M.d}, ${M.e}, ${M.f})`);
 
             return true;
+        },
+
+        isSelected(prop) {
+            const name = prop.getName();
+            const child = self.SSS.getChild(name);
+            return !!child;
         },
 
         pan(dx, dy) {

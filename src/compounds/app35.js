@@ -14,7 +14,7 @@ import SVGVIEW from '../dom-comps/svg-view-3.js'
 import PROPSVIEW from '../dom-comps/props-view.js'
 import SLIDERVIEW from '../dom-comps/prop-slider.js'
 import BOOLVIEW from '../dom-comps/prop-bool.js'
-import { TYPE_SVG_FILE } from '../shared/svg_property.js'
+import { TYPE_SVG_FILE, TYPE_SVG_G } from '../shared/svg_property.js'
 import { TypeRegistry } from '../shared/type-registry.js';
 import { Mediator } from '../shared/mediator.js';
 import { Selection } from '../shared/selection.js';
@@ -89,6 +89,7 @@ const ctor = (args = {}) => {
 
         }
     });
+
     const svgview = $$(SVGVIEW, { prop: file });
     const list = $$(DIALOG);
     list.add($$(SIMPLE));
@@ -118,15 +119,18 @@ const ctor = (args = {}) => {
 
         // prop is always a leaf or the svg prop (cannot click groups)
         view.on('move-selected', ({ prop, dx, dy }) => {
-            if (prop.getType() === 'svg.svg') {
-                view.pan(dx, dy);
-            }
-            else if (prop === selected) {
+            // if (prop.getType() === 'svg.svg') {
+            //     view.pan(dx, dy);
+            // }
+            if (prop === selected) {
                 view.move(prop, dx, dy);
             }
             // TODO: and if (prop is highlighted)
-            else {
+            else if (svgview.isSelected(prop)) {
                 view.move(selected, dx, dy);
+            }
+            else {
+                view.pan(dx, dy);
             }
         });
 
@@ -145,13 +149,23 @@ const ctor = (args = {}) => {
         views.svg.toggleSelected(prop);
         views.tree.select(prop);
     
+        // TODO: show 
         if (selected !== prop) { // prevent rebuild if no change
             views.list.removeAll();
-            prop.getChildren().forEach(childProp => {
-                if (!childProp.isGroup()) return;
-                const propsview = $$(PROPSVIEW, { prop: childProp, config: layout.circle });
+            if (prop.getType() !== TYPE_SVG_G) {
+                const propsview = $$(PROPSVIEW, { prop, config: layout.circle });
                 views.list.add(propsview);
-            });
+                const frame = prop.getChild('frame');
+                const frameView = $$(PROPSVIEW, { prop: frame, config: layout.circle });
+                views.list.add(frameView);
+            }
+            else {
+                prop.getChildren().forEach(childProp => {
+                    if (!childProp.isGroup()) return;
+                    const propsview = $$(PROPSVIEW, { prop: childProp, config: layout.circle });
+                    views.list.add(propsview);
+                });
+            }
         }
     });
     

@@ -109,42 +109,6 @@ class SVGGroupProperty extends GroupProperty {
             }
         });
 
-        // const ltm = getLTM(g);
-        // if (ltm) {
-        //     const {angle, pos, scale} = getAnglePosScale(ltm);
-
-        //     const transforms = g.transform.baseVal;
-        //     const transform = transforms.getItem(0);
-
-        //     const angleProp = this.add({ name: 'angle', value: angle });
-        //     angleProp.on('value-changed', ({ newValue }) => {
-        //         console.log('[SVGGroup:angle]', 'value-changed', newValue);                
-        //     });
-            
-        //     const xProp = this.add({ name: 'x', value: pos.x });
-        //     xProp.on('value-changed', ({ newValue, oldValue }) => {
-        //         const svgCTM = g.ownerSVGElement.getCTM();
-        //         // const gg = g.transform.baseVal.getItem(0);
-        //         // gg.setTranslate(newValue/svgCTM.a, ltm.f);
-
-        //         // ltm.e = newValue;
-        //         ltm.e = newValue/svgCTM.a;
-        //         // ltm.e -= (oldValue-newValue)/svgCTM.a;
-        //     });
-            
-        //     const yProp = this.add({ name: 'y', value: pos.y });
-        //     yProp.on('value-changed', ({ newValue, oldValue }) => {
-        //         const svgCTM = g.ownerSVGElement.getCTM();
-        //         // const gg = g.transform.baseVal.getItem(0);
-        //         // gg.setTranslate(ltm.e, newValue/svgCTM.d);
-        //         // ltm.f = newValue;
-        //         ltm.f = newValue/svgCTM.d;
-        //         // ltm.f -= (oldValue-newValue)/svgCTM.d;
-        //     });
-            
-        //     const scaleProp = this.add({ name: 'scale', value: scale });
-        // }
-
         this.#value = g;
     }
 

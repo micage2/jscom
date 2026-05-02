@@ -60,7 +60,7 @@ function ctor({ prop, config = {} }) {
 
     self.input.onchange = (e) => {
         const v = parseFloat(e.target.value);
-        self.output.value = v;
+        // self.output.value = v;
         self.prop.set(v);
     };
 

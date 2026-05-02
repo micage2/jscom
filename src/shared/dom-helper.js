@@ -184,7 +184,7 @@ export function bindMouse(element) {
         });
         event.preventDefault();
     };
-    window.addEventListener('wheel', handleWheel);
+    element.addEventListener('wheel', handleWheel);
 
     const handlePointerDown = (event) => {
         hasMoved = false;
@@ -241,7 +241,7 @@ export function bindMouse(element) {
 
     const off = med.on('off', () => {
         window.removeEventListener('pointerdown', handlePointerDown);
-        window.removeEventListener('wheel', handleWheel);
+        element.removeEventListener('wheel', handleWheel);
         off();
     });
 

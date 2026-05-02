@@ -106,7 +106,8 @@ const ctor = (args = {}) => {
 
     // save to access svgview
     svgview.on('ready', ({ view, prop }) => {
-        selected = prop;
+        selected = prop; // root
+        
         view.on('selected', (prop1) => {
             if (view.toggleSelected(prop1)) {
                 selected = prop1;

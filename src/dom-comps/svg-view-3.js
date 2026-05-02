@@ -267,9 +267,17 @@ const ISVGViewFactory = (self) => {
         },
 
         isSelected(prop) {
-            const name = prop.getName();
-            const child = self.SSS.getChild(name);
-            return !!child;
+            const propname = prop.getName();
+            if (!self.SSS.getChild(propname)) {
+                let parent = prop.getParent();
+                while (parent) {
+                    const name = parent.getName();
+                    const inSSS = self.SSS.getChild(name);
+                    if(inSSS) return true;
+                    parent = parent.getParent();
+                }
+            }
+            return false;
         },
 
         pan(dx, dy) {

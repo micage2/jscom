@@ -34,7 +34,6 @@ const fragment = makeFragment(`
     <div class="float-edit">
         <label></label>
         <input type="number">
-        <output></output>
     </div>
 `);
 
@@ -44,7 +43,7 @@ function ctor({ prop, config = {} }) {
 
     const name      = prop.getName();
     const value     = prop.get();
-    const { step = 0.01 } = config;
+    const { step = 0.1 } = config;
 
     self.host   = document.createElement('div');
     self.shadow = self.host.attachShadow({ mode: 'closed' });
@@ -52,22 +51,22 @@ function ctor({ prop, config = {} }) {
 
     self.label  = self.shadow.querySelector('label');
     self.input  = self.shadow.querySelector('input');
-    self.output = self.shadow.querySelector('output');
+    // self.output = self.shadow.querySelector('output');
 
     self.label.textContent  = name;
     self.input.value        = value ?? 0;
     self.input.step         = step;
-    self.output.value       = value ?? 0;
+    // self.output.value       = value ?? 0;
 
-    self.input.oninput = (e) => {
+    self.input.onchange = (e) => {
         const v = parseFloat(e.target.value);
         self.output.value = v;
         self.prop.set(v);
     };
 
     self.prop.on('value-changed', ({ newValue }) => {
-        self.input.value  = newValue;
-        self.output.value = newValue;
+        self.input.value  = newValue.toFixed(2);
+        // self.output.value = newValue.toFixed(2);
     });
 
     return {

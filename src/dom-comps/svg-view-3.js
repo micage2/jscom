@@ -12,7 +12,7 @@ import {
     TYPE_SVG_G,
     TYPE_SVG_USE,
     TYPE_SVG_SVG,
-    getLTM, getAnglePosScale,
+    getLTM, getPosAngleScale,
 } from "../shared/svg_property.js";
 
 
@@ -175,13 +175,14 @@ function init(self) {
         this.emit('scale-selected', { prop, delta, x, y });
     });
 
+    // add frame and child props position, angle, scale
     self.prop.traverse((prop, info) => {
         if(isSVG(prop) && prop !== self.SSS) {
             Property.visitor(prop, info);
             const elem = prop.get();
 
             const ltm = getLTM(prop.get());
-            const {angle, pos, scale} = getAnglePosScale(ltm);
+            const {pos, angle, scale} = getPosAngleScale(ltm);
 
             const frame = prop.add({ name: 'frame', value: {}});
 
@@ -191,8 +192,8 @@ function init(self) {
                 const svgCTM = elem.ownerSVGElement.getCTM();
                 // const gg = g.transform.baseVal.getItem(0);
                 // gg.setTranslate(ltm.e, newValue/svgCTM.d);
-                // ltm.e = newValue;
-                ltm.e = newValue/svgCTM.a;
+                ltm.e = newValue;
+                // ltm.e = newValue/svgCTM.a;
                 // ltm.e -= (oldValue-newValue)/svgCTM.a;
                 // ltm.e -= (oldValue-newValue);
             });
@@ -201,8 +202,8 @@ function init(self) {
                 const svgCTM = elem.ownerSVGElement.getCTM();
                 // const gg = g.transform.baseVal.getItem(0);
                 // gg.setTranslate(ltm.e, newValue/svgCTM.d);
-                // ltm.f = newValue;
-                ltm.f = newValue/svgCTM.d;
+                ltm.f = newValue;
+                // ltm.f = newValue/svgCTM.d;
                 // ltm.f -= (oldValue-newValue)/svgCTM.d;
                 // ltm.f -= (oldValue-newValue);
             });
@@ -320,6 +321,11 @@ const ISVGViewFactory = (self) => {
             const transform = transforms.getItem(0);
             const M = transform.matrix;
             transform.setTranslate(M.e + dx/svgCTM.a, M.f + dy/svgCTM.d);
+
+            const pas = getPosAngleScale(M);
+            const frame = prop.getChild('frame');
+            frame.getChild('x').set(pas.pos.x);
+            frame.getChild('y').set(pas.pos.y);
         },
 
         _move(prop, dx, dy) {

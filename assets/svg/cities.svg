@@ -11,7 +11,7 @@
         <rect x="0" y="30" width="130" height="10" />
         <path d="m -5 0 h10 M0 -5 v10" />
     </g>
-    <g name="Paris" transform="matrix(1,0,0,1, 10, 70)">
+    <g name="Paris" transform="matrix(1,0,0,1, 0, 70)">
         <path d="m -5 0 h10 M0 -5 v10" />
         <g name="Centrale" transform="matrix(1,0,0,1, -20, 30)">
             <circle cx="0" cy="0" r="10" />

@@ -84,10 +84,6 @@ const ctor = (args = {}) => {
     const treeview = $$(LISTVIEW, {
         prop: file, 
         config: layout.tree,
-        filter: (prop) => {
-            if  (TypeRegistry.isExternal(prop.getType())) return 'skip';
-
-        }
     });
 
     const svgview = $$(SVGVIEW, { prop: file });
@@ -149,7 +145,6 @@ const ctor = (args = {}) => {
         views.svg.toggleSelected(prop);
         views.tree.select(prop);
     
-        // TODO: show 
         if (selected !== prop) { // prevent rebuild if no change
             views.list.removeAll();
             const type = prop.getType();

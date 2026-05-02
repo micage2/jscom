@@ -276,9 +276,9 @@ export function getLTM(elem) {
     }
 };
 
-export function getAnglePosScale(M) {
+export function getPosAngleScale(M) {
     const scale = M.a * M.d - M.b * M.c;
 
-    return { angle: Math.acos(M.a/scale), pos: { x: M.e, y: M.f }, scale }
+    return { pos: { x: M.e, y: M.f }, angle: Math.acos(M.a/scale), scale }
 };
 

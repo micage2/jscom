@@ -143,7 +143,7 @@ function init(self) {
         });
 
         // select first item (root)
-        if (self.list.length) {
+        if (0 && self.list.length) {
             const item = self.list[0];
             selectItem(self, item);
 

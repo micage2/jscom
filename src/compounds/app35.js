@@ -14,7 +14,7 @@ import SVGVIEW from '../dom-comps/svg-view-3.js'
 import PROPSVIEW from '../dom-comps/props-view.js'
 import SLIDERVIEW from '../dom-comps/prop-slider.js'
 import BOOLVIEW from '../dom-comps/prop-bool.js'
-import { TYPE_SVG_FILE, TYPE_SVG_G } from '../shared/svg_property.js'
+import { TYPE_SVG_FILE, TYPE_SVG_SVG, TYPE_SVG_G } from '../shared/svg_property.js'
 import { TypeRegistry } from '../shared/type-registry.js';
 import { Mediator } from '../shared/mediator.js';
 import { Selection } from '../shared/selection.js';
@@ -106,8 +106,8 @@ const ctor = (args = {}) => {
 
     // save to access svgview
     svgview.on('ready', ({ view, prop }) => {
-        selected = prop; // root
-        
+        // selected = prop; // root
+
         view.on('selected', (prop1) => {
             if (view.toggleSelected(prop1)) {
                 selected = prop1;
@@ -120,13 +120,12 @@ const ctor = (args = {}) => {
 
         // prop is always a leaf or the svg prop (cannot click groups)
         view.on('move-selected', ({ prop, dx, dy }) => {
-            // if (prop.getType() === 'svg.svg') {
-            //     view.pan(dx, dy);
-            // }
-            if (prop === selected) {
+            if (prop.getType() === 'svg.svg') {
+                view.pan(dx, dy);
+            }
+            else if (prop === selected) {
                 view.move(prop, dx, dy);
             }
-            // TODO: and if (prop is highlighted)
             else if (svgview.isSelected(prop)) {
                 view.move(selected, dx, dy);
             }
@@ -153,7 +152,8 @@ const ctor = (args = {}) => {
         // TODO: show 
         if (selected !== prop) { // prevent rebuild if no change
             views.list.removeAll();
-            if (prop.getType() !== TYPE_SVG_G) {
+            const type = prop.getType();
+            if (type !== TYPE_SVG_G && type !== TYPE_SVG_SVG) {
                 const propsview = $$(PROPSVIEW, { prop, config: layout.circle });
                 views.list.add(propsview);
                 const frame = prop.getChild('frame');
@@ -162,7 +162,7 @@ const ctor = (args = {}) => {
             }
             else {
                 prop.getChildren().forEach(childProp => {
-                    if (!childProp.isGroup()) return;
+                    if (!childProp.isGroup() || childProp.getName() === 'SSS') return;
                     const propsview = $$(PROPSVIEW, { prop: childProp, config: layout.circle });
                     views.list.add(propsview);
                 });

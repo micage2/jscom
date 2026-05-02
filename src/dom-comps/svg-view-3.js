@@ -150,6 +150,7 @@ function init(self) {
         name: 'SSS',
         type: TYPE_SVG_G,
         config: {
+            hidden: true,
             SSS: {
                 class: 'SSS'
             }
@@ -175,8 +176,8 @@ function init(self) {
     });
 
     self.prop.traverse((prop, info) => {
-        if(isSVG(prop)) {
-            // Property.visitor(prop, info);
+        if(isSVG(prop) && prop !== self.SSS) {
+            Property.visitor(prop, info);
             const elem = prop.get();
 
             const ltm = getLTM(prop.get());

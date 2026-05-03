@@ -159,11 +159,20 @@ function init(self) {
 
     const binder = bindMouse(svg)
     binder.on('click', ({ target }) => {
-        const selectedProp = findProp(self, target);
-        if (!selectedProp) debugger;
+        const clickedProp = findProp(self, target);
+        if (!clickedProp) debugger;
 
-        this.emit('selected', selectedProp);
-        that.emit('info', selectedProp.getName());
+        const propName = clickedProp.getName();
+        const clone = self.SSS.getChild(propName);
+        if (clone) {
+            this.emit('deselected', clickedProp);
+            this.emit('selected', self.prop);
+        }
+        else {
+            this.emit('selected', clickedProp);
+        }
+
+        that.emit('info', clickedProp.getName());
     })
     binder.on('move', ({ target, dx, dy }) => {
         const prop = findProp(self, target); // selected

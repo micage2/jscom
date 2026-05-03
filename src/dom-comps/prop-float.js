@@ -44,6 +44,7 @@ function ctor({ prop, config = {} }) {
     const name      = prop.getName();
     const value     = prop.get();
     const { step = 0.1 } = config;
+    const precision = config.precision || 1;
 
     self.host   = document.createElement('div');
     self.shadow = self.host.attachShadow({ mode: 'closed' });
@@ -54,7 +55,7 @@ function ctor({ prop, config = {} }) {
     // self.output = self.shadow.querySelector('output');
 
     self.label.textContent  = name;
-    self.input.value        = value ?? 0;
+    self.input.value        = value.toFixed(precision) ?? 0;
     self.input.step         = step;
     // self.output.value       = value ?? 0;
 
@@ -65,7 +66,9 @@ function ctor({ prop, config = {} }) {
     };
 
     self.prop.on('value-changed', ({ newValue }) => {
-        self.input.value  = newValue.toFixed(2);
+        if (typeof newValue === 'string')
+            newValue = parseFloat(newValue);
+        self.input.value  = newValue.toFixed(precision);
         // self.output.value = newValue.toFixed(2);
     });
 

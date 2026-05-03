@@ -97,24 +97,18 @@ const ctor = (args = {}) => {
     });
     views.tree = treeview;
 
+    let svgProp = null;
     let selected = null;
     $$$.selected = selected;
 
     // save to access svgview
     svgview.once('ready', ({ view, prop }) => {
-        // selected = prop; // root
+        // prop is always a leaf or the svg prop (since we cannot click groups)
 
-        view.on('selected', (prop1) => {
-            if (view.toggleSelected(prop1)) {
-                selected = prop1;
-            }
-            else {
-                selected = prop
-            };
-            self.selected = $$$.selected = selected;
+        view.on('selected', (prop) => {
+            dispatcher.emit('prop-selected', prop);
         });
 
-        // prop is always a leaf or the svg prop (cannot click groups)
         view.on('move-selected', ({ prop, dx, dy }) => {
             if (prop.getType() === 'svg.svg') {
                 view.pan(dx, dy);
@@ -135,17 +129,26 @@ const ctor = (args = {}) => {
             else { view.scale(prop, delta, dx, dy); }
         });
         
+        svgProp = prop;
         views.svg = view;
+        dispatcher.emit('prop-selected', svgProp);
     });
     const selection = new Selection();
 
     dispatcher.on('prop-selected', (prop) => {
         // console.log('[app35:dispatcher]', prop);
-    
-        views.svg.toggleSelected(prop);
+        let rebuild = selected !== prop;
+
+        if (views.svg.toggleSelected(prop)) {
+            selected = prop;
+        }
+        else {
+            selected = svgProp;
+        };
+
         views.tree.select(prop);
     
-        if (selected !== prop) { // prevent rebuild if no change
+        if (rebuild) { // prevent rebuild if no change
             views.list.removeAll();
             const type = prop.getType();
             if (type !== TYPE_SVG_G && type !== TYPE_SVG_SVG) {
@@ -183,10 +186,10 @@ const ctor = (args = {}) => {
 
 
 const info = {
-    clsid: 'jscom.compounds.app35',
+    clsid: 'jscom.compounds.app36',
     decription: 'Test SVGProperty and tree view population. \n'
               + 'Essentially a custom data wrapper for the state tree',
-    name: '3.5',
+    name: '3.6',
 };
 
 const clsid = DOM.registerCompound(ctor, info);

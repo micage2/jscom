@@ -7,7 +7,7 @@
 <g name="cities">
     <path d="m -5 0 h10 M0 -5 v10" />
     <g name="Rome" transform="matrix(1,0,0,1, 50, 190)">
-        <circle cx="40" cy="-10" r="22" />
+        <circle cx="500" cy="335" r="22" />
         <rect x="0" y="30" width="130" height="10" />
         <path d="m -5 0 h10 M0 -5 v10" />
     </g>

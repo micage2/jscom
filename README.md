@@ -50,3 +50,6 @@ the proof that it can at least compete with other popular frameworks is done.
 ![screenshot](assets/images/app-preview.png)
 Just an example scene written in SVG for testing a finite state machine (FSM) for selection handling.
 More detailed scenes with thousands of shapes are no problem. :)
+
+![screenshot](assets/images/app-preview-2.png)
+

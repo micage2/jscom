@@ -38,12 +38,12 @@ type registry can go as far as self-modifying editors, creating file formats "on
 or attaching to already instantiated (live) external tree structures like the DOM.
 
 I focus on resizable, editor-oriented UI components for Single Page Applications (SPA's) 
-similar to Visual Studio Code that needs to be extended permanantly as the project at 
+similar to Visual Studio Code that needs to be extended permanently as the project at 
 hand grows.
 
 My endeavor in this project is a work in progress. To see how far I can come with it.
 If I can build a full-fledged extendible vector graphics editor with reusable components
-the proof is done.
+the proof that it can at least compete with other popular frameworks is done.
 
 [Early Preview of an SVG editor](https://micage2.github.io/jscom/)
 

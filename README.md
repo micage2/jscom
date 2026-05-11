@@ -23,7 +23,7 @@ This complexity has to be massively reduced. As a mental model components are bl
 boxes and interfaces are sitting at the boundary controlling what goes in and what
 goes out. This way a component designer has full control over the functionality and not 
 having to worry about side effects coming from outside the DOM/CSS. This requires
-wrapping the DOM completely an making its vast functionality accessible piece by piece.
+wrapping the DOM completely and making its vast functionality accessible piece by piece.
 Or component by component if you will.
 
 Since my view on data is that everything is tree-like the central data structure is a

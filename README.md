@@ -1,5 +1,6 @@
 # jscom
-Component Framework (inspired by COM) in pure Javascript, no frameworks.
+A Component Framework in pure Javascript, without any frameworks.
 
-Simplicity is your friend ... but hard to achieve.
+[Early Preview](https://micage2.github.io/jscom/)
 
+(assets/images/app-preview.png)

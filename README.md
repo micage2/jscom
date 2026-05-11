@@ -32,9 +32,9 @@ which is in general also tree-like (JSON, XML, ...) custom property classes can 
 registered and integrate seamlessly into the built-in property tree. An example of 
 this integration can be seen in shared/svg-property.js.
 
-The flexibility of the recursive definition of properties can go as far as 
-self-modifying editors. Creating file formats "on the fly" or attaching to already 
-instantiated external tree structures like the DOM.
+The flexibility of the recursive definition of properties together with an extendible 
+type registry can go as far as self-modifying editors, creating file formats "on the fly" 
+or attaching to already instantiated (live) external tree structures like the DOM.
 
 I focus on resizable, editor-oriented UI components for Single Page Applications (SPA's) 
 similar to Visual Studio Code that needs to be extended permanantly as the project at 

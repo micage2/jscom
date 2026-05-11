@@ -48,4 +48,5 @@ the proof that it can at least compete with other popular frameworks is done.
 [Early Preview of an SVG editor](https://micage2.github.io/jscom/)
 
 ![screenshot](assets/images/app-preview.png)
-Just an example scene written in SVG for testing. More detailed scenes with thousands of shapes - no problem.
+Just an example scene written in SVG for testing the new state machine for selection handling.
+More detailed scenes with thousands of shapes - no problem. :)

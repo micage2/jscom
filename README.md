@@ -26,6 +26,7 @@ having to worry about side effects coming from outside the DOM/CSS. This require
 wrapping the DOM completely and making its vast functionality accessible piece by piece.
 Or component by component if you will.
 
+## Trees === Data
 Since my view on data is that everything is tree-like the central data structure is a
 state tree of properties. These can handle two-way databinding. For external data
 which is in general also tree-like (JSON, XML, ...) custom property classes can be 

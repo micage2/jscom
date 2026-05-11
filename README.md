@@ -1,23 +1,30 @@
 # jscom
-A Component Framework in pure Javascript, without using external frameworks.
-An approach to proof that it's still possible to write complex UI's withou any
-dependencies to external frontend frameworks when extendibility and modularization 
-is built into the core from the start. The Component Object Model is my inspiritation
-but hopefully without the bloat that came with it.
+
+What is it? Short answer: A Component Framework in pure Javascript.
+
+An approach to proof that it's still possible to write complex UI's without any
+dependencies to external frontend frameworks and their bloated dependency graphs
+and complex build systems. Extendibility and modularization is built into the core 
+from the start. Heavily inspired by the Component Object Model (COM).
 
 Encapsulation is crucial for software projects to grow, although hard to achieve
 in the Javascript, CSS and HTML domain where everything is open by design.
 The goal is to make interfaces that the component exposes the only way to interact with 
-a component. This is also true for CSS styles that all live in their own Shadow DOM so
-they are not influenced by external CSS.
-But if one wanted to break encapsulation (bad!) I see no way to prevent this completely. 
-But I do my best to make this as hard/awkward as possible.
+a component. This must also be true for CSS styles. So all styles are attached to a 
+Shadow DOM. This way they are not influenced by external CSS. 
+If one wanted to break encapsulation (bad!) I see no way to prevent this completely. 
+But I do my best to make this as hard/awkward as possible. Since core components
+have full access to the DOM there has to be taken extreme precautions to not leak any
+internal DOM stuff to the outside (e.g. message handler). Users that just use these 
+components then don't have worry about it anymore.
 
 Web framework design is hard because of the complexity of the underlying specs.
 This complexity has to be massively reduced. As a mental model components are black 
 boxes and interfaces are sitting at the boundary controlling what goes in and what
 goes out. This way a component designer has full control over the functionality and not 
-having to worry about side effects coming from outside the DOM/CSS.
+having to worry about side effects coming from outside the DOM/CSS. This requires
+wrapping the DOM completely an making its vast functionality accessible piece by piece.
+Or component by component if you will.
 
 Since my view on data is that everything is tree-like the central data structure is a
 state tree of properties. These can handle two-way databinding. For external data

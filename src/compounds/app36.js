@@ -4,13 +4,13 @@ import SIMPLE from '../dom-comps/simple-view.js'
 import LR from '../dom-comps/left-right.js'
 import TB from '../dom-comps/top-bottom.js'
 import TBS from '../dom-comps/top-bottom-static.js'
-import LISTVIEW from '../dom-comps/list-view-2.js'
-import LISTITEM from '../dom-comps/list-item-2.js'
+import LISTVIEW from '../dom-comps/list-view-3.js'
+import LISTITEM from '../dom-comps/list-item-3.js'
 import DIALOG from '../dom-comps/dialog-box.js'
 import ONLYONEBOX from '../dom-comps/only-one-box.js'
 import BUTTON from '../dom-comps/button.js'
 import TAB from '../dom-comps/tab.js'
-import SVGVIEW from '../dom-comps/svg-view-3.js'
+import SVGVIEW from '../dom-comps/svg-view-4.js'
 import PROPSVIEW from '../dom-comps/props-view.js'
 import SLIDERVIEW from '../dom-comps/prop-slider.js'
 import BOOLVIEW from '../dom-comps/prop-bool.js'
@@ -20,6 +20,8 @@ import { Mediator } from '../shared/mediator.js';
 import { Selection } from '../shared/selection.js';
 
 const ICON_PATH = './assets/icons/';
+// const SVG_PATH = './assets/svg/map/multipolygons.svg';
+// const SVG_PATH = './assets/svg/map/lines.svg';
 const SVG_PATH = './assets/svg/cities.svg';
 const path2name = (path) => path.split('/').at(-1);
 const strip_ext = (filename) => filename.split('.')[0];
@@ -62,6 +64,7 @@ const layout = {
     tree: {
         item_clsid: LISTITEM,
         filter: (prop) => prop.isGroup(),
+        isMultiSelect: true,
     },
     circle: {
         cx: { min: -500, max: 500, step: 10 },
@@ -76,6 +79,8 @@ const dispatcher = new Mediator();
 
 
 const ctor = (args = {}) => {
+    const selection = new Set();
+
     const file = root.add({
         name: path2name(SVG_PATH),
         value: SVG_PATH,
@@ -85,28 +90,30 @@ const ctor = (args = {}) => {
         prop: file, 
         config: layout.tree,
     });
+    treeview.on('selected', (params) => {
+        const { target: { prop }, wasSelected = false } = params;
+        dispatcher.emit('prop-selected', {prop, keys: params.keys, wasSelected});
+    });
+    views.tree = treeview;
 
     const svgview = $$(SVGVIEW, { prop: file });
     const list = $$(DIALOG);
     list.add($$(SIMPLE));
     views.list = list;
 
-    treeview.on('selected', ({ prop }) => {
-        dispatcher.emit('prop-selected', prop);
-        selected = prop;
-    });
-    views.tree = treeview;
-
     let svgProp = null;
-    let selected = null;
-    $$$.selected = selected;
 
-    // save to access svgview
+    // now it's save to access svgview
     svgview.once('ready', ({ view, prop }) => {
-        // prop is always a leaf or the svg prop (since we cannot click groups)
+        // prop is always a leaf (circle, rect, path, ...) 
+        // or the svg prop (since we cannot click groups)
 
         view.on('selected', (prop) => {
-            dispatcher.emit('prop-selected', prop);
+            dispatcher.emit('prop-selected', {prop});
+        });
+
+        view.on('rect-selected', (props) => {
+            dispatcher.emit('rect-selected', props);
         });
 
         view.on('move-selected', ({ prop, dx, dy }) => {
@@ -131,20 +138,14 @@ const ctor = (args = {}) => {
         
         svgProp = prop;
         views.svg = view;
-        dispatcher.emit('prop-selected', svgProp);
+        dispatcher.emit('ready', {prop: svgProp});
     });
-    const selection = new Selection();
 
-    dispatcher.on('prop-selected', (prop) => {
+    dispatcher.on('prop-selected', ({prop, keys = {}, wasSelected = false}) => {
         // console.log('[app35:dispatcher]', prop);
-        let rebuild = selected !== prop;
+        let rebuild = true;
 
-        if (views.svg.toggleSelected(prop)) {
-            selected = prop;
-        }
-        else {
-            selected = svgProp;
-        };
+        views.svg.toggleMark(prop);
 
         views.tree.select(prop);
     
@@ -166,6 +167,14 @@ const ctor = (args = {}) => {
                 });
             }
         }
+    });
+
+    dispatcher.on('rect-selected', found => {
+        found.forEach(selprop => {
+            console.log('>...<', selprop.getType() + ':', selprop.getName());
+            views.tree.select(selprop);
+            views.svg.toggleMark(selprop);
+        });
     });
     
     const lr = $$(LR, { ratio: .2 })

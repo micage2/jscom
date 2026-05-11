@@ -234,6 +234,9 @@ export function bindMouse(element) {
         if (!hasMoved) {
             med.emit('click', { target: realTarget });
         }
+        else {
+            med.emit('pointer-up', { target: realTarget });
+        }
 
         window.removeEventListener('pointermove', handleMouseMove);
         window.removeEventListener('pointerup', handleMouseUp);

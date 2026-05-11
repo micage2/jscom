@@ -159,16 +159,25 @@ class SVGRectProperty extends GroupProperty {
         if (!(rect instanceof SVGRectElement)) {
             if (rect) console.warn('[SVGRectProperty].ctor', 'Invalid argument: ', rect);
             rect = document.createElementNS(SVGNS, 'rect');
+            const cfg = params.config[params.name];
+            if (cfg) {
+                processConfig(rect, cfg);
+                rect.x.baseVal.value = cfg.x || 0;
+                rect.y.baseVal.value = cfg.y || 0;
+                rect.width.baseVal.value = cfg.w || 0;
+                rect.height.baseVal.value = cfg.h || 0;
+            }
         }
 
         const x = this.add({ name: 'x', value: rect.x.baseVal.value });
         const y = this.add({ name: 'y', value: rect.y.baseVal.value });
-        const w = this.add({ name: 'width', value: rect.width.baseVal.value });
-        const h = this.add({ name: 'height', value: rect.height.baseVal.value });
+        const w = this.add({ name: 'w', value: rect.width.baseVal.value });
+        const h = this.add({ name: 'h', value: rect.height.baseVal.value });
         x.on('value-changed', ({ newValue }) => { rect.x.baseVal.value = newValue; });
         y.on('value-changed', ({ newValue }) => { rect.y.baseVal.value = newValue; });
         w.on('value-changed', ({ newValue }) => { rect.width.baseVal.value = newValue; });
         h.on('value-changed', ({ newValue }) => { rect.height.baseVal.value = newValue; });
+
         this.#rect = rect;
     }
 

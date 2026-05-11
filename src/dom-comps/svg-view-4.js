@@ -166,7 +166,9 @@ function ctor({ prop, config = {} }) {
         init.bind(this)(self);
         this.emit('ready', {view: this, prop: child });
     });
-    this.on('info', (text) => { self.info.textContent = text; });
+    this.on('info', (text) => {
+        self.info.textContent = text;
+    });
 
     // SVG*Element → Property
     self.elem2prop = new WeakMap();
@@ -299,30 +301,20 @@ function init(self) {
         }
     });
 
+    self.binder = binder;
 }
 
 // creates ISVGView interface objects
 const ISVGViewFactory = (self) => {
     return {
         // selection feedback is done by <use> clones added to <g class="SSS">
-        toggleSelected(prop, bool = true) {
+        toggleMark(prop, bool = true) {
             const propType = prop.getType();
 
             // no full scene selection
             if (propType === TYPE_SVG_SVG) {
-                self.SSS.clear(); // de-highlight all
                 return true;
             }
-
-            // is element already higlighted? then remove highlight
-            const propName = prop.getName();
-            const high = self.SSS.getChild(propName);
-            if (high) {
-                self.SSS.abandon(high);
-                return false;
-            }
-
-            self.SSS.clear();
 
             // make sure id of clone and original match
             const id = Property.gen_id();
@@ -331,7 +323,7 @@ const ISVGViewFactory = (self) => {
 
             // add clone to selection group
             const use = self.SSS.add({
-                name: propName,
+                name: prop.getName(),
                 type: TYPE_SVG_USE,
                 config: {
                     href: id,
@@ -353,6 +345,10 @@ const ISVGViewFactory = (self) => {
             useElem.setAttribute('transform', `matrix(${M.a}, ${M.b}, ${M.c}, ${M.d}, ${M.e}, ${M.f})`);
 
             return true;
+        },
+
+        deselectAll() {
+            self.SSS.clear();
         },
 
         isSelected(prop) {
@@ -429,12 +425,16 @@ const ISVGViewFactory = (self) => {
             console.log(prop, delta, dx, dy);
         },
 
+        unbindMouse() {
+            self.binder.emit('off');
+        },
+
         prop: self.prop,
     };
 };
 
 const info = {
-    clsid: 'jscom.dom-comps.svg-view-3',
+    clsid: 'jscom.dom-comps.svg-view-4',
     name: 'SVGView',
     description: 'SVG view with pan and zoon'
 };

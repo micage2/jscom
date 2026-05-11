@@ -119,6 +119,8 @@ const ctor = (args = {}) => {
         // TODO: iface2item needed
         const item = iface2item.get(iface);
         listview.select(item);
+
+        status.set_timed(iface.getName());
     });
 
     listview.on('selected', (listitem) => {
@@ -135,7 +137,7 @@ const ctor = (args = {}) => {
                 tabbar.select(button);
                 const listitem = links_reverse.get(button);
                 listview.select(listitem);
-                svgview.isolateSelect2(listitem.iface);
+                svgview.select(listitem.iface);
             });
 
             tab.on('closed', (tab) => {
@@ -173,7 +175,7 @@ const ctor = (args = {}) => {
     return $$(TB, { ratio: 0 })
         .setTop(Simple(info))
         .setBottom($$(TBS, { bottomHeight: 32 })
-            .setTop($$(LR, {minLeft: 0, ratio: 0.3})
+            .setTop($$(LR, {minLeft: 0, ratio: 0.1})
                 .setLeft(toolbar_with_controls)
                 .setRight(tabview)
             )
